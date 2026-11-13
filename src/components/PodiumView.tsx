@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import confetti from 'canvas-confetti';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
 import { Trophy, RotateCcw, Award, Sparkles, Heart } from 'lucide-react';
@@ -18,31 +17,6 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
 
   useEffect(() => {
     sound.playCorrect();
-
-    // Epic multi-stage confetti
-    const end = Date.now() + 4 * 1000;
-    const colors = ['#E21B3C', '#1368CE', '#D89E00', '#26890C', '#FFFFFF'];
-
-    (function frame() {
-      confetti({
-        particleCount: 4,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      });
-      confetti({
-        particleCount: 4,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    })();
   }, []);
 
   return (

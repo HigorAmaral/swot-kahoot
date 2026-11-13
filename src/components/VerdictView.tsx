@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import confetti from 'canvas-confetti';
 import { Question } from '../data/questions';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
@@ -35,11 +34,6 @@ export const VerdictView: React.FC<Props> = ({
   useEffect(() => {
     if (isCorrect) {
       sound.playCorrect();
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
       // Auto award candy on correct
       setBrindeAwarded('candy');
       onAwardBrinde(answeringTeam.id, 'candy');
@@ -52,11 +46,6 @@ export const VerdictView: React.FC<Props> = ({
     setBrindeAwarded(type);
     sound.playCandyChime();
     onAwardBrinde(answeringTeam.id, type);
-    confetti({
-      particleCount: 60,
-      spread: 60,
-      origin: { y: 0.7 }
-    });
   };
 
   return (

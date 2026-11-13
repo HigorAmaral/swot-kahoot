@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Question } from '../data/questions';
-import { Team } from '../types';
+import { Team, UserAccount } from '../types';
 import { sound } from '../utils/sound';
-import { Pause, Play, FastForward } from 'lucide-react';
+import { Pause, Play, FastForward, Users, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   question: Question;
@@ -15,6 +15,8 @@ interface Props {
   onAnswerSelected: (selectedIndex: number, timeLeft: number) => void;
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
+  currentUser?: UserAccount;
+  onJoinTeam?: (teamId: number) => void;
 }
 
 export const QuestionPlayView: React.FC<Props> = ({
@@ -28,6 +30,8 @@ export const QuestionPlayView: React.FC<Props> = ({
   onAnswerSelected,
   allTeams,
   onSelectAnsweringTeam,
+  currentUser,
+  onJoinTeam,
 }) => {
   const [timeLeft, setTimeLeft] = useState(questionDuration || 30);
   const [isPaused, setIsPaused] = useState(false);
@@ -237,10 +241,36 @@ export const QuestionPlayView: React.FC<Props> = ({
         })}
       </div>
 
-      {/* Bottom Bar: Instructions for Classroom Host */}
-      <div className="w-full text-center py-2 text-xs text-slate-400 border-t border-slate-800">
-        Grupo de Comando: Clique na opção dita pela equipe <strong>{answeringTeam.name}</strong> ou permita que o representante clique diretamente na tela!
-      </div>
+      {/* Entrar em um Grupo durante o Quiz */}
+      {allTeams && currentUser && onJoinTeam && (
+        <div className="w-full glass-card rounded-2xl p-3 mt-2 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
+            <Users className="w-4 h-4" />
+            Entrar em um grupo ({currentUser.avatar} {currentUser.displayName}):
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {allTeams.map(t => {
+              const isMember = t.participants.some(
+                p => p.name.toLowerCase() === currentUser.displayName.toLowerCase()
+              );
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => onJoinTeam(t.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1 ${
+                    isMember
+                      ? `${t.bgClass} text-white ring-2 ring-white shadow`
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700'
+                  }`}
+                >
+                  {isMember && <CheckCircle2 className="w-3 h-3" />}
+                  <span>{t.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

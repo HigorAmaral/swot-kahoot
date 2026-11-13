@@ -1,11 +1,15 @@
 import React from 'react';
 import { Question } from '../data/questions';
-import { Sparkles, ArrowRight, ArrowLeft, Layers } from 'lucide-react';
+import { Team, UserAccount } from '../types';
+import { Sparkles, ArrowRight, ArrowLeft, Layers, Users, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   question: Question;
   questionIndex: number;
   totalQuestions: number;
+  teams: Team[];
+  currentUser: UserAccount;
+  onJoinTeam: (teamId: number) => void;
   onProceedToQuestion: () => void;
   onBack: () => void;
 }
@@ -14,9 +18,15 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   question,
   questionIndex,
   totalQuestions,
+  teams,
+  currentUser,
+  onJoinTeam,
   onProceedToQuestion,
   onBack,
 }) => {
+  const userTeam = teams.find(t =>
+    t.participants.some(p => p.name.toLowerCase() === currentUser.displayName.toLowerCase())
+  );
   return (
     <div className="flex flex-col items-center justify-center min-h-[540px] w-full max-w-4xl mx-auto p-4 animate-fade-in text-center">
       {/* Question Counter Pill */}
@@ -40,6 +50,40 @@ export const QuestionIntroBanner: React.FC<Props> = ({
             {question.swotQuadrant}
           </div>
         )}
+      </div>
+
+      {/* Entrar em um Grupo durante o Quiz */}
+      <div className="w-full glass-card border border-emerald-500/30 rounded-2xl p-4 mb-6 text-left">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <span className="text-xs font-black uppercase text-emerald-300 flex items-center gap-1.5">
+            <Users className="w-4 h-4" />
+            {userTeam
+              ? `Você está participando no: ${userTeam.name}`
+              : 'Entrar em um Grupo para participar deste Quiz:'}
+          </span>
+          <span className="text-[11px] text-slate-400 font-bold">
+            {currentUser.avatar} {currentUser.displayName}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {teams.map(t => {
+            const isMember = userTeam?.id === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => onJoinTeam(t.id)}
+                className={`px-3 py-2.5 rounded-xl border text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                  isMember
+                    ? `${t.bgClass} text-white border-white ring-2 ring-white/40 shadow`
+                    : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+                }`}
+              >
+                {isMember && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}
+                <span className="truncate">{t.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main Proceed & Back Buttons */}

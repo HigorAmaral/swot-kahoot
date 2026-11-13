@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Team } from '../types';
+import { Team, UserAccount } from '../types';
 import { sound } from '../utils/sound';
 import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2 } from 'lucide-react';
 
 interface Props {
   teams: Team[];
+  currentUser: UserAccount;
   onUpdateTeamName: (teamId: number, newName: string) => void;
   onStartGame: () => void;
   onOpenCreatorModal?: () => void;
@@ -14,10 +15,9 @@ interface Props {
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
 }
 
-const AVATAR_OPTIONS = ['👨‍💻', '👩‍💻', '🚀', '⚡', '🧠', '🛡️', '🎯', '👑', '🔥', '⭐'];
-
 export const IntroSetupView: React.FC<Props> = ({
   teams,
+  currentUser,
   onUpdateTeamName,
   onStartGame,
   onOpenCreatorModal,
@@ -27,21 +27,15 @@ export const IntroSetupView: React.FC<Props> = ({
   onRemoveParticipant,
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<number>(1);
-  const [newStudentName, setNewStudentName] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState('👨‍💻');
   const [lastJoinedMessage, setLastJoinedMessage] = useState<string | null>(null);
 
   const activeTeam = teams.find(t => t.id === selectedTeamId) || teams[0];
 
-  const handleJoinTeam = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const name = newStudentName.trim();
-    if (!name) return;
-
-    onAddParticipant(selectedTeamId, name, selectedAvatar);
+  const handleJoinTeam = (teamId: number) => {
+    const targetTeam = teams.find(t => t.id === teamId) || activeTeam;
+    onAddParticipant(teamId, currentUser.displayName, currentUser.avatar);
     sound.playTone(650, 0.15, 'sine', 0.2);
-    setLastJoinedMessage(`${selectedAvatar} ${name} entrou no ${activeTeam.name}!`);
-    setNewStudentName('');
+    setLastJoinedMessage(`${currentUser.avatar} ${currentUser.displayName} entrou no ${targetTeam.name}!`);
 
     setTimeout(() => {
       setLastJoinedMessage(null);
@@ -114,54 +108,31 @@ export const IntroSetupView: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* USER NAME JOIN BOX */}
-      <div className="w-full glass-card rounded-3xl p-5 sm:p-6 mb-6 text-left border border-emerald-500/30 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-base font-black text-white">
-              Entrar na equipe: <span className="text-cyan-300">{activeTeam.name}</span>
-            </h3>
-          </div>
-          <span className="text-xs text-slate-400 font-semibold">
-            {totalParticipants} participante(s) na sala
-          </span>
-        </div>
-
-        <form onSubmit={handleJoinTeam} className="flex flex-col sm:flex-row gap-3">
-          {/* Avatar Selector */}
-          <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-700/80 rounded-xl p-1.5 overflow-x-auto">
-            {AVATAR_OPTIONS.slice(0, 6).map(emoji => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => setSelectedAvatar(emoji)}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg transition ${
-                  selectedAvatar === emoji ? 'bg-emerald-500 text-slate-950 scale-110 shadow' : 'hover:bg-slate-800'
-                }`}
-              >
-                {emoji}
-              </button>
-            ))}
+      {/* ACCOUNT QUICK JOIN BAR (NO NAME TYPING NEEDED) */}
+      <div className="w-full glass-card rounded-3xl p-4 sm:p-5 mb-6 text-left border border-emerald-500/30 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-2xl shadow">
+              {currentUser.avatar}
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-white">
+                Participando como: <span className="text-emerald-400">{currentUser.displayName}</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Selecione uma equipe abaixo para entrar com 1 clique ({totalParticipants} na sala)
+              </p>
+            </div>
           </div>
 
-          {/* Name Input */}
-          <input
-            type="text"
-            value={newStudentName}
-            onChange={e => setNewStudentName(e.target.value)}
-            placeholder="Digite seu nome (Ex: Higor Amaral, Ana Paula...)"
-            className="flex-1 bg-slate-950/90 border-2 border-slate-700 focus:border-emerald-400 rounded-2xl px-4 py-3 text-sm font-bold text-white focus:outline-none transition"
-          />
-
-          {/* Submit Button */}
           <button
-            type="submit"
+            type="button"
+            onClick={() => handleJoinTeam(selectedTeamId)}
             className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
           >
-            <UserPlus className="w-4 h-4" /> Entrar no Grupo!
+            <UserPlus className="w-4 h-4" /> Entrar no {activeTeam.name}
           </button>
-        </form>
+        </div>
 
         {/* Success Alert */}
         {lastJoinedMessage && (

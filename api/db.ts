@@ -506,6 +506,46 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({ success: true });
       }
 
+      // 14. Update User Profile
+      if (action === 'update_profile') {
+        const username = String(body.username || '').trim().toLowerCase();
+        const displayName = String(body.displayName || '').trim();
+        const avatar = String(body.avatar || '👨‍💻');
+        const newPassword = body.newPassword ? String(body.newPassword) : '';
+
+        if (!username || !displayName) {
+          return res.status(400).json({ error: 'Nome de exibição é obrigatório.' });
+        }
+
+        if (newPassword && newPassword.length < 3) {
+          return res.status(400).json({ error: 'A nova senha deve ter pelo menos 3 caracteres.' });
+        }
+
+        const updated = newPassword
+          ? await sql`
+              UPDATE fabrica_users
+              SET display_name = ${displayName}, avatar = ${avatar}, password_hash = ${hashPassword(newPassword)}
+              WHERE username = ${username}
+              RETURNING id, username, display_name, avatar
+            `
+          : await sql`
+              UPDATE fabrica_users
+              SET display_name = ${displayName}, avatar = ${avatar}
+              WHERE username = ${username}
+              RETURNING id, username, display_name, avatar
+            `;
+
+        if (updated.length === 0) {
+          return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+
+        const u = updated[0];
+        return res.status(200).json({
+          success: true,
+          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar }
+        });
+      }
+
       return res.status(400).json({ error: 'Ação desconhecida' });
     }
 

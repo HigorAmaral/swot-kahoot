@@ -343,6 +343,29 @@ export class DatabaseService {
       return false;
     }
   }
+
+  // Update User Profile
+  async updateProfile(username: string, displayName: string, avatar: string, newPassword?: string): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_profile',
+          username,
+          displayName,
+          avatar,
+          newPassword: newPassword || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao atualizar perfil' };
+      this.isConnected = true;
+      return { success: true, user: data.user };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
 }
 
 export const dbService = new DatabaseService();

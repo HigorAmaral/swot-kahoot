@@ -16,6 +16,7 @@ import { AdminAuthModal } from './components/AdminAuthModal';
 import { KahootCreatorModal } from './components/KahootCreatorModal';
 import { LoginView } from './components/LoginView';
 import { MyQuizzesModal } from './components/MyQuizzesModal';
+import { ProfileModal } from './components/ProfileModal';
 
 const initialTeams: Team[] = [
   {
@@ -138,6 +139,7 @@ export function App() {
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
   const [isMyQuizzesModalOpen, setIsMyQuizzesModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex] || questions[0];
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
@@ -176,6 +178,19 @@ export function App() {
     try {
       localStorage.removeItem('fabrica_user');
     } catch {}
+  };
+
+  const handleProfileUpdated = (updatedUser: UserAccount) => {
+    setCurrentUser(updatedUser);
+    try {
+      localStorage.setItem('fabrica_user', JSON.stringify(updatedUser));
+    } catch {}
+  };
+
+  const handleJoinCurrentUserToTeam = (teamId: number) => {
+    if (!currentUser) return;
+    sound.playTone(650, 0.15, 'sine', 0.2);
+    handleAddParticipant(teamId, currentUser.displayName, currentUser.avatar);
   };
 
   // Load shared quiz if ?quiz=FQ-XXXX is in URL once logged in
@@ -505,6 +520,7 @@ export function App() {
         onOpenAdminModal={handleOpenAdmin}
         onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
         onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
         currentUser={currentUser}
         onLogoutUser={handleLogoutUser}
         isDbConnected={isDbConnected}
@@ -515,6 +531,7 @@ export function App() {
         {stage === 'intro' && (
           <IntroSetupView
             teams={teams}
+            currentUser={currentUser}
             onUpdateTeamName={handleUpdateTeamName}
             onStartGame={handleStartGame}
             onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
@@ -530,6 +547,9 @@ export function App() {
             question={currentQuestion}
             questionIndex={currentQuestionIndex}
             totalQuestions={questions.length}
+            teams={teams}
+            currentUser={currentUser}
+            onJoinTeam={handleJoinCurrentUserToTeam}
             onBack={() => setStage('intro')}
             onProceedToQuestion={() => {
               setAnsweringTeamId(teams[currentQuestionIndex % teams.length].id);
@@ -553,6 +573,8 @@ export function App() {
             onSelectAnsweringTeam={(teamId) => {
               setAnsweringTeamId(teamId);
             }}
+            currentUser={currentUser}
+            onJoinTeam={handleJoinCurrentUserToTeam}
           />
         )}
 
@@ -635,6 +657,13 @@ export function App() {
         currentUser={currentUser}
         onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
         onOpenCreator={() => setIsCreatorModalOpen(true)}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        currentUser={currentUser}
+        onProfileUpdated={handleProfileUpdated}
       />
 
       {/* Minimal Footer */}

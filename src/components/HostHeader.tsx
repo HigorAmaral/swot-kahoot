@@ -7,6 +7,7 @@ interface Props {
   onOpenAdminModal: () => void;
   onOpenCreatorModal: () => void;
   onOpenMyQuizzesModal: () => void;
+  onOpenProfileModal: () => void;
   currentUser: UserAccount;
   onLogoutUser: () => void;
   isDbConnected: boolean;
@@ -16,6 +17,7 @@ export const HostHeader: React.FC<Props> = ({
   onOpenAdminModal,
   onOpenCreatorModal,
   onOpenMyQuizzesModal,
+  onOpenProfileModal,
   currentUser,
   onLogoutUser,
   isDbConnected,
@@ -103,12 +105,17 @@ export const HostHeader: React.FC<Props> = ({
             </span>
           </div>
 
-          {/* Logged-in User & Logout */}
+          {/* Logged-in User (Click to Customize) & Logout */}
           <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200">
-              <span>{currentUser.avatar}</span>
-              <span>@{currentUser.username}</span>
-            </span>
+            <button
+              onClick={onOpenProfileModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-400 text-xs font-bold text-slate-200 transition active:scale-95"
+              title="Clique para personalizar sua conta (nome, avatar, senha)"
+            >
+              <span className="text-sm">{currentUser.avatar}</span>
+              <span className="hidden sm:inline">{currentUser.displayName}</span>
+              <span className="sm:hidden">@{currentUser.username}</span>
+            </button>
             <button
               onClick={onLogoutUser}
               className="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/70 text-slate-300 hover:text-rose-300 transition border border-slate-800"

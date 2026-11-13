@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Team, Participant, RoundLog } from '../types';
+import { Team, Participant, RoundLog, Question } from '../types';
 import { questionsData } from '../data/questions';
 import { sound } from '../utils/sound';
 import {
@@ -18,7 +18,10 @@ import {
   ChevronRight,
   UserCheck,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Clock,
+  Download,
+  Sliders
 } from 'lucide-react';
 
 interface Props {
@@ -29,6 +32,12 @@ interface Props {
   onDeclareWinner: (teamId: number) => void;
   currentQuestionIndex: number;
   onSetQuestionIndex: (idx: number) => void;
+  questions?: Question[];
+  questionDuration?: number;
+  onSetQuestionDuration?: (seconds: number) => void;
+  pointsPerCorrect?: number;
+  onSetPointsPerCorrect?: (points: number) => void;
+  onGoToPodium?: () => void;
   onAddParticipant: (teamId: number, name: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
   onResetGame: () => void;
@@ -47,6 +56,12 @@ export const AdminDashboard: React.FC<Props> = ({
   onDeclareWinner,
   currentQuestionIndex,
   onSetQuestionIndex,
+  questions = questionsData,
+  questionDuration = 30,
+  onSetQuestionDuration,
+  pointsPerCorrect = 1000,
+  onSetPointsPerCorrect,
+  onGoToPodium,
   onAddParticipant,
   onRemoveParticipant,
   onResetGame,
@@ -82,6 +97,33 @@ export const AdminDashboard: React.FC<Props> = ({
     if (!name) return;
     onAddParticipant(teamId, name);
     setNewParticipantNames(prev => ({ ...prev, [teamId]: '' }));
+  };
+
+  const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
+  const leaderTeam = [...teams].sort((a, b) => b.points - a.points)[0];
+
+  const handleExportCsv = () => {
+    const rows = [
+      ['Equipe', 'Pontos', 'Acertos', 'Erros', 'Balas', 'Chocolates', 'Vencedor', 'Integrantes'],
+      ...teams.map(t => [
+        `"${t.name}"`,
+        t.points,
+        t.answersCorrect,
+        t.answersWrong,
+        t.candies,
+        t.chocolates,
+        t.isWinner ? 'Sim' : 'Não',
+        `"${t.participants.map(p => p.name).join(', ')}"`,
+      ]),
+    ];
+    const csv = rows.map(r => r.join(';')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio_fabricaquiz_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -203,6 +245,26 @@ export const AdminDashboard: React.FC<Props> = ({
           {/* TAB 1: DECLARAR VENCEDOR & AJUSTAR PONTOS */}
           {activeTab === 'winner_scores' && (
             <div className="space-y-6 animate-fade-in">
+              {/* Quick Live Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                  <div className="text-[10px] font-black uppercase text-slate-400">Alunos na Sala</div>
+                  <div className="text-2xl font-black text-emerald-400 mt-0.5">{totalParticipants}</div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                  <div className="text-[10px] font-black uppercase text-slate-400">Perguntas Ativas</div>
+                  <div className="text-2xl font-black text-cyan-400 mt-0.5">{questions.length}</div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                  <div className="text-[10px] font-black uppercase text-slate-400">Rodadas Jogadas</div>
+                  <div className="text-2xl font-black text-white mt-0.5">{roundLogs.length}</div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-amber-500/30">
+                  <div className="text-[10px] font-black uppercase text-amber-300">Líder Atual</div>
+                  <div className="text-sm font-black text-white mt-1 truncate">{leaderTeam?.name || '-'}</div>
+                </div>
+              </div>
+
               <div className="bg-amber-950/40 border-2 border-amber-500/50 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-amber-300 flex items-center gap-2">
@@ -211,6 +273,25 @@ export const AdminDashboard: React.FC<Props> = ({
                   <p className="text-xs sm:text-sm text-slate-300 mt-1">
                     Como Administrador / Grupo de Comando, você pode proclamar qualquer equipe como vencedora da rodada ou do quiz inteiro a qualquer instante.
                   </p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <button
+                    onClick={handleExportCsv}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-cyan-300 flex items-center gap-1.5 transition"
+                  >
+                    <Download className="w-4 h-4" /> Exportar CSV
+                  </button>
+                  {onGoToPodium && (
+                    <button
+                      onClick={() => {
+                        onGoToPodium();
+                        onClose();
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition"
+                    >
+                      <Award className="w-4 h-4" /> Ir para Pódio
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -421,16 +502,61 @@ export const AdminDashboard: React.FC<Props> = ({
             </div>
           )}
 
-          {/* TAB 3: CONTROLE DE RODADAS & MECÂNICAS */}
+          {/* TAB 3: CONTROLE DE RODADAS & CONFIGURAÇÕES */}
           {activeTab === 'quiz_control' && (
             <div className="space-y-6 animate-fade-in">
+              {/* Match Settings */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-emerald-400" /> Tempo por Pergunta:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[15, 20, 30, 45, 60].map(sec => (
+                      <button
+                        key={sec}
+                        onClick={() => onSetQuestionDuration && onSetQuestionDuration(sec)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                          questionDuration === sec
+                            ? 'bg-emerald-500 text-slate-950 shadow'
+                            : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        }`}
+                      >
+                        {sec}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-cyan-400" /> Pontuação Base por Acerto:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[500, 1000, 1500, 2000].map(pts => (
+                      <button
+                        key={pts}
+                        onClick={() => onSetPointsPerCorrect && onSetPointsPerCorrect(pts)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                          pointsPerCorrect === pts
+                            ? 'bg-cyan-500 text-slate-950 shadow'
+                            : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        }`}
+                      >
+                        {pts} pts
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Question Jumper */}
               <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
                 <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-cyan-400" /> Pular Diretamente para Pergunta (1 a 10):
+                  <Sparkles className="w-4 h-4 text-cyan-400" /> Pular Diretamente para Pergunta (1 a {questions.length}):
                 </h4>
-                <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-                  {questionsData.map((q, idx) => (
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-2">
+                  {questions.map((q, idx) => (
                     <button
                       key={q.id}
                       onClick={() => {
@@ -439,13 +565,13 @@ export const AdminDashboard: React.FC<Props> = ({
                       }}
                       className={`p-2.5 rounded-xl font-black text-sm transition flex flex-col items-center justify-center ${
                         currentQuestionIndex === idx
-                          ? 'bg-purple-600 text-white ring-2 ring-purple-300 shadow-lg'
+                          ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300 shadow-lg'
                           : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
                       }`}
                     >
-                      <span>#{q.id}</span>
-                      <span className="text-[9px] uppercase text-slate-400 truncate max-w-full">
-                        {q.theme}
+                      <span>#{idx + 1}</span>
+                      <span className="text-[9px] uppercase opacity-75 truncate max-w-full">
+                        {q.category || q.theme}
                       </span>
                     </button>
                   ))}

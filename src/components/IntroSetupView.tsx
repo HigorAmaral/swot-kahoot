@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, ShieldAlert, Share2 } from 'lucide-react';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2 } from 'lucide-react';
 
 interface Props {
   teams: Team[];
   onUpdateTeamName: (teamId: number, newName: string) => void;
   onStartGame: () => void;
-  onOpenAdminModal: () => void;
   onOpenCreatorModal?: () => void;
   onOpenMyQuizzesModal?: () => void;
   activeQuizInfo?: { title: string; shareCode?: string } | null;
@@ -21,7 +20,6 @@ export const IntroSetupView: React.FC<Props> = ({
   teams,
   onUpdateTeamName,
   onStartGame,
-  onOpenAdminModal,
   onOpenCreatorModal,
   onOpenMyQuizzesModal,
   activeQuizInfo,
@@ -112,14 +110,6 @@ export const IntroSetupView: React.FC<Props> = ({
                 Enviar / Meus Quizzes
               </button>
             )}
-
-            <button
-              onClick={onOpenAdminModal}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-amber-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"
-            >
-              <ShieldAlert className="w-4 h-4 text-amber-400" />
-              Painel ADM
-            </button>
           </div>
         </div>
       </div>

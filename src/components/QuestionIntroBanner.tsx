@@ -1,12 +1,13 @@
 import React from 'react';
 import { Question } from '../data/questions';
-import { Sparkles, ArrowRight, Layers } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Layers } from 'lucide-react';
 
 interface Props {
   question: Question;
   questionIndex: number;
   totalQuestions: number;
   onProceedToQuestion: () => void;
+  onBack: () => void;
 }
 
 export const QuestionIntroBanner: React.FC<Props> = ({
@@ -14,6 +15,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   questionIndex,
   totalQuestions,
   onProceedToQuestion,
+  onBack,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[540px] w-full max-w-4xl mx-auto p-4 animate-fade-in text-center">
@@ -40,8 +42,16 @@ export const QuestionIntroBanner: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Main Proceed Button */}
+      {/* Main Proceed & Back Buttons */}
       <div className="flex flex-wrap items-center justify-center gap-4">
+        <button
+          onClick={onBack}
+          className="px-6 py-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600 text-slate-200 font-extrabold text-base sm:text-lg shadow-lg transition active:scale-95 flex items-center gap-2"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Voltar</span>
+        </button>
+
         <button
           onClick={onProceedToQuestion}
           className="px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-lg sm:text-xl shadow-2xl shadow-emerald-500/25 transition transform active:scale-95 flex items-center gap-3"

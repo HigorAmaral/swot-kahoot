@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Question } from '../data/questions';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
-import { Clock, ShieldCheck, Pause, Play } from 'lucide-react';
+import { Pause, Play, FastForward } from 'lucide-react';
 
 interface Props {
   question: Question;
+  questionIndex: number;
+  totalQuestions: number;
+  questionDuration: number;
   answeringTeam: Team;
   disputeWinnerTeam: Team;
   isPassed: boolean;
@@ -16,6 +19,9 @@ interface Props {
 
 export const QuestionPlayView: React.FC<Props> = ({
   question,
+  questionIndex,
+  totalQuestions,
+  questionDuration,
   answeringTeam,
   disputeWinnerTeam,
   isPassed,
@@ -23,9 +29,15 @@ export const QuestionPlayView: React.FC<Props> = ({
   allTeams,
   onSelectAnsweringTeam,
 }) => {
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(questionDuration || 30);
   const [isPaused, setIsPaused] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  useEffect(() => {
+    setTimeLeft(questionDuration || 30);
+    setSelectedOption(null);
+    setIsPaused(false);
+  }, [question.id, questionDuration]);
 
   // Timer countdown
   useEffect(() => {
@@ -62,9 +74,25 @@ export const QuestionPlayView: React.FC<Props> = ({
     }, 600);
   };
 
+  const progressPercent = Math.round(((questionIndex + 1) / Math.max(totalQuestions, 1)) * 100);
+
   return (
     <div className="flex flex-col items-center justify-between min-h-[640px] w-full max-w-6xl mx-auto p-4 animate-fade-in">
-      {/* Top Bar: Category, Case Study button & Timer */}
+      {/* Progress Bar */}
+      <div className="w-full mb-3">
+        <div className="flex items-center justify-between text-[11px] font-black text-slate-400 mb-1 px-1">
+          <span>PERGUNTA {questionIndex + 1} DE {totalQuestions}</span>
+          <span className="text-emerald-400">{progressPercent}% concluído</span>
+        </div>
+        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Top Bar: Category & Timer Controls */}
       <div className="w-full flex flex-wrap items-center justify-between gap-3 mb-4">
         {/* Category & Theme Badge */}
         <div className="flex items-center gap-2">
@@ -116,7 +144,7 @@ export const QuestionPlayView: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Controls: Timer Pause */}
+        {/* Controls: Timer Pause & Skip/Reveal */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPaused(!isPaused)}
@@ -125,6 +153,15 @@ export const QuestionPlayView: React.FC<Props> = ({
           >
             {isPaused ? <Play className="w-4 h-4 text-emerald-400" /> : <Pause className="w-4 h-4 text-amber-400" />}
             <span>{isPaused ? "Retomar" : "Pausar"}</span>
+          </button>
+          <button
+            onClick={() => onAnswerSelected(-1, 0)}
+            disabled={selectedOption !== null}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-xs font-bold text-cyan-300 transition"
+            title="Encerrar tempo e revelar resposta correta"
+          >
+            <FastForward className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Revelar</span>
           </button>
         </div>
       </div>

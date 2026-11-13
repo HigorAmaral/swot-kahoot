@@ -108,6 +108,8 @@ export function App() {
   const [stage, setStage] = useState<GameStage>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [disputeMode] = useState<DisputeMode>('direto');
+  const [questionDuration, setQuestionDuration] = useState<number>(30);
+  const [pointsPerCorrect, setPointsPerCorrect] = useState<number>(1000);
 
   // Dispute & Turn state
   const [disputeWinnerId, setDisputeWinnerId] = useState<number>(1);
@@ -365,8 +367,8 @@ export function App() {
   const handleAnswerSelected = (selectedIdx: number, timeLeft: number) => {
     setLastSelectedIndex(selectedIdx);
     const isCorrect = selectedIdx === currentQuestion.correctIndex;
-    const bonus = isCorrect ? Math.round((timeLeft / 30) * 200) : 0;
-    const pointsAwarded = isCorrect ? 1000 + bonus : 0;
+    const bonus = isCorrect ? Math.round((timeLeft / Math.max(questionDuration, 1)) * 200) : 0;
+    const pointsAwarded = isCorrect ? pointsPerCorrect + bonus : 0;
 
     const updatedTeams = teams.map(t => {
       if (t.id === answeringTeamId) {
@@ -515,7 +517,6 @@ export function App() {
             teams={teams}
             onUpdateTeamName={handleUpdateTeamName}
             onStartGame={handleStartGame}
-            onOpenAdminModal={handleOpenAdmin}
             onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
             onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
             activeQuizInfo={activeQuizInfo}
@@ -529,6 +530,7 @@ export function App() {
             question={currentQuestion}
             questionIndex={currentQuestionIndex}
             totalQuestions={questions.length}
+            onBack={() => setStage('intro')}
             onProceedToQuestion={() => {
               setAnsweringTeamId(teams[currentQuestionIndex % teams.length].id);
               setIsPassed(false);
@@ -540,6 +542,9 @@ export function App() {
         {stage === 'question_play' && (
           <QuestionPlayView
             question={currentQuestion}
+            questionIndex={currentQuestionIndex}
+            totalQuestions={questions.length}
+            questionDuration={questionDuration}
             answeringTeam={answeringTeam}
             disputeWinnerTeam={disputeWinnerTeam}
             isPassed={isPassed}
@@ -594,6 +599,12 @@ export function App() {
           setCurrentQuestionIndex(idx);
           setStage('question_intro');
         }}
+        questions={questions}
+        questionDuration={questionDuration}
+        onSetQuestionDuration={setQuestionDuration}
+        pointsPerCorrect={pointsPerCorrect}
+        onSetPointsPerCorrect={setPointsPerCorrect}
+        onGoToPodium={() => setStage('podium')}
         onAddParticipant={handleAddParticipant}
         onRemoveParticipant={handleRemoveParticipant}
         onResetGame={handleResetGame}

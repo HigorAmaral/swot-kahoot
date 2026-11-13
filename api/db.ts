@@ -86,8 +86,12 @@ async function ensureTables(sql: any) {
         display_name VARCHAR(120) NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         avatar VARCHAR(50) DEFAULT '👨‍💻',
+        email VARCHAR(255),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+    `;
+    await sql`
+      ALTER TABLE fabrica_users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS fabrica_quizzes (
@@ -109,6 +113,16 @@ async function ensureTables(sql: any) {
         recipient_username VARCHAR(80) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE (quiz_share_code, recipient_username)
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS fabrica_email_invites (
+        id SERIAL PRIMARY KEY,
+        quiz_share_code VARCHAR(32) NOT NULL,
+        sender_username VARCHAR(80) NOT NULL,
+        recipient_email VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE (quiz_share_code, recipient_email)
       );
     `;
   } catch (e) {
@@ -176,13 +190,42 @@ export default async function handler(req: any, res: any) {
           ORDER BY updated_at DESC
         `;
 
+        const userRows = await sql`SELECT email FROM fabrica_users WHERE username = ${username} LIMIT 1`;
+        const userEmail = userRows[0]?.email ? String(userRows[0].email).trim().toLowerCase() : '';
+
         const receivedRows = await sql`
-          SELECT q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.created_at, s.sender_username
+          SELECT DISTINCT ON (q.share_code) q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.created_at, s.sender_username
           FROM fabrica_quiz_shares s
           JOIN fabrica_quizzes q ON q.share_code = s.quiz_share_code
           WHERE s.recipient_username = ${username}
-          ORDER BY s.created_at DESC
+          ORDER BY q.share_code, s.created_at DESC
         `;
+
+        const emailInviteRows = userEmail
+          ? await sql`
+              SELECT DISTINCT ON (q.share_code) q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.created_at, e.sender_username
+              FROM fabrica_email_invites e
+              JOIN fabrica_quizzes q ON q.share_code = e.quiz_share_code
+              WHERE e.recipient_email = ${userEmail}
+              ORDER BY q.share_code, e.created_at DESC
+            `
+          : [];
+
+        const mergedMap = new Map<string, any>();
+        for (const r of [...receivedRows, ...emailInviteRows]) {
+          if (!mergedMap.has(r.share_code)) {
+            mergedMap.set(r.share_code, {
+              id: r.id,
+              shareCode: r.share_code,
+              ownerUsername: r.owner_username,
+              ownerName: r.owner_name,
+              title: r.title,
+              questions: JSON.parse(r.questions_json),
+              createdAt: r.created_at,
+              sharedBy: r.sender_username,
+            });
+          }
+        }
 
         return res.status(200).json({
           success: true,
@@ -195,16 +238,7 @@ export default async function handler(req: any, res: any) {
             questions: JSON.parse(r.questions_json),
             createdAt: r.created_at,
           })),
-          receivedQuizzes: receivedRows.map((r: any) => ({
-            id: r.id,
-            shareCode: r.share_code,
-            ownerUsername: r.owner_username,
-            ownerName: r.owner_name,
-            title: r.title,
-            questions: JSON.parse(r.questions_json),
-            createdAt: r.created_at,
-            sharedBy: r.sender_username,
-          })),
+          receivedQuizzes: Array.from(mergedMap.values()),
         });
       }
 
@@ -388,6 +422,7 @@ export default async function handler(req: any, res: any) {
         const displayName = String(body.displayName || '').trim();
         const password = String(body.password || '');
         const avatar = String(body.avatar || '👨‍💻');
+        const email = body.email ? String(body.email).trim().toLowerCase() : null;
 
         if (!username || username.length < 3 || !displayName || password.length < 3) {
           return res.status(400).json({ error: 'Preencha usuário (mín. 3 letras), nome e senha (mín. 3 caracteres).' });
@@ -399,14 +434,14 @@ export default async function handler(req: any, res: any) {
         }
 
         const inserted = await sql`
-          INSERT INTO fabrica_users (username, display_name, password_hash, avatar)
-          VALUES (${username}, ${displayName}, ${hashPassword(password)}, ${avatar})
-          RETURNING id, username, display_name, avatar
+          INSERT INTO fabrica_users (username, display_name, password_hash, avatar, email)
+          VALUES (${username}, ${displayName}, ${hashPassword(password)}, ${avatar}, ${email})
+          RETURNING id, username, display_name, avatar, email
         `;
         const u = inserted[0];
         return res.status(200).json({
           success: true,
-          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar }
+          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar, email: u.email || undefined }
         });
       }
 
@@ -420,7 +455,7 @@ export default async function handler(req: any, res: any) {
         }
 
         const rows = await sql`
-          SELECT id, username, display_name, password_hash, avatar
+          SELECT id, username, display_name, password_hash, avatar, email
           FROM fabrica_users
           WHERE username = ${username}
           LIMIT 1
@@ -431,7 +466,7 @@ export default async function handler(req: any, res: any) {
         const u = rows[0];
         return res.status(200).json({
           success: true,
-          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar }
+          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar, email: u.email || undefined }
         });
       }
 
@@ -544,6 +579,25 @@ export default async function handler(req: any, res: any) {
           success: true,
           user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar }
         });
+      }
+
+      // 15. Send Quiz to Email (even if recipient doesn't have an account yet)
+      if (action === 'send_quiz_to_email') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        const senderUsername = String(body.senderUsername || '').trim().toLowerCase();
+        const recipientEmail = String(body.recipientEmail || '').trim().toLowerCase();
+
+        if (!shareCode || !recipientEmail || !recipientEmail.includes('@')) {
+          return res.status(400).json({ error: 'Informe um e-mail válido.' });
+        }
+
+        await sql`
+          INSERT INTO fabrica_email_invites (quiz_share_code, sender_username, recipient_email)
+          VALUES (${shareCode}, ${senderUsername}, ${recipientEmail})
+          ON CONFLICT (quiz_share_code, recipient_email) DO NOTHING
+        `;
+
+        return res.status(200).json({ success: true, recipientEmail });
       }
 
       return res.status(400).json({ error: 'Ação desconhecida' });

@@ -20,7 +20,7 @@ export const ScoreboardView: React.FC<Props> = ({
   const maxPoints = Math.max(...sorted.map(t => t.points), 1000);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[600px] w-full max-w-4xl mx-auto p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-3 sm:p-4 animate-fade-in">
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-kahoot-purple/60 border border-purple-400 text-purple-200 text-sm font-semibold mb-2">
           <Trophy className="w-4 h-4 text-yellow-400" />
@@ -40,7 +40,7 @@ export const ScoreboardView: React.FC<Props> = ({
           return (
             <div
               key={team.id}
-              className="relative overflow-hidden rounded-2xl bg-slate-800/90 border-2 border-slate-700 shadow-xl p-4 flex items-center justify-between transition-all hover:scale-[1.01]"
+              className="relative overflow-hidden rounded-2xl bg-slate-800/90 border-2 border-slate-700 shadow-xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 transition-all hover:scale-[1.01]"
             >
               {/* Animated Progress Bar fill */}
               <div

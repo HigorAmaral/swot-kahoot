@@ -210,7 +210,7 @@ export class DatabaseService {
   }
 
   // Register User
-  async registerUser(username: string, displayName: string, password: string, avatar: string): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
+  async registerUser(username: string, displayName: string, password: string, avatar: string, email?: string): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
     try {
       const res = await fetch('/api/db', {
         method: 'POST',
@@ -221,6 +221,7 @@ export class DatabaseService {
           displayName,
           password,
           avatar,
+          email: email || undefined,
         }),
       });
       const data = await res.json();
@@ -362,6 +363,27 @@ export class DatabaseService {
       if (!res.ok) return { success: false, error: data.error || 'Erro ao atualizar perfil' };
       this.isConnected = true;
       return { success: true, user: data.user };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Send Quiz to Email
+  async sendQuizToEmail(shareCode: string, senderUsername: string, recipientEmail: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_quiz_to_email',
+          shareCode,
+          senderUsername,
+          recipientEmail,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao registrar envio por e-mail' };
+      return { success: true };
     } catch {
       return { success: false, error: 'Erro de conexão com o servidor.' };
     }

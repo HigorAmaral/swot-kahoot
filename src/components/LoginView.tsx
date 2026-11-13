@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
-import { LogIn, UserPlus, Lock, User, Sparkles, AlertCircle, Share2, ArrowRight } from 'lucide-react';
+import { LogIn, UserPlus, Lock, User, Mail, Sparkles, AlertCircle, Share2, ArrowRight } from 'lucide-react';
 
 interface Props {
   onLoginSuccess: (user: UserAccount) => void;
@@ -15,6 +15,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [avatar, setAvatar] = useState('👨‍💻');
   const [loading, setLoading] = useState(false);
@@ -36,7 +37,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
           setError(res.error || 'Usuário ou senha incorretos.');
         }
       } else {
-        const res = await dbService.registerUser(username, displayName, password, avatar);
+        const res = await dbService.registerUser(username, displayName, password, avatar, email.trim() || undefined);
         if (res.success && res.user) {
           sound.playCorrect();
           onLoginSuccess(res.user);
@@ -129,6 +130,22 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                   placeholder="Ex: Higor Amaral"
                   className="w-full bg-slate-950/90 border-2 border-slate-800 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none transition"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase text-slate-400 mb-1.5">
+                  E-mail (para receber quizzes enviados)
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="seuemail@exemplo.com (opcional)"
+                    className="w-full bg-slate-950/90 border-2 border-slate-800 focus:border-emerald-400 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold text-white focus:outline-none transition"
+                  />
+                </div>
               </div>
 
               <div>

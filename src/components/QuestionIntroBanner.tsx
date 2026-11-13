@@ -28,7 +28,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
     t.participants.some(p => p.name.toLowerCase() === currentUser.displayName.toLowerCase())
   );
   return (
-    <div className="flex flex-col items-center justify-center min-h-[540px] w-full max-w-4xl mx-auto p-4 animate-fade-in text-center">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-3 sm:p-4 animate-fade-in text-center">
       {/* Question Counter Pill */}
       <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-sm uppercase tracking-wider mb-6 shadow-xl">
         <Sparkles className="w-4 h-4 fill-current text-cyan-300" />

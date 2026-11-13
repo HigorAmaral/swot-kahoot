@@ -16,7 +16,8 @@ import {
   Plus,
   MessageCircle,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Mail
 } from 'lucide-react';
 
 interface Props {
@@ -43,6 +44,8 @@ export const MyQuizzesModal: React.FC<Props> = ({
   const [sharingQuiz, setSharingQuiz] = useState<SavedQuiz | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [targetUsername, setTargetUsername] = useState('');
+  const [targetEmail, setTargetEmail] = useState('');
+  const [lastSentEmail, setLastSentEmail] = useState<string | null>(null);
   const [sendFeedback, setSendFeedback] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null);
 
   // Import state
@@ -97,6 +100,43 @@ export const MyQuizzesModal: React.FC<Props> = ({
       sound.playWrong();
       setSendFeedback({ type: 'err', msg: res.error || 'Erro ao enviar' });
     }
+  };
+
+  const handleSendToEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sharingQuiz || !targetEmail.trim()) return;
+    const emailClean = targetEmail.trim();
+    if (!emailClean.includes('@')) {
+      setSendFeedback({ type: 'err', msg: 'Digite um e-mail válido.' });
+      return;
+    }
+
+    setSendFeedback(null);
+    const res = await dbService.sendQuizToEmail(sharingQuiz.shareCode, currentUser.username, emailClean);
+    const url = getShareUrl(sharingQuiz.shareCode);
+    const subject = `Convite FabricaQuiz: ${sharingQuiz.title}`;
+    const body = `Olá!\n\n${currentUser.displayName} (@${currentUser.username}) enviou um quiz para você jogar no FabricaQuiz:\n\nTítulo: ${sharingQuiz.title}\nCódigo: ${sharingQuiz.shareCode}\n\nClique no link para abrir e jogar:\n${url}\n`;
+
+    if (res.success) {
+      sound.playCorrect();
+      setLastSentEmail(emailClean);
+      setSendFeedback({
+        type: 'ok',
+        msg: `Convite salvo para ${emailClean}! Abrindo seu aplicativo de e-mail com o link pronto...`,
+      });
+      setTargetEmail('');
+      window.location.href = `mailto:${encodeURIComponent(emailClean)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } else {
+      sound.playWrong();
+      setSendFeedback({ type: 'err', msg: res.error || 'Erro ao enviar por e-mail' });
+    }
+  };
+
+  const getGmailComposeUrl = (quiz: SavedQuiz, email: string) => {
+    const url = getShareUrl(quiz.shareCode);
+    const subject = `Convite FabricaQuiz: ${quiz.title}`;
+    const body = `Olá!\n\n${currentUser.displayName} (@${currentUser.username}) enviou um quiz para você jogar no FabricaQuiz:\n\nTítulo: ${quiz.title}\nCódigo: ${quiz.shareCode}\n\nLink para jogar: ${url}`;
+    return `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   const handleDelete = async (quiz: SavedQuiz) => {
@@ -310,6 +350,42 @@ export const MyQuizzesModal: React.FC<Props> = ({
                             {getShareUrl(quiz.shareCode)}
                           </div>
 
+                          {/* Enviar por E-mail (funciona mesmo para quem ainda não tem conta!) */}
+                          <form onSubmit={handleSendToEmail} className="flex flex-col sm:flex-row gap-2 pt-1">
+                            <div className="relative flex-1">
+                              <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="email"
+                                value={targetEmail}
+                                onChange={e => setTargetEmail(e.target.value)}
+                                placeholder="Enviar link por e-mail (ex: amigo@gmail.com)..."
+                                className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-white focus:outline-none"
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+                            >
+                              <Mail className="w-3.5 h-3.5" /> Mandar no E-mail
+                            </button>
+                          </form>
+
+                          {lastSentEmail && (
+                            <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 border border-emerald-500/30 rounded-xl px-3 py-2 text-[11px]">
+                              <span className="text-slate-300">
+                                Usa Gmail no navegador? Envie direto para <strong>{lastSentEmail}</strong>:
+                              </span>
+                              <a
+                                href={getGmailComposeUrl(quiz, lastSentEmail)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black transition"
+                              >
+                                Abrir no Gmail
+                              </a>
+                            </div>
+                          )}
+
                           <form onSubmit={handleSendToUser} className="flex flex-col sm:flex-row gap-2 pt-1">
                             <input
                               type="text"
@@ -320,7 +396,7 @@ export const MyQuizzesModal: React.FC<Props> = ({
                             />
                             <button
                               type="submit"
-                              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5"
+                              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
                             >
                               <Send className="w-3.5 h-3.5" /> Enviar para Usuário
                             </button>

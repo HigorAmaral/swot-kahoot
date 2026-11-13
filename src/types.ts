@@ -7,6 +7,7 @@ export interface UserAccount {
   username: string;
   displayName: string;
   avatar: string;
+  email?: string;
 }
 
 export interface SavedQuiz {

@@ -81,7 +81,7 @@ export const QuestionPlayView: React.FC<Props> = ({
   const progressPercent = Math.round(((questionIndex + 1) / Math.max(totalQuestions, 1)) * 100);
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-[640px] w-full max-w-6xl mx-auto p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-150px)] w-full max-w-6xl mx-auto p-2.5 sm:p-4 animate-fade-in">
       {/* Progress Bar */}
       <div className="w-full mb-3">
         <div className="flex items-center justify-between text-[11px] font-black text-slate-400 mb-1 px-1">
@@ -171,9 +171,9 @@ export const QuestionPlayView: React.FC<Props> = ({
       </div>
 
       {/* Central Question Box */}
-      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-6 md:p-8 shadow-2xl text-center mb-6 flex flex-col items-center justify-center min-h-[160px]">
+      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-6 md:p-8 shadow-2xl text-center mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[160px]">
         {/* Floating Timer Circle */}
-        <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full border-4 flex items-center justify-center font-black text-xl shadow-2xl transition-all ${
+        <div className={`absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl shadow-2xl transition-all ${
           timeLeft <= 5
             ? 'bg-red-600 border-red-300 text-white animate-bounce ring-4 ring-red-400/50'
             : timeLeft <= 10
@@ -183,13 +183,13 @@ export const QuestionPlayView: React.FC<Props> = ({
           {timeLeft}
         </div>
 
-        <h2 className="text-xl md:text-3xl font-black text-white leading-snug tracking-tight max-w-4xl mt-2">
+        <h2 className="text-base sm:text-xl md:text-3xl font-black text-white leading-snug tracking-tight max-w-4xl mt-3 sm:mt-2">
           {question.question}
         </h2>
       </div>
 
       {/* 4 Kahoot Answer Options (2x2 Grid) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full mb-4">
         {question.options.map((opt, idx) => {
           const isSelected = selectedOption === idx;
 
@@ -198,18 +198,18 @@ export const QuestionPlayView: React.FC<Props> = ({
               key={idx}
               disabled={selectedOption !== null}
               onClick={() => handleSelect(idx)}
-              className={`relative flex items-center gap-4 p-5 md:p-6 rounded-2xl text-left font-bold text-lg md:text-xl text-white shadow-xl transform transition-all active:scale-95 ${
+              className={`relative flex items-center gap-3 sm:gap-4 p-3.5 sm:p-5 md:p-6 rounded-2xl text-left font-bold text-sm sm:text-lg md:text-xl text-white shadow-xl transform transition-all active:scale-95 ${
                 opt.color
               } ${
                 isSelected
-                  ? 'ring-8 ring-white scale-105 brightness-125 z-10'
+                  ? 'ring-4 sm:ring-8 ring-white scale-[1.02] sm:scale-105 brightness-125 z-10'
                   : selectedOption !== null
                   ? 'opacity-50'
                   : 'hover:brightness-110 hover:-translate-y-1'
               }`}
             >
               {/* Geometric Symbol (Triangle, Diamond, Circle, Square) */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-black/25 flex items-center justify-center text-white shadow-inner">
+              <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-black/25 flex items-center justify-center text-white shadow-inner">
                 {opt.symbol === 'triangle' && (
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="12,3 22,21 2,21" />

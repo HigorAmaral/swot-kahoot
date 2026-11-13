@@ -677,6 +677,8 @@ export function App() {
             onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
             onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
             activeQuizInfo={activeQuizInfo}
+            questions={questions}
+            onClearActiveQuiz={handleRestoreDefaultQuestions}
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
           />

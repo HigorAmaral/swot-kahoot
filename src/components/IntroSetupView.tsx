@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Team, UserAccount } from '../types';
+import { Team, UserAccount, Question } from '../types';
 import { sound } from '../utils/sound';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2 } from 'lucide-react';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -11,6 +11,8 @@ interface Props {
   onOpenCreatorModal?: () => void;
   onOpenMyQuizzesModal?: () => void;
   activeQuizInfo?: { title: string; shareCode?: string } | null;
+  questions?: Question[];
+  onClearActiveQuiz?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
 }
@@ -23,6 +25,8 @@ export const IntroSetupView: React.FC<Props> = ({
   onOpenCreatorModal,
   onOpenMyQuizzesModal,
   activeQuizInfo,
+  questions = [],
+  onClearActiveQuiz,
   onAddParticipant,
   onRemoveParticipant,
 }) => {
@@ -51,24 +55,46 @@ export const IntroSetupView: React.FC<Props> = ({
         <div className="text-center lg:text-left">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-extrabold text-xs uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-            Arena Interativa em Sala
+            {activeQuizInfo ? 'Kahoot Selecionado na Arena' : 'Arena Interativa em Sala'}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-none mb-2">
-            Fabrica<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Quiz</span>
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-2">
+            {activeQuizInfo ? (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+                {activeQuizInfo.title}
+              </span>
+            ) : (
+              <>
+                Fabrica<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Quiz</span>
+              </>
+            )}
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-xl font-medium">
-            Escolha sua equipe abaixo, digite seu nome de usuário e dispute os pontos e brindes da rodada!
+            {activeQuizInfo
+              ? `Este Kahoot possui ${questions.length} pergunta(s) pronta(s). Escolha sua equipe abaixo e clique em Começar!`
+              : 'Escolha sua equipe abaixo, entre com sua conta e dispute os pontos e brindes da rodada!'}
           </p>
 
           {activeQuizInfo && (
-            <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-200 text-xs font-bold">
-              <span>🎯 Quiz Ativo: <strong className="text-white">{activeQuizInfo.title}</strong></span>
-              {activeQuizInfo.shareCode && (
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black">
-                  Código: {activeQuizInfo.shareCode}
-                </span>
+            <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-200 text-xs font-bold">
+                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{questions.length} pergunta(s)</span>
+                {activeQuizInfo.shareCode && (
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black">
+                    Código: {activeQuizInfo.shareCode}
+                  </span>
+                )}
+              </div>
+              {onClearActiveQuiz && (
+                <button
+                  onClick={onClearActiveQuiz}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-bold transition"
+                  title="Voltar para o quiz padrão"
+                >
+                  <RotateCcw className="w-3 h-3" /> Trocar / Padrão
+                </button>
               )}
             </div>
           )}
@@ -107,6 +133,46 @@ export const IntroSetupView: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* SELECTED KAHOOT QUESTIONS PREVIEW ON MAIN SCREEN */}
+      {activeQuizInfo && questions.length > 0 && (
+        <div className="w-full glass-card rounded-3xl p-4 sm:p-5 mb-6 border-2 border-cyan-500/35 shadow-xl animate-fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black">
+                🎯 Kahoot Carregado
+              </span>
+              <h2 className="text-sm sm:text-base font-black text-white">
+                {activeQuizInfo.title}
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-cyan-300">
+              {questions.length} pergunta(s) na fila
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
+            {questions.map((q, idx) => (
+              <div
+                key={q.id || idx}
+                className="p-2.5 rounded-xl bg-slate-900/85 border border-slate-800 flex items-start gap-2 text-xs"
+              >
+                <span className="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-black flex items-center justify-center shrink-0 text-[11px]">
+                  #{idx + 1}
+                </span>
+                <div className="min-w-0">
+                  <div className="font-bold text-slate-100 line-clamp-2 leading-snug">
+                    {q.question}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                    {q.category}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ACCOUNT QUICK JOIN BAR (NO NAME TYPING NEEDED) */}
       <div className="w-full glass-card rounded-3xl p-4 sm:p-5 mb-6 text-left border border-emerald-500/30 shadow-xl">

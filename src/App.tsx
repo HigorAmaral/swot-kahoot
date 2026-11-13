@@ -17,6 +17,7 @@ import { KahootCreatorModal } from './components/KahootCreatorModal';
 import { LoginView } from './components/LoginView';
 import { MyQuizzesModal } from './components/MyQuizzesModal';
 import { ProfileModal } from './components/ProfileModal';
+import { RightKahootsSidebar } from './components/RightKahootsSidebar';
 
 const initialTeams: Team[] = [
   {
@@ -97,6 +98,7 @@ export function App() {
   });
 
   const [activeQuizInfo, setActiveQuizInfo] = useState<{ title: string; shareCode?: string } | null>(null);
+  const [quizzesRefreshKey, setQuizzesRefreshKey] = useState<number>(0);
   const [sessionId] = useState<string>(getSessionId());
   const [teams, setTeams] = useState<Team[]>(() => {
     try {
@@ -213,6 +215,7 @@ export function App() {
     if (quizTitle || shareCode) {
       setActiveQuizInfo({ title: quizTitle || 'Meu Quiz', shareCode });
     }
+    setQuizzesRefreshKey(prev => prev + 1);
     try {
       localStorage.setItem('swot_custom_questions', JSON.stringify(newQuestions));
     } catch {}
@@ -526,8 +529,9 @@ export function App() {
         isDbConnected={isDbConnected}
       />
 
-      {/* Main View Area */}
-      <main className="flex-1 flex flex-col items-center justify-center p-3 sm:p-4">
+      {/* Main Body + Right Sidebar */}
+      <div className="flex-1 flex w-full">
+        <main className="flex-1 min-w-0 flex flex-col items-center justify-center p-3 sm:p-4">
         {stage === 'intro' && (
           <IntroSetupView
             teams={teams}
@@ -607,7 +611,17 @@ export function App() {
             onRestart={handleResetGame}
           />
         )}
-      </main>
+        </main>
+
+        <RightKahootsSidebar
+          currentUser={currentUser}
+          activeShareCode={activeQuizInfo?.shareCode}
+          refreshKey={quizzesRefreshKey}
+          onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
+          onOpenCreator={() => setIsCreatorModalOpen(true)}
+          onOpenShareModal={() => setIsMyQuizzesModalOpen(true)}
+        />
+      </div>
 
       {/* Modals */}
       <AdminDashboard
@@ -653,7 +667,10 @@ export function App() {
 
       <MyQuizzesModal
         isOpen={isMyQuizzesModalOpen}
-        onClose={() => setIsMyQuizzesModalOpen(false)}
+        onClose={() => {
+          setIsMyQuizzesModalOpen(false);
+          setQuizzesRefreshKey(prev => prev + 1);
+        }}
         currentUser={currentUser}
         onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
         onOpenCreator={() => setIsCreatorModalOpen(true)}

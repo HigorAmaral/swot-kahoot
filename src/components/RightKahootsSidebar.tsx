@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Search,
   Link2,
-  Check
+  Check,
+  BarChart3
 } from 'lucide-react';
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
   onLoadQuiz: (questions: Question[], title: string, shareCode?: string) => void;
   onOpenCreator: () => void;
   onOpenShareModal: () => void;
+  onOpenQuizAdmin?: (quiz: SavedQuiz) => void;
 }
 
 export const RightKahootsSidebar: React.FC<Props> = ({
@@ -34,6 +36,7 @@ export const RightKahootsSidebar: React.FC<Props> = ({
   onLoadQuiz,
   onOpenCreator,
   onOpenShareModal,
+  onOpenQuizAdmin,
 }) => {
   const [tab, setTab] = useState<'mine' | 'received'>('mine');
   const [myQuizzes, setMyQuizzes] = useState<SavedQuiz[]>([]);
@@ -228,6 +231,18 @@ export const RightKahootsSidebar: React.FC<Props> = ({
                   >
                     <Play className="w-3 h-3 fill-current" /> Jogar
                   </button>
+                  {onOpenQuizAdmin && (
+                    <button
+                      onClick={() => {
+                        onOpenQuizAdmin(quiz);
+                        setMobileOpen(false);
+                      }}
+                      className="p-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 transition"
+                      title="Status e ADM deste Kahoot"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   <button
                     onClick={() => handleCopyQuizLink(quiz.shareCode)}
                     className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition"

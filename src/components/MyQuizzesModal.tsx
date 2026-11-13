@@ -17,7 +17,8 @@ import {
   MessageCircle,
   Sparkles,
   AlertCircle,
-  Mail
+  Mail,
+  BarChart3
 } from 'lucide-react';
 
 interface Props {
@@ -26,6 +27,7 @@ interface Props {
   currentUser: UserAccount;
   onLoadQuiz: (questions: Question[], title: string, shareCode?: string) => void;
   onOpenCreator: () => void;
+  onOpenQuizAdmin?: (quiz: SavedQuiz) => void;
 }
 
 export const MyQuizzesModal: React.FC<Props> = ({
@@ -34,6 +36,7 @@ export const MyQuizzesModal: React.FC<Props> = ({
   currentUser,
   onLoadQuiz,
   onOpenCreator,
+  onOpenQuizAdmin,
 }) => {
   const [tab, setTab] = useState<'mine' | 'received' | 'import'>('mine');
   const [myQuizzes, setMyQuizzes] = useState<SavedQuiz[]>([]);
@@ -330,6 +333,17 @@ export const MyQuizzesModal: React.FC<Props> = ({
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
+                          {onOpenQuizAdmin && (
+                            <button
+                              onClick={() => {
+                                onClose();
+                                onOpenQuizAdmin(quiz);
+                              }}
+                              className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 font-black text-xs transition flex items-center gap-1.5"
+                            >
+                              <BarChart3 className="w-3.5 h-3.5" /> Status / ADM
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               onLoadQuiz(quiz.questions, quiz.title, quiz.shareCode);

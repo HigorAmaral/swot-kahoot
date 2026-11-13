@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Team, DisputeMode, GameStage, Participant, RoundLog, Question, UserAccount } from './types';
+import { Team, DisputeMode, GameStage, Participant, RoundLog, Question, UserAccount, SavedQuiz } from './types';
 import { questionsData } from './data/questions';
 import { sound } from './utils/sound';
 import { dbService, getSessionId } from './services/db';
@@ -19,6 +19,7 @@ const AdminAuthModal = lazy(() => import('./components/AdminAuthModal').then(m =
 const KahootCreatorModal = lazy(() => import('./components/KahootCreatorModal').then(m => ({ default: m.KahootCreatorModal })));
 const MyQuizzesModal = lazy(() => import('./components/MyQuizzesModal').then(m => ({ default: m.MyQuizzesModal })));
 const ProfileModal = lazy(() => import('./components/ProfileModal').then(m => ({ default: m.ProfileModal })));
+const QuizAdminModal = lazy(() => import('./components/QuizAdminModal').then(m => ({ default: m.QuizAdminModal })));
 
 const initialTeams: Team[] = [
   {
@@ -86,11 +87,19 @@ const initialTeams: Team[] = [
 export function App() {
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     try {
-      const saved = localStorage.getItem('fabrica_user');
+      const saved = localStorage.getItem('fabrica_user') || sessionStorage.getItem('fabrica_user');
       if (saved) return JSON.parse(saved);
     } catch {}
     return null;
   });
+
+  const isAdmin = Boolean(
+    currentUser &&
+      (currentUser.username.trim().toLowerCase() === 'higoramaral' ||
+        currentUser.email?.trim().toLowerCase() === 'amarahigor@gmail.com')
+  );
+
+  const [managingQuiz, setManagingQuiz] = useState<SavedQuiz | null>(null);
 
   const [pendingQuizCode, setPendingQuizCode] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -150,6 +159,7 @@ export function App() {
 
   // Request Admin (Password Protection: higoramaral)
   const handleOpenAdmin = () => {
+    if (!isAdmin) return;
     const isAuth = sessionStorage.getItem('swot_admin_auth') === 'true';
     if (isAuth) {
       setIsAdminModalOpen(true);
@@ -169,10 +179,16 @@ export function App() {
   };
 
   // Login & Logout Handlers
-  const handleLoginSuccess = (user: UserAccount) => {
+  const handleLoginSuccess = (user: UserAccount, remember: boolean = true) => {
     setCurrentUser(user);
     try {
-      localStorage.setItem('fabrica_user', JSON.stringify(user));
+      if (remember) {
+        localStorage.setItem('fabrica_user', JSON.stringify(user));
+        sessionStorage.removeItem('fabrica_user');
+      } else {
+        sessionStorage.setItem('fabrica_user', JSON.stringify(user));
+        localStorage.removeItem('fabrica_user');
+      }
     } catch {}
   };
 
@@ -180,6 +196,7 @@ export function App() {
     setCurrentUser(null);
     try {
       localStorage.removeItem('fabrica_user');
+      sessionStorage.removeItem('fabrica_user');
     } catch {}
   };
 
@@ -572,7 +589,7 @@ export function App() {
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
         currentUser={currentUser}
         onLogoutUser={handleLogoutUser}
-        isDbConnected={isDbConnected}
+        isAdmin={isAdmin}
       />
 
       {/* Main Body + Right Sidebar */}
@@ -670,6 +687,7 @@ export function App() {
           onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
           onOpenCreator={() => setIsCreatorModalOpen(true)}
           onOpenShareModal={() => setIsMyQuizzesModalOpen(true)}
+          onOpenQuizAdmin={setManagingQuiz}
         />
       </div>
 
@@ -738,6 +756,20 @@ export function App() {
             currentUser={currentUser}
             onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
             onOpenCreator={() => setIsCreatorModalOpen(true)}
+            onOpenQuizAdmin={setManagingQuiz}
+          />
+        )}
+
+        {managingQuiz && (
+          <QuizAdminModal
+            quiz={managingQuiz}
+            onClose={() => setManagingQuiz(null)}
+            isActiveInArena={activeQuizInfo?.shareCode === managingQuiz.shareCode}
+            currentQuestionIndex={currentQuestionIndex}
+            stage={stage}
+            teams={teams}
+            roundLogs={roundLogs}
+            onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
           />
         )}
 
@@ -752,15 +784,19 @@ export function App() {
       </Suspense>
 
       {/* Minimal Footer */}
-      <footer className="w-full text-center py-3 bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 flex items-center justify-center gap-4">
+      <footer className="w-full text-center py-3 bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 flex items-center justify-center gap-4 shrink-0">
         <span>FabricaQuiz • Arena Interativa em Sala</span>
-        <span>•</span>
-        <button
-          onClick={handleOpenAdmin}
-          className="text-amber-400 hover:underline font-bold"
-        >
-          Acessar Painel ADM
-        </button>
+        {isAdmin && (
+          <>
+            <span>•</span>
+            <button
+              onClick={handleOpenAdmin}
+              className="text-amber-400 hover:underline font-bold"
+            >
+              Acessar Painel ADM
+            </button>
+          </>
+        )}
       </footer>
     </div>
   );

@@ -245,12 +245,16 @@ export const AdminDashboard: React.FC<Props> = ({
             )}
 
             {/* DB Status Badge */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs">
-              <Database className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-slate-400 hidden sm:inline">Neon DB:</span>
-              <span className={`font-bold flex items-center gap-1 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs ${
+              isDbConnected
+                ? 'bg-emerald-950/60 border-emerald-500/50'
+                : 'bg-slate-800 border-slate-700'
+            }`}>
+              <Database className={`w-3.5 h-3.5 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
+              <span className="text-slate-300 hidden sm:inline">Banco de Dados:</span>
+              <span className={`font-black flex items-center gap-1.5 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
                 <span className={`w-2 h-2 rounded-full ${isDbConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
-                {isDbConnected ? 'Conectado' : 'Local'}
+                {isDbConnected ? 'ON' : 'OFF (Local)'}
               </span>
             </div>
 

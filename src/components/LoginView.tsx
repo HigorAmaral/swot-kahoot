@@ -5,7 +5,7 @@ import { sound } from '../utils/sound';
 import { LogIn, UserPlus, Lock, User, Mail, Sparkles, AlertCircle, Share2, ArrowRight, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 interface Props {
-  onLoginSuccess: (user: UserAccount) => void;
+  onLoginSuccess: (user: UserAccount, remember?: boolean) => void;
   pendingQuizCode?: string | null;
 }
 
@@ -13,10 +13,19 @@ const AVATAR_LIST = ['👨‍💻', '👩‍💻', '🚀', '⚡', '🧠', '🎯'
 
 export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) => {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
-  const [username, setUsername] = useState('');
+  const [savedCreds] = useState<{ username?: string; password?: string } | null>(() => {
+    try {
+      const raw = localStorage.getItem('fabrica_saved_credentials');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [username, setUsername] = useState(savedCreds?.username || '');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(savedCreds?.password || '');
+  const [rememberLogin, setRememberLogin] = useState<boolean>(savedCreds !== null || true);
   const [avatar, setAvatar] = useState('👨‍💻');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +102,14 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
         const res = await dbService.loginUser(username, password);
         if (res.success && res.user) {
           sound.playCorrect();
-          onLoginSuccess(res.user);
+          try {
+            if (rememberLogin) {
+              localStorage.setItem('fabrica_saved_credentials', JSON.stringify({ username: username.trim(), password }));
+            } else {
+              localStorage.removeItem('fabrica_saved_credentials');
+            }
+          } catch {}
+          onLoginSuccess(res.user, rememberLogin);
         } else {
           sound.playWrong();
           setError(res.error || 'Usuário ou senha incorretos.');
@@ -102,7 +118,14 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
         const res = await dbService.registerUser(username, displayName, password, avatar, email.trim() || undefined);
         if (res.success && res.user) {
           sound.playCorrect();
-          onLoginSuccess(res.user);
+          try {
+            if (rememberLogin) {
+              localStorage.setItem('fabrica_saved_credentials', JSON.stringify({ username: username.trim(), password }));
+            } else {
+              localStorage.removeItem('fabrica_saved_credentials');
+            }
+          } catch {}
+          onLoginSuccess(res.user, rememberLogin);
         } else {
           sound.playWrong();
           setError(res.error || 'Não foi possível criar sua conta.');
@@ -397,8 +420,17 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                 className="w-full bg-slate-950/90 border-2 border-slate-800 focus:border-emerald-400 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold text-white focus:outline-none transition"
               />
             </div>
-            {mode === 'login' && (
-              <div className="flex justify-end mt-1.5">
+            <div className="flex items-center justify-between gap-2 mt-2">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-[11px] font-bold text-slate-300 select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberLogin}
+                  onChange={e => setRememberLogin(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-emerald-500 cursor-pointer"
+                />
+                <span>Salvar meu login</span>
+              </label>
+              {mode === 'login' && (
                 <button
                   type="button"
                   onClick={() => {
@@ -412,8 +444,8 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                 >
                   Esqueci minha senha
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {successMsg && (

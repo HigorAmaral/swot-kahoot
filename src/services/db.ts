@@ -469,6 +469,32 @@ export class DatabaseService {
       return { success: false, error: 'Erro de conexão com o servidor.' };
     }
   }
+
+  // Get per-Kahoot admin stats and sharing details
+  async getQuizStats(shareCode: string): Promise<{
+    success: boolean;
+    stats?: {
+      shareCode: string;
+      title: string;
+      ownerUsername: string;
+      ownerName: string;
+      questionCount: number;
+      createdAt: string;
+      updatedAt: string;
+      userShares: Array<{ recipientUsername: string; senderUsername: string; createdAt: string }>;
+      emailInvites: Array<{ recipientEmail: string; senderUsername: string; createdAt: string }>;
+    };
+    error?: string;
+  }> {
+    try {
+      const res = await fetch(`/api/db?type=quiz_stats&shareCode=${encodeURIComponent(shareCode)}`);
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao carregar status do Kahoot.' };
+      return { success: true, stats: data.stats };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
 }
 
 export const dbService = new DatabaseService();

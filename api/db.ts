@@ -270,6 +270,11 @@ async function ensureTables(sql: any) {
       ALTER TABLE fabrica_users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
     `;
     await sql`
+      UPDATE fabrica_users
+      SET email = 'amarahigor@gmail.com'
+      WHERE LOWER(username) = 'higoramaral' AND (email IS NULL OR email = '');
+    `;
+    await sql`
       CREATE TABLE IF NOT EXISTS fabrica_quizzes (
         id SERIAL PRIMARY KEY,
         share_code VARCHAR(32) UNIQUE NOT NULL,
@@ -466,6 +471,60 @@ export default async function handler(req: any, res: any) {
             displayName: r.display_name,
             avatar: r.avatar || '👨‍💻',
           })),
+        });
+      }
+
+      // Per-Kahoot Admin stats & sharing status
+      if (reqType === 'quiz_stats') {
+        await ensureTables(sql);
+        const code = String(req.query?.shareCode || '').trim().toUpperCase();
+        if (!code) return res.status(400).json({ error: 'Código do quiz não informado' });
+
+        const quizRows = await sql`
+          SELECT share_code, owner_username, owner_name, title, questions_json, created_at, updated_at
+          FROM fabrica_quizzes
+          WHERE share_code = ${code}
+          LIMIT 1
+        `;
+        if (quizRows.length === 0) {
+          return res.status(404).json({ error: 'Quiz não encontrado.' });
+        }
+
+        const q = quizRows[0];
+        const userShares = await sql`
+          SELECT recipient_username, sender_username, created_at
+          FROM fabrica_quiz_shares
+          WHERE quiz_share_code = ${code}
+          ORDER BY created_at DESC
+        `;
+        const emailInvites = await sql`
+          SELECT recipient_email, sender_username, created_at
+          FROM fabrica_email_invites
+          WHERE quiz_share_code = ${code}
+          ORDER BY created_at DESC
+        `;
+
+        return res.status(200).json({
+          success: true,
+          stats: {
+            shareCode: q.share_code,
+            title: q.title,
+            ownerUsername: q.owner_username,
+            ownerName: q.owner_name,
+            questionCount: JSON.parse(q.questions_json).length,
+            createdAt: q.created_at,
+            updatedAt: q.updated_at,
+            userShares: userShares.map((s: any) => ({
+              recipientUsername: s.recipient_username,
+              senderUsername: s.sender_username,
+              createdAt: s.created_at,
+            })),
+            emailInvites: emailInvites.map((e: any) => ({
+              recipientEmail: e.recipient_email,
+              senderUsername: e.sender_username,
+              createdAt: e.created_at,
+            })),
+          },
         });
       }
 

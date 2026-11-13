@@ -420,6 +420,11 @@ export function App() {
             question={currentQuestion}
             questionIndex={currentQuestionIndex}
             totalQuestions={questionsData.length}
+            onProceedToQuestion={() => {
+              setAnsweringTeamId(teams[currentQuestionIndex % teams.length].id);
+              setIsPassed(false);
+              setStage('question_play');
+            }}
             onProceedToDispute={() => setStage('dispute')}
             onOpenCaseModal={() => setIsCaseModalOpen(true)}
           />
@@ -459,6 +464,10 @@ export function App() {
             isPassed={isPassed}
             onAnswerSelected={handleAnswerSelected}
             onOpenCaseModal={() => setIsCaseModalOpen(true)}
+            allTeams={teams}
+            onSelectAnsweringTeam={(teamId) => {
+              setAnsweringTeamId(teamId);
+            }}
           />
         )}
 

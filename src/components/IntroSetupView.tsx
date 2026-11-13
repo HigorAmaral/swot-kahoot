@@ -235,67 +235,8 @@ export const IntroSetupView: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Dispute Selection */}
-      <div className="w-full max-w-3xl glass-card rounded-2xl p-4 sm:p-5 mb-6 text-left border border-slate-700/80">
-        <span className="text-xs font-black uppercase text-amber-400 tracking-wider block mb-3">
-          2. Mecânica de Disputa Inicial da Sala:
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <button
-            onClick={() => onSetDisputeMode('peao')}
-            className={`p-3 rounded-xl border-2 text-left transition flex flex-col justify-between ${
-              disputeMode === 'peao'
-                ? 'border-purple-400 bg-purple-950/60 ring-2 ring-purple-400/30'
-                : 'border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center gap-2 font-bold text-white mb-1">
-              <RotateCw className="w-4 h-4 text-purple-400" />
-              <span>🌀 Peão da Sorte</span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              O peão que rodar por mais tempo ganha o direito de responder ou passar!
-            </p>
-          </button>
-
-          <button
-            onClick={() => onSetDisputeMode('buzzer')}
-            className={`p-3 rounded-xl border-2 text-left transition flex flex-col justify-between ${
-              disputeMode === 'buzzer'
-                ? 'border-amber-400 bg-amber-950/60 ring-2 ring-amber-400/30'
-                : 'border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center gap-2 font-bold text-white mb-1">
-              <Zap className="w-4 h-4 text-amber-400" />
-              <span>⚡ Quem Bate Primeiro</span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              Botão estilo campainha com teclas 1, 2, 3 e 4 no teclado físico.
-            </p>
-          </button>
-
-          <button
-            onClick={() => onSetDisputeMode('alvo')}
-            className={`p-3 rounded-xl border-2 text-left transition flex flex-col justify-between ${
-              disputeMode === 'alvo'
-                ? 'border-red-400 bg-red-950/60 ring-2 ring-red-400/30'
-                : 'border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center gap-2 font-bold text-white mb-1">
-              <Target className="w-4 h-4 text-red-400" />
-              <span>🎯 Acerta o Alvo</span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              Tiro ao alvo móvel: quem acertar mais próximo do centro.
-            </p>
-          </button>
-        </div>
-      </div>
-
       {/* Main Action Buttons */}
-      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-2">
         <button
           onClick={onOpenCaseModal}
           className="px-5 py-3.5 rounded-2xl glass-card-interactive text-slate-200 font-extrabold text-sm shadow-xl flex items-center gap-2"

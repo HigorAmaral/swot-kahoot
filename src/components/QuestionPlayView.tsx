@@ -11,6 +11,8 @@ interface Props {
   isPassed: boolean;
   onAnswerSelected: (selectedIndex: number, timeLeft: number) => void;
   onOpenCaseModal: () => void;
+  allTeams?: Team[];
+  onSelectAnsweringTeam?: (teamId: number) => void;
 }
 
 export const QuestionPlayView: React.FC<Props> = ({
@@ -20,6 +22,8 @@ export const QuestionPlayView: React.FC<Props> = ({
   isPassed,
   onAnswerSelected,
   onOpenCaseModal,
+  allTeams,
+  onSelectAnsweringTeam,
 }) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [isPaused, setIsPaused] = useState(false);
@@ -77,11 +81,30 @@ export const QuestionPlayView: React.FC<Props> = ({
         </div>
 
         {/* Turn Indicator */}
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 shadow-md">
-          <span className="text-xs text-slate-400 font-semibold">Vez de Responder:</span>
-          <span className={`px-2.5 py-0.5 rounded-lg text-xs font-black text-white ${answeringTeam.bgClass}`}>
-            {answeringTeam.name}
-          </span>
+        <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-1.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 shadow-md">
+          <span className="text-xs text-slate-400 font-semibold">Vez:</span>
+          {allTeams && onSelectAnsweringTeam ? (
+            <div className="flex items-center gap-1">
+              {allTeams.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => onSelectAnsweringTeam(t.id)}
+                  className={`px-2 py-0.5 rounded-lg text-xs font-black transition ${
+                    answeringTeam.id === t.id
+                      ? `${t.bgClass} text-white ring-2 ring-white scale-105 shadow`
+                      : 'bg-slate-900/80 text-slate-400 hover:text-white'
+                  }`}
+                  title={`Passar a vez para ${t.name}`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className={`px-2.5 py-0.5 rounded-lg text-xs font-black text-white ${answeringTeam.bgClass}`}>
+              {answeringTeam.name}
+            </span>
+          )}
           {answeringTeam.participants.length > 0 && (
             <span className="text-xs font-bold text-amber-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-700 flex items-center gap-1">
               <span>{answeringTeam.participants[(question.id - 1) % answeringTeam.participants.length].avatar}</span>

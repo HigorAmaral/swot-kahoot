@@ -1,11 +1,12 @@
 import React from 'react';
 import { Question } from '../data/questions';
-import { Sparkles, ArrowRight, BookOpen, Layers } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Layers, RotateCw } from 'lucide-react';
 
 interface Props {
   question: Question;
   questionIndex: number;
   totalQuestions: number;
+  onProceedToQuestion: () => void;
   onProceedToDispute: () => void;
   onOpenCaseModal: () => void;
 }
@@ -14,6 +15,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   question,
   questionIndex,
   totalQuestions,
+  onProceedToQuestion,
   onProceedToDispute,
   onOpenCaseModal,
 }) => {
@@ -47,21 +49,30 @@ export const QuestionIntroBanner: React.FC<Props> = ({
       </div>
 
       {/* Buttons */}
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
         <button
           onClick={onOpenCaseModal}
-          className="px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-sm transition flex items-center gap-2"
+          className="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-xs sm:text-sm transition flex items-center gap-2"
         >
           <BookOpen className="w-4 h-4 text-cyan-400" />
           Revisar Estudo de Caso
         </button>
 
         <button
-          onClick={onProceedToDispute}
-          className="px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-600 hover:brightness-110 text-white font-black text-xl shadow-2xl transition transform active:scale-95 flex items-center gap-3 animate-pulse"
+          onClick={onProceedToQuestion}
+          className="px-8 sm:px-10 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-600 hover:brightness-110 text-white font-black text-lg sm:text-xl shadow-2xl transition transform active:scale-95 flex items-center gap-3 animate-pulse"
         >
-          <span>Ir para a Disputa da Rodada!</span>
+          <span>Ir para a Pergunta #{questionIndex + 1}</span>
           <ArrowRight className="w-6 h-6" />
+        </button>
+
+        <button
+          onClick={onProceedToDispute}
+          className="px-4 py-3 rounded-2xl bg-purple-950/70 hover:bg-purple-900 border border-purple-500/40 text-purple-200 font-bold text-xs transition flex items-center gap-1.5"
+          title="Se a turma quiser usar a disputa do peão"
+        >
+          <RotateCw className="w-3.5 h-3.5 text-purple-400" />
+          <span>Rodar Peão (Opcional)</span>
         </button>
       </div>
     </div>

@@ -18,7 +18,10 @@ import {
   Layers,
   HelpCircle,
   Copy,
-  ArrowRight
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  Pencil
 } from 'lucide-react';
 
 interface Props {
@@ -105,6 +108,60 @@ export const KahootCreatorModal: React.FC<Props> = ({
       // Re-index questions 1..N
       return filtered.map((q, idx) => ({ ...q, id: idx + 1 }));
     });
+  };
+
+  // Move Question Up/Down
+  const handleMoveQuestion = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= questionsList.length) return;
+    setQuestionsList(prev => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[target];
+      copy[target] = temp;
+      return copy.map((q, idx) => ({ ...q, id: idx + 1 }));
+    });
+  };
+
+  // Duplicate Question
+  const handleDuplicateQuestion = (q: Question) => {
+    setQuestionsList(prev => {
+      const copy: Question = {
+        ...q,
+        options: q.options.map(o => ({ ...o })),
+        id: prev.length + 1,
+      };
+      return [...prev, copy];
+    });
+    sound.playTone(600, 0.08, 'sine', 0.12);
+  };
+
+  // Edit Question (load into Manual tab)
+  const handleEditQuestion = (q: Question) => {
+    setManualTitle(q.question);
+    setManualCategory(q.category || 'Geral');
+    setManualTheme(q.theme || 'PLANEJAMENTO');
+    setManualOptA(q.options[0]?.text || '');
+    setManualOptB(q.options[1]?.text || '');
+    setManualOptC(q.options[2]?.text || '');
+    setManualOptD(q.options[3]?.text || '');
+    setManualCorrectIndex(q.correctIndex);
+    setManualExplanation(q.explanation || '');
+    handleDeleteQuestion(q.id);
+    setActiveTab('manual');
+    setImportFeedback('Pergunta carregada no formulário para edição!');
+    setTimeout(() => setImportFeedback(null), 3000);
+  };
+
+  // Export Quiz JSON
+  const handleExportJson = () => {
+    const blob = new Blob([JSON.stringify(questionsList, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(quizTitle || 'fabricaquiz').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Restore Default SWOT Questions
@@ -730,14 +787,34 @@ export const KahootCreatorModal: React.FC<Props> = ({
 
           {/* CURRENT QUESTIONS LIST & MANAGEMENT */}
           <div className="pt-4 border-t border-slate-800">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="font-black text-white text-base flex items-center gap-2">
                 <Layers className="w-4 h-4 text-purple-400" />
                 Perguntas Atuais do Quiz ({questionsList.length})
               </h3>
-              <span className="text-xs text-slate-400">
-                Você pode revisar ou excluir qualquer pergunta da lista
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {questionsList.length > 0 && (
+                  <>
+                    <button
+                      onClick={handleExportJson}
+                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold flex items-center gap-1 transition"
+                      title="Baixar perguntas em JSON"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Exportar JSON
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Limpar todas as perguntas da lista para começar do zero?')) {
+                          setQuestionsList([]);
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 text-xs font-bold transition"
+                    >
+                      Limpar Lista
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
@@ -764,13 +841,45 @@ export const KahootCreatorModal: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleDeleteQuestion(q.id)}
-                    className="p-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-950/60 transition self-end sm:self-center"
-                    title="Excluir Pergunta"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
+                    <button
+                      onClick={() => handleMoveQuestion(idx, -1)}
+                      disabled={idx === 0}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-30 text-slate-300 transition"
+                      title="Subir"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleMoveQuestion(idx, 1)}
+                      disabled={idx === questionsList.length - 1}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-30 text-slate-300 transition"
+                      title="Descer"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleEditQuestion(q)}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyan-950 text-cyan-300 transition"
+                      title="Editar Pergunta"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDuplicateQuestion(q)}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-purple-950 text-purple-300 transition"
+                      title="Duplicar Pergunta"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteQuestion(q.id)}
+                      className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/60 transition"
+                      title="Excluir Pergunta"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

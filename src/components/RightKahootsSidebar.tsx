@@ -12,7 +12,10 @@ import {
   FolderOpen,
   Inbox,
   X,
-  ChevronLeft
+  ChevronLeft,
+  Search,
+  Link2,
+  Check
 } from 'lucide-react';
 
 interface Props {
@@ -37,6 +40,8 @@ export const RightKahootsSidebar: React.FC<Props> = ({
   const [receivedQuizzes, setReceivedQuizzes] = useState<SavedQuiz[]>([]);
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const loadQuizzes = async () => {
     setLoading(true);
@@ -57,7 +62,23 @@ export const RightKahootsSidebar: React.FC<Props> = ({
     loadQuizzes();
   };
 
-  const list = tab === 'mine' ? myQuizzes : receivedQuizzes;
+  const rawList = tab === 'mine' ? myQuizzes : receivedQuizzes;
+  const list = rawList.filter(q => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      q.title.toLowerCase().includes(term) ||
+      q.shareCode.toLowerCase().includes(term)
+    );
+  });
+
+  const handleCopyQuizLink = (shareCode: string) => {
+    const url = `${window.location.origin}/?quiz=${shareCode}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedCode(shareCode);
+      setTimeout(() => setCopiedCode(null), 2000);
+    }).catch(() => {});
+  };
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -120,6 +141,20 @@ export const RightKahootsSidebar: React.FC<Props> = ({
         >
           <Inbox className="w-3 h-3" /> Recebidos ({receivedQuizzes.length})
         </button>
+      </div>
+
+      {/* Search Filter */}
+      <div className="px-3 pt-2.5 pb-1">
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Buscar por título ou código..."
+            className="w-full bg-slate-900/90 border border-slate-800 focus:border-cyan-500/50 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none"
+          />
+        </div>
       </div>
 
       {/* List */}
@@ -194,9 +229,20 @@ export const RightKahootsSidebar: React.FC<Props> = ({
                     <Play className="w-3 h-3 fill-current" /> Jogar
                   </button>
                   <button
+                    onClick={() => handleCopyQuizLink(quiz.shareCode)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition"
+                    title="Copiar link direto"
+                  >
+                    {copiedCode === quiz.shareCode ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Link2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                  <button
                     onClick={onOpenShareModal}
                     className="p-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 transition"
-                    title="Enviar / Compartilhar"
+                    title="Enviar por Email / Compartilhar"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                   </button>

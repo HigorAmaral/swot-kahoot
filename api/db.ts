@@ -1,8 +1,82 @@
 import { neon } from '@neondatabase/serverless';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 // Read Neon PostgreSQL connection string from environment variables (never hardcode credentials in Git)
 const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || '';
+
+function buildQuizEmailHtml(params: {
+  senderName: string;
+  senderUsername: string;
+  quizTitle: string;
+  shareCode: string;
+  quizUrl: string;
+  questionCount: number;
+}): string {
+  const { senderName, senderUsername, quizTitle, shareCode, quizUrl, questionCount } = params;
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Convite FabricaQuiz</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #030712; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc; }
+    .wrapper { width: 100%; background-color: #030712; padding: 32px 16px; }
+    .card { max-width: 560px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55); }
+    .header { background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #0284c7 100%); padding: 32px 28px; text-align: center; }
+    .logo-badge { display: inline-block; width: 52px; height: 52px; line-height: 52px; border-radius: 16px; background: #030712; color: #34d399; font-size: 22px; font-weight: 900; margin-bottom: 12px; letter-spacing: -1px; }
+    .header h1 { margin: 0; font-size: 26px; font-weight: 900; color: #030712; letter-spacing: -0.5px; }
+    .header p { margin: 6px 0 0; font-size: 13px; font-weight: 700; color: #022c22; }
+    .content { padding: 32px 28px; }
+    .greeting { font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0 0 20px; }
+    .quiz-box { background: #1e293b; border: 1px solid #334155; border-left: 4px solid #10b981; border-radius: 16px; padding: 20px; margin-bottom: 24px; }
+    .quiz-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: #34d399; font-weight: 800; margin: 0 0 6px; }
+    .quiz-title { font-size: 20px; font-weight: 900; color: #ffffff; margin: 0 0 10px; }
+    .quiz-meta { font-size: 13px; color: #94a3b8; margin: 0; }
+    .code-pill { display: inline-block; background: #022c22; border: 1px solid #10b981; color: #6ee7b7; font-family: monospace; font-size: 14px; font-weight: 800; padding: 4px 10px; border-radius: 8px; margin-left: 6px; }
+    .cta-wrap { text-align: center; margin: 28px 0; }
+    .cta-btn { display: inline-block; background: linear-gradient(90deg, #10b981 0%, #06b6d4 100%); color: #030712 !important; text-decoration: none; font-weight: 900; font-size: 15px; padding: 15px 32px; border-radius: 14px; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35); }
+    .fallback { background: #020617; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; font-size: 12px; color: #94a3b8; word-break: break-all; }
+    .fallback a { color: #38bdf8; text-decoration: none; }
+    .footer { padding: 20px 28px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; background: #0b1120; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <div class="logo-badge">FQ</div>
+        <h1>FabricaQuiz</h1>
+        <p>Convite para Quiz Interativo</p>
+      </div>
+      <div class="content">
+        <p class="greeting">
+          Olá! <strong style="color:#ffffff;">${senderName}</strong> (<span style="color:#38bdf8;">@${senderUsername}</span>) enviou um Kahoot para você jogar no <strong>FabricaQuiz</strong>:
+        </p>
+        <div class="quiz-box">
+          <p class="quiz-label">Quiz Compartilhado</p>
+          <p class="quiz-title">${quizTitle}</p>
+          <p class="quiz-meta">
+            ${questionCount} pergunta(s) &nbsp;•&nbsp; Código: <span class="code-pill">${shareCode}</span>
+          </p>
+        </div>
+        <div class="cta-wrap">
+          <a href="${quizUrl}" class="cta-btn">🎯 Abrir e Jogar Agora</a>
+        </div>
+        <div class="fallback">
+          Se o botão não abrir, copie e cole este link no navegador:<br />
+          <a href="${quizUrl}">${quizUrl}</a>
+        </div>
+      </div>
+      <div class="footer">
+        Enviado via <strong>FabricaQuiz</strong> • Sistema Interativo de Quiz em Sala
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
 
 function hashPassword(pwd: string): string {
   return crypto.createHash('sha256').update(`fabrica_salt_${pwd}`).digest('hex');
@@ -585,11 +659,13 @@ export default async function handler(req: any, res: any) {
         });
       }
 
-      // 15. Send Quiz to Email (even if recipient doesn't have an account yet)
+      // 15. Send Quiz to Email (saves invite + sends styled HTML/CSS email if SMTP or Resend is configured)
       if (action === 'send_quiz_to_email') {
         const shareCode = String(body.shareCode || '').trim().toUpperCase();
         const senderUsername = String(body.senderUsername || '').trim().toLowerCase();
+        const senderName = String(body.senderName || senderUsername || 'Alguém').trim();
         const recipientEmail = String(body.recipientEmail || '').trim().toLowerCase();
+        const originUrl = String(body.originUrl || 'https://swot-kahoot.vercel.app').replace(/\/$/, '');
 
         if (!shareCode || !recipientEmail || !recipientEmail.includes('@')) {
           return res.status(400).json({ error: 'Informe um e-mail válido.' });
@@ -601,7 +677,92 @@ export default async function handler(req: any, res: any) {
           ON CONFLICT (quiz_share_code, recipient_email) DO NOTHING
         `;
 
-        return res.status(200).json({ success: true, recipientEmail });
+        const quizRows = await sql`
+          SELECT title, questions_json FROM fabrica_quizzes WHERE share_code = ${shareCode} LIMIT 1
+        `;
+        const quizTitle = quizRows[0]?.title || `Quiz ${shareCode}`;
+        const questionCount = quizRows[0]?.questions_json ? JSON.parse(quizRows[0].questions_json).length : 0;
+        const quizUrl = `${originUrl}/?quiz=${shareCode}`;
+
+        const html = buildQuizEmailHtml({
+          senderName,
+          senderUsername,
+          quizTitle,
+          shareCode,
+          quizUrl,
+          questionCount,
+        });
+        const text = `Olá!\n\n${senderName} (@${senderUsername}) enviou o quiz "${quizTitle}" para você jogar no FabricaQuiz!\n\nCódigo: ${shareCode}\nLink direto: ${quizUrl}`;
+        const subject = `🎯 FabricaQuiz: ${senderName} enviou "${quizTitle}" para você!`;
+
+        let emailSent = false;
+        let provider = 'none';
+        let emailError: string | undefined;
+
+        // Option 1: Resend API (RESEND_API_KEY)
+        if (process.env.RESEND_API_KEY) {
+          try {
+            const fromEmail = process.env.RESEND_FROM || 'FabricaQuiz <onboarding@resend.dev>';
+            const r = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: fromEmail,
+                to: [recipientEmail],
+                subject,
+                html,
+                text,
+              }),
+            });
+            if (r.ok) {
+              emailSent = true;
+              provider = 'resend';
+            } else {
+              const errData = await r.json().catch(() => ({}));
+              emailError = errData?.message || `Resend status ${r.status}`;
+            }
+          } catch (e: any) {
+            emailError = e.message;
+          }
+        }
+        // Option 2: Nodemailer SMTP / Gmail (SMTP_USER + SMTP_PASS)
+        else if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+          try {
+            const transporter = nodemailer.createTransport({
+              host: process.env.SMTP_HOST || 'smtp.gmail.com',
+              port: Number(process.env.SMTP_PORT || 465),
+              secure: process.env.SMTP_SECURE !== 'false',
+              auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+              },
+            });
+            await transporter.sendMail({
+              from: `"FabricaQuiz" <${process.env.SMTP_USER}>`,
+              to: recipientEmail,
+              subject,
+              text,
+              html,
+            });
+            emailSent = true;
+            provider = 'smtp';
+          } catch (e: any) {
+            emailError = e.message;
+          }
+        }
+
+        return res.status(200).json({
+          success: true,
+          recipientEmail,
+          emailSent,
+          provider,
+          needsEmailConfig: !emailSent,
+          emailError,
+          quizUrl,
+        });
       }
 
       return res.status(400).json({ error: 'Ação desconhecida' });

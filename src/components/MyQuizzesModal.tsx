@@ -102,6 +102,8 @@ export const MyQuizzesModal: React.FC<Props> = ({
     }
   };
 
+  const [sendingEmail, setSendingEmail] = useState(false);
+
   const handleSendToEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sharingQuiz || !targetEmail.trim()) return;
@@ -112,20 +114,31 @@ export const MyQuizzesModal: React.FC<Props> = ({
     }
 
     setSendFeedback(null);
-    const res = await dbService.sendQuizToEmail(sharingQuiz.shareCode, currentUser.username, emailClean);
-    const url = getShareUrl(sharingQuiz.shareCode);
-    const subject = `Convite FabricaQuiz: ${sharingQuiz.title}`;
-    const body = `Olá!\n\n${currentUser.displayName} (@${currentUser.username}) enviou um quiz para você jogar no FabricaQuiz:\n\nTítulo: ${sharingQuiz.title}\nCódigo: ${sharingQuiz.shareCode}\n\nClique no link para abrir e jogar:\n${url}\n`;
+    setSendingEmail(true);
+    const res = await dbService.sendQuizToEmail(
+      sharingQuiz.shareCode,
+      currentUser.username,
+      emailClean,
+      currentUser.displayName
+    );
+    setSendingEmail(false);
 
-    if (res.success) {
+    if (res.success && res.emailSent) {
+      sound.playCorrect();
+      setLastSentEmail(null);
+      setSendFeedback({
+        type: 'ok',
+        msg: `E-mail estilizado enviado diretamente para ${emailClean}! Ele receberá o link na caixa de entrada.`,
+      });
+      setTargetEmail('');
+    } else if (res.success && res.needsEmailConfig) {
       sound.playCorrect();
       setLastSentEmail(emailClean);
       setSendFeedback({
         type: 'ok',
-        msg: `Convite salvo para ${emailClean}! Abrindo seu aplicativo de e-mail com o link pronto...`,
+        msg: `Convite salvo para ${emailClean}! Para disparo automático direto do servidor, configure SMTP_USER/SMTP_PASS ou RESEND_API_KEY no Vercel. Ou clique abaixo para enviar pelo Gmail:`,
       });
       setTargetEmail('');
-      window.location.href = `mailto:${encodeURIComponent(emailClean)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     } else {
       sound.playWrong();
       setSendFeedback({ type: 'err', msg: res.error || 'Erro ao enviar por e-mail' });
@@ -364,9 +377,10 @@ export const MyQuizzesModal: React.FC<Props> = ({
                             </div>
                             <button
                               type="submit"
-                              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+                              disabled={sendingEmail}
+                              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
                             >
-                              <Mail className="w-3.5 h-3.5" /> Mandar no E-mail
+                              <Mail className="w-3.5 h-3.5" /> {sendingEmail ? 'Enviando...' : 'Mandar no E-mail'}
                             </button>
                           </form>
 

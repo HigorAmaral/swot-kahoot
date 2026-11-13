@@ -369,8 +369,14 @@ export class DatabaseService {
   }
 
   // Send Quiz to Email
-  async sendQuizToEmail(shareCode: string, senderUsername: string, recipientEmail: string): Promise<{ success: boolean; error?: string }> {
+  async sendQuizToEmail(
+    shareCode: string,
+    senderUsername: string,
+    recipientEmail: string,
+    senderName?: string
+  ): Promise<{ success: boolean; emailSent?: boolean; needsEmailConfig?: boolean; emailError?: string; error?: string }> {
     try {
+      const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swot-kahoot.vercel.app';
       const res = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -378,12 +384,19 @@ export class DatabaseService {
           action: 'send_quiz_to_email',
           shareCode,
           senderUsername,
+          senderName: senderName || senderUsername,
           recipientEmail,
+          originUrl,
         }),
       });
       const data = await res.json();
-      if (!res.ok) return { success: false, error: data.error || 'Erro ao registrar envio por e-mail' };
-      return { success: true };
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao enviar por e-mail' };
+      return {
+        success: true,
+        emailSent: data.emailSent,
+        needsEmailConfig: data.needsEmailConfig,
+        emailError: data.emailError,
+      };
     } catch {
       return { success: false, error: 'Erro de conexão com o servidor.' };
     }

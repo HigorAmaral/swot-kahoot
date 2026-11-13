@@ -1,5 +1,7 @@
 export type DisputeMode = 'peao' | 'buzzer' | 'alvo' | 'direto';
 
+export { type Question } from './data/questions';
+
 export interface Participant {
   id: string;
   name: string;

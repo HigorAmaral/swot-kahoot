@@ -37,6 +37,8 @@ interface Props {
   sessionId: string;
   isDbConnected: boolean;
   roundLogs: RoundLog[];
+  onOpenCreatorModal?: () => void;
+  onLogout?: () => void;
 }
 
 export const AdminDashboard: React.FC<Props> = ({
@@ -55,6 +57,8 @@ export const AdminDashboard: React.FC<Props> = ({
   sessionId,
   isDbConnected,
   roundLogs,
+  onOpenCreatorModal,
+  onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<'winner_scores' | 'participants' | 'quiz_control' | 'logs'>('winner_scores');
   const [newParticipantNames, setNewParticipantNames] = useState<{ [teamId: number]: string }>({});
@@ -108,16 +112,41 @@ export const AdminDashboard: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Create Kahoot Quick Button */}
+            {onOpenCreatorModal && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenCreatorModal();
+                }}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110 text-white text-xs font-bold transition flex items-center gap-1.5 shadow"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Criar Perguntas</span>
+              </button>
+            )}
+
             {/* DB Status Badge */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs">
               <Database className="w-3.5 h-3.5 text-cyan-400" />
               <span className="text-slate-400 hidden sm:inline">Neon DB:</span>
               <span className={`font-bold flex items-center gap-1 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
                 <span className={`w-2 h-2 rounded-full ${isDbConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
-                {isDbConnected ? 'Conectado' : 'Local Cache'}
+                {isDbConnected ? 'Conectado' : 'Local'}
               </span>
             </div>
+
+            {/* Logout Button */}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700 text-xs font-bold transition"
+                title="Bloquear Painel / Sair"
+              >
+                Sair
+              </button>
+            )}
 
             <button
               onClick={onClose}

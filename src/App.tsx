@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Team, DisputeMode, GameStage, Participant, RoundLog } from './types';
+import { Team, DisputeMode, GameStage, Participant, RoundLog, Question } from './types';
 import { questionsData } from './data/questions';
 import { sound } from './utils/sound';
 import { dbService, getSessionId } from './services/db';
@@ -17,6 +17,8 @@ import { PodiumView } from './components/PodiumView';
 import { CaseStudyModal } from './components/CaseStudyModal';
 import { DynamicGuideModal } from './components/DynamicGuideModal';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AdminAuthModal } from './components/AdminAuthModal';
+import { KahootCreatorModal } from './components/KahootCreatorModal';
 
 const initialTeams: Team[] = [
   {
@@ -105,14 +107,58 @@ export function App() {
   const [roundLogs, setRoundLogs] = useState<RoundLog[]>([]);
   const [isDbConnected, setIsDbConnected] = useState<boolean>(true);
 
+  // Dynamic Questions State (Default SWOT + Custom Created / Imported)
+  const [questions, setQuestions] = useState<Question[]>(() => {
+    try {
+      const cached = localStorage.getItem('swot_custom_questions');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return questionsData;
+  });
+
   // Modals
   const [isCaseModalOpen, setIsCaseModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
+  const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
 
-  const currentQuestion = questionsData[currentQuestionIndex];
+  const currentQuestion = questions[currentQuestionIndex] || questions[0];
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
   const disputeWinnerTeam = teams.find(t => t.id === disputeWinnerId) || teams[0];
+
+  // Request Admin (Password Protection: higoramaral)
+  const handleOpenAdmin = () => {
+    const isAuth = sessionStorage.getItem('swot_admin_auth') === 'true';
+    if (isAuth) {
+      setIsAdminModalOpen(true);
+    } else {
+      setIsAdminAuthOpen(true);
+    }
+  };
+
+  const handleAdminAuthSuccess = () => {
+    setIsAdminAuthOpen(false);
+    setIsAdminModalOpen(true);
+  };
+
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem('swot_admin_auth');
+    setIsAdminModalOpen(false);
+  };
+
+  // Save Custom Questions from Creator
+  const handleSaveQuestions = (newQuestions: Question[]) => {
+    setQuestions(newQuestions);
+    try {
+      localStorage.setItem('swot_custom_questions', JSON.stringify(newQuestions));
+    } catch {}
+    setCurrentQuestionIndex(0);
+    setStage('intro');
+  };
 
   // Sync with Neon Database on mount and polling every 2s for live updates
   useEffect(() => {
@@ -381,7 +427,7 @@ export function App() {
 
   // Next Question or Podium
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < questionsData.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setStage('question_intro');
     } else {
@@ -406,7 +452,8 @@ export function App() {
         onSetDisputeMode={setDisputeMode}
         onOpenCaseModal={() => setIsCaseModalOpen(true)}
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
-        onOpenAdminModal={() => setIsAdminModalOpen(true)}
+        onOpenAdminModal={handleOpenAdmin}
+        onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
         isDbConnected={isDbConnected}
       />
 
@@ -421,7 +468,8 @@ export function App() {
             onStartGame={handleStartGame}
             onOpenCaseModal={() => setIsCaseModalOpen(true)}
             onOpenGuideModal={() => setIsGuideModalOpen(true)}
-            onOpenAdminModal={() => setIsAdminModalOpen(true)}
+            onOpenAdminModal={handleOpenAdmin}
+            onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
           />
@@ -431,7 +479,7 @@ export function App() {
           <QuestionIntroBanner
             question={currentQuestion}
             questionIndex={currentQuestionIndex}
-            totalQuestions={questionsData.length}
+            totalQuestions={questions.length}
             onProceedToQuestion={() => {
               setAnsweringTeamId(teams[currentQuestionIndex % teams.length].id);
               setIsPassed(false);
@@ -501,7 +549,7 @@ export function App() {
           <ScoreboardView
             teams={teams}
             questionNumber={currentQuestionIndex + 1}
-            totalQuestions={questionsData.length}
+            totalQuestions={questions.length}
             onNextQuestion={handleNextQuestion}
           />
         )}
@@ -544,6 +592,21 @@ export function App() {
         sessionId={sessionId}
         isDbConnected={isDbConnected}
         roundLogs={roundLogs}
+        onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
+        onLogout={handleAdminLogout}
+      />
+
+      <AdminAuthModal
+        isOpen={isAdminAuthOpen}
+        onClose={() => setIsAdminAuthOpen(false)}
+        onSuccess={handleAdminAuthSuccess}
+      />
+
+      <KahootCreatorModal
+        isOpen={isCreatorModalOpen}
+        onClose={() => setIsCreatorModalOpen(false)}
+        currentQuestions={questions}
+        onSaveQuestions={handleSaveQuestions}
       />
 
       {/* Minimal Footer */}
@@ -551,10 +614,10 @@ export function App() {
         <span>SWOT Kahoot! • Funções Administrativas & Planejamento em TI</span>
         <span>•</span>
         <button
-          onClick={() => setIsAdminModalOpen(true)}
+          onClick={handleOpenAdmin}
           className="text-amber-400 hover:underline font-bold"
         >
-          Acessar Painel ADM
+          Acessar Painel ADM (Senha: higoramaral)
         </button>
       </footer>
     </div>

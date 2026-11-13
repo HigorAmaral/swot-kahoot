@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DisputeMode } from '../types';
 import { sound } from '../utils/sound';
-import { Volume2, VolumeX, Maximize2, HelpCircle, BookOpen, ShieldAlert, Database } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, HelpCircle, BookOpen, ShieldAlert, Database, Sparkles } from 'lucide-react';
 
 interface Props {
   disputeMode: DisputeMode;
@@ -9,6 +9,7 @@ interface Props {
   onOpenCaseModal: () => void;
   onOpenGuideModal: () => void;
   onOpenAdminModal: () => void;
+  onOpenCreatorModal: () => void;
   isDbConnected: boolean;
 }
 
@@ -18,6 +19,7 @@ export const HostHeader: React.FC<Props> = ({
   onOpenCaseModal,
   onOpenGuideModal,
   onOpenAdminModal,
+  onOpenCreatorModal,
   isDbConnected,
 }) => {
   const [isMuted, setIsMuted] = useState(sound.getMuted());
@@ -97,11 +99,22 @@ export const HostHeader: React.FC<Props> = ({
 
         {/* Utility Actions */}
         <div className="flex items-center gap-2">
+          {/* Create Kahoot Button */}
+          <button
+            onClick={onOpenCreatorModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:brightness-110 text-white text-xs font-black transition shadow-md active:scale-95"
+            title="Criar novo Kahoot com PDF, Planilha Excel/CSV, Texto ou na mão"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+            <span className="hidden sm:inline">Criar Kahoot</span>
+            <span className="sm:hidden">Criar</span>
+          </button>
+
           {/* Admin Dashboard Button */}
           <button
             onClick={onOpenAdminModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-amber-300 text-xs font-black transition shadow-sm animate-pulse-fast"
-            title="Abrir Painel do Administrador (Declarar Vencedor, Ajustar Pontos, Participantes)"
+            title="Abrir Painel do Administrador (Requer Senha: higoramaral)"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
             <span>Painel ADM</span>

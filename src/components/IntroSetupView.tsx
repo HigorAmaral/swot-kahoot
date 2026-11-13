@@ -12,6 +12,7 @@ interface Props {
   onOpenCaseModal: () => void;
   onOpenGuideModal: () => void;
   onOpenAdminModal: () => void;
+  onOpenCreatorModal?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
 }
@@ -27,6 +28,7 @@ export const IntroSetupView: React.FC<Props> = ({
   onOpenCaseModal,
   onOpenGuideModal,
   onOpenAdminModal,
+  onOpenCreatorModal,
   onAddParticipant,
   onRemoveParticipant,
 }) => {
@@ -252,6 +254,16 @@ export const IntroSetupView: React.FC<Props> = ({
           <Play className="w-6 h-6 sm:w-7 sm:h-7 fill-current" />
           COMEÇAR O QUIZ DA SALA!
         </button>
+
+        {onOpenCreatorModal && (
+          <button
+            onClick={onOpenCreatorModal}
+            className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110 text-white font-extrabold text-sm shadow-xl flex items-center gap-2 transition"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-300" />
+            Criar Kahoot
+          </button>
+        )}
 
         <button
           onClick={onOpenAdminModal}

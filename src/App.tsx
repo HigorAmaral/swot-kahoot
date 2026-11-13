@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Team, DisputeMode, GameStage, Participant, RoundLog, Question } from './types';
+import { Team, DisputeMode, GameStage, Participant, RoundLog, Question, UserAccount } from './types';
 import { questionsData } from './data/questions';
 import { sound } from './utils/sound';
 import { dbService, getSessionId } from './services/db';
@@ -14,6 +14,8 @@ import { PodiumView } from './components/PodiumView';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { KahootCreatorModal } from './components/KahootCreatorModal';
+import { LoginView } from './components/LoginView';
+import { MyQuizzesModal } from './components/MyQuizzesModal';
 
 const initialTeams: Team[] = [
   {
@@ -79,6 +81,21 @@ const initialTeams: Team[] = [
 ];
 
 export function App() {
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    try {
+      const saved = localStorage.getItem('fabrica_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
+  const [pendingQuizCode, setPendingQuizCode] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('quiz');
+  });
+
+  const [activeQuizInfo, setActiveQuizInfo] = useState<{ title: string; shareCode?: string } | null>(null);
   const [sessionId] = useState<string>(getSessionId());
   const [teams, setTeams] = useState<Team[]>(() => {
     try {
@@ -118,6 +135,7 @@ export function App() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
+  const [isMyQuizzesModalOpen, setIsMyQuizzesModalOpen] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex] || questions[0];
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
@@ -143,9 +161,41 @@ export function App() {
     setIsAdminModalOpen(false);
   };
 
+  // Login & Logout Handlers
+  const handleLoginSuccess = (user: UserAccount) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('fabrica_user', JSON.stringify(user));
+    } catch {}
+  };
+
+  const handleLogoutUser = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('fabrica_user');
+    } catch {}
+  };
+
+  // Load shared quiz if ?quiz=FQ-XXXX is in URL once logged in
+  useEffect(() => {
+    if (!currentUser || !pendingQuizCode) return;
+    dbService.getQuizByCode(pendingQuizCode).then(res => {
+      if (res.success && res.quiz && res.quiz.questions.length > 0) {
+        setQuestions(res.quiz.questions);
+        setActiveQuizInfo({ title: res.quiz.title, shareCode: res.quiz.shareCode });
+        setCurrentQuestionIndex(0);
+        setStage('intro');
+      }
+      setPendingQuizCode(null);
+    });
+  }, [currentUser, pendingQuizCode]);
+
   // Save Custom Questions from Creator
-  const handleSaveQuestions = (newQuestions: Question[]) => {
+  const handleSaveQuestions = (newQuestions: Question[], quizTitle?: string, shareCode?: string) => {
     setQuestions(newQuestions);
+    if (quizTitle || shareCode) {
+      setActiveQuizInfo({ title: quizTitle || 'Meu Quiz', shareCode });
+    }
     try {
       localStorage.setItem('swot_custom_questions', JSON.stringify(newQuestions));
     } catch {}
@@ -437,12 +487,24 @@ export function App() {
     setStage('intro');
   };
 
+  if (!currentUser) {
+    return (
+      <LoginView
+        onLoginSuccess={handleLoginSuccess}
+        pendingQuizCode={pendingQuizCode}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-grid-pattern text-white flex flex-col font-sans select-none">
       {/* Top Header */}
       <HostHeader
         onOpenAdminModal={handleOpenAdmin}
         onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
+        onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+        currentUser={currentUser}
+        onLogoutUser={handleLogoutUser}
         isDbConnected={isDbConnected}
       />
 
@@ -455,6 +517,8 @@ export function App() {
             onStartGame={handleStartGame}
             onOpenAdminModal={handleOpenAdmin}
             onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
+            onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+            activeQuizInfo={activeQuizInfo}
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
           />
@@ -551,6 +615,15 @@ export function App() {
         onClose={() => setIsCreatorModalOpen(false)}
         currentQuestions={questions}
         onSaveQuestions={handleSaveQuestions}
+        currentUser={currentUser}
+      />
+
+      <MyQuizzesModal
+        isOpen={isMyQuizzesModalOpen}
+        onClose={() => setIsMyQuizzesModalOpen(false)}
+        currentUser={currentUser}
+        onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
+        onOpenCreator={() => setIsCreatorModalOpen(true)}
       />
 
       {/* Minimal Footer */}

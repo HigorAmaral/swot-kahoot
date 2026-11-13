@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
+import { UserAccount } from '../types';
 import { sound } from '../utils/sound';
-import { Volume2, VolumeX, Maximize2, ShieldAlert, Database, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, ShieldAlert, Database, Sparkles, Share2, LogOut } from 'lucide-react';
 
 interface Props {
   onOpenAdminModal: () => void;
   onOpenCreatorModal: () => void;
+  onOpenMyQuizzesModal: () => void;
+  currentUser: UserAccount;
+  onLogoutUser: () => void;
   isDbConnected: boolean;
 }
 
 export const HostHeader: React.FC<Props> = ({
   onOpenAdminModal,
   onOpenCreatorModal,
+  onOpenMyQuizzesModal,
+  currentUser,
+  onLogoutUser,
   isDbConnected,
 }) => {
   const [isMuted, setIsMuted] = useState(sound.getMuted());
@@ -56,7 +63,7 @@ export const HostHeader: React.FC<Props> = ({
           {/* Create Kahoot Button */}
           <button
             onClick={onOpenCreatorModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 text-xs font-black transition shadow-md shadow-emerald-500/20 active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 text-xs font-black transition shadow-md shadow-emerald-500/20 active:scale-95"
             title="Criar novo quiz com PDF, Planilha Excel/CSV, Texto ou na mão"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -64,25 +71,51 @@ export const HostHeader: React.FC<Props> = ({
             <span className="sm:hidden">Criar</span>
           </button>
 
+          {/* My Quizzes / Share Button */}
+          <button
+            onClick={onOpenMyQuizzesModal}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/50 text-cyan-300 text-xs font-black transition"
+            title="Meus Kahoots salvos e enviar para outras pessoas"
+          >
+            <Share2 className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden md:inline">Meus Kahoots / Enviar</span>
+            <span className="md:hidden">Enviar</span>
+          </button>
+
           {/* Admin Dashboard Button */}
           <button
             onClick={onOpenAdminModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-300 text-xs font-black transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-300 text-xs font-black transition shadow-sm"
             title="Abrir Painel do Administrador (Requer Senha)"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-            <span>Painel ADM</span>
+            <span className="hidden sm:inline">Painel ADM</span>
           </button>
 
           {/* DB Indicator */}
           <div
-            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold"
             title="Status de Conexão com o Banco de Dados Neon PostgreSQL"
           >
             <Database className="w-3.5 h-3.5 text-cyan-400" />
             <span className={isDbConnected ? 'text-emerald-400' : 'text-amber-400'}>
               {isDbConnected ? 'Online' : 'Local'}
             </span>
+          </div>
+
+          {/* Logged-in User & Logout */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200">
+              <span>{currentUser.avatar}</span>
+              <span>@{currentUser.username}</span>
+            </span>
+            <button
+              onClick={onLogoutUser}
+              className="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/70 text-slate-300 hover:text-rose-300 transition border border-slate-800"
+              title="Sair da conta"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Sound Toggle */}

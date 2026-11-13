@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, ShieldAlert, Share2 } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -9,6 +9,8 @@ interface Props {
   onStartGame: () => void;
   onOpenAdminModal: () => void;
   onOpenCreatorModal?: () => void;
+  onOpenMyQuizzesModal?: () => void;
+  activeQuizInfo?: { title: string; shareCode?: string } | null;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
 }
@@ -21,6 +23,8 @@ export const IntroSetupView: React.FC<Props> = ({
   onStartGame,
   onOpenAdminModal,
   onOpenCreatorModal,
+  onOpenMyQuizzesModal,
+  activeQuizInfo,
   onAddParticipant,
   onRemoveParticipant,
 }) => {
@@ -65,6 +69,17 @@ export const IntroSetupView: React.FC<Props> = ({
           <p className="text-slate-300 text-sm sm:text-base max-w-xl font-medium">
             Escolha sua equipe abaixo, digite seu nome de usuário e dispute os pontos e brindes da rodada!
           </p>
+
+          {activeQuizInfo && (
+            <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-200 text-xs font-bold">
+              <span>🎯 Quiz Ativo: <strong className="text-white">{activeQuizInfo.title}</strong></span>
+              {activeQuizInfo.shareCode && (
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black">
+                  Código: {activeQuizInfo.shareCode}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Main CTA Buttons */}
@@ -77,20 +92,30 @@ export const IntroSetupView: React.FC<Props> = ({
             COMEÇAR O QUIZ!
           </button>
 
-          <div className="flex items-center gap-2.5 justify-center">
+          <div className="flex flex-wrap items-center gap-2 justify-center">
             {onOpenCreatorModal && (
               <button
                 onClick={onOpenCreatorModal}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyan-500/30 text-cyan-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-emerald-500/30 text-emerald-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
                 <Sparkles className="w-4 h-4" />
                 Criar Quiz
               </button>
             )}
 
+            {onOpenMyQuizzesModal && (
+              <button
+                onClick={onOpenMyQuizzesModal}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+              >
+                <Share2 className="w-4 h-4" />
+                Enviar / Meus Quizzes
+              </button>
+            )}
+
             <button
               onClick={onOpenAdminModal}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-amber-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-amber-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
               <ShieldAlert className="w-4 h-4 text-amber-400" />
               Painel ADM

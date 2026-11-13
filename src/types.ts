@@ -2,6 +2,24 @@ export type DisputeMode = 'peao' | 'buzzer' | 'alvo' | 'direto';
 
 export { type Question } from './data/questions';
 
+export interface UserAccount {
+  id: number;
+  username: string;
+  displayName: string;
+  avatar: string;
+}
+
+export interface SavedQuiz {
+  id?: number;
+  shareCode: string;
+  ownerUsername: string;
+  ownerName: string;
+  title: string;
+  questions: import('./data/questions').Question[];
+  createdAt?: string;
+  sharedBy?: string;
+}
+
 export interface Participant {
   id: string;
   name: string;

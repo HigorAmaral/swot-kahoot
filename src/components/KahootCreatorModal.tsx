@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Question, questionsData } from '../data/questions';
+import { UserAccount } from '../types';
+import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import {
   X,
@@ -23,7 +25,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   currentQuestions: Question[];
-  onSaveQuestions: (newQuestions: Question[]) => void;
+  onSaveQuestions: (newQuestions: Question[], quizTitle?: string, shareCode?: string) => void;
+  currentUser?: UserAccount | null;
 }
 
 export const KahootCreatorModal: React.FC<Props> = ({
@@ -31,8 +34,11 @@ export const KahootCreatorModal: React.FC<Props> = ({
   onClose,
   currentQuestions,
   onSaveQuestions,
+  currentUser,
 }) => {
   const [activeTab, setActiveTab] = useState<'manual' | 'spreadsheet' | 'file_text' | 'paste'>('manual');
+  const [quizTitle, setQuizTitle] = useState('Meu Quiz no FabricaQuiz');
+  const [isSaving, setIsSaving] = useState(false);
   const [questionsList, setQuestionsList] = useState<Question[]>(currentQuestions);
 
   // Manual Form State
@@ -298,14 +304,30 @@ export const KahootCreatorModal: React.FC<Props> = ({
   };
 
   // Save and apply to Quiz
-  const handleSaveAndApply = () => {
+  const handleSaveAndApply = async () => {
     if (questionsList.length === 0) {
-      alert("Adicione pelo menos 1 pergunta ao Kahoot!");
+      alert("Adicione pelo menos 1 pergunta ao Quiz!");
       return;
     }
 
+    setIsSaving(true);
+    let generatedCode: string | undefined;
+
+    if (currentUser) {
+      const res = await dbService.saveQuiz(
+        currentUser.username,
+        currentUser.displayName,
+        quizTitle.trim() || 'Meu Quiz no FabricaQuiz',
+        questionsList
+      );
+      if (res.success && res.quiz) {
+        generatedCode = res.quiz.shareCode;
+      }
+    }
+
+    setIsSaving(false);
     sound.playCorrect();
-    onSaveQuestions(questionsList);
+    onSaveQuestions(questionsList, quizTitle.trim() || 'Meu Quiz no FabricaQuiz', generatedCode);
     onClose();
   };
 
@@ -334,12 +356,19 @@ export const KahootCreatorModal: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={quizTitle}
+              onChange={e => setQuizTitle(e.target.value)}
+              placeholder="Nome do seu Kahoot..."
+              className="bg-slate-900 border border-cyan-500/40 focus:border-emerald-400 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none w-44 sm:w-56"
+            />
             <button
               onClick={handleRestoreDefaults}
               className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
-              title="Restaurar as 10 perguntas originais da InovaTech"
+              title="Restaurar as 10 perguntas originais"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Restaurar Originais
+              <RotateCcw className="w-3.5 h-3.5" /> Restaurar
             </button>
             <button
               onClick={onClose}
@@ -763,9 +792,11 @@ export const KahootCreatorModal: React.FC<Props> = ({
             </button>
             <button
               onClick={handleSaveAndApply}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-1.5"
+              disabled={isSaving}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-60 text-white font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-1.5"
             >
-              <CheckCircle2 className="w-4 h-4" /> Salvar e Usar este Kahoot no Jogo!
+              <CheckCircle2 className="w-4 h-4" />
+              {isSaving ? 'Salvando...' : 'Salvar na Conta & Usar no Jogo!'}
             </button>
           </div>
         </div>

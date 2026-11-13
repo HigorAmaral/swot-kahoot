@@ -1,7 +1,21 @@
 import { neon } from '@neondatabase/serverless';
+import crypto from 'crypto';
 
 // The verified Neon PostgreSQL connection string with our SWOT tables and participants
 const DATABASE_URL = "postgresql://neondb_owner:npg_mcyb8A5rtqQE@ep-shy-sun-b6gcu3q3-pooler.c-2.sa-east-1.aws.neon.tech/neondb?sslmode=require";
+
+function hashPassword(pwd: string): string {
+  return crypto.createHash('sha256').update(`fabrica_salt_${pwd}`).digest('hex');
+}
+
+function generateShareCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'FQ-';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
 
 function normalizeSessionId(raw?: string): string {
   if (!raw || raw === 'default-session' || raw.startsWith('sala-ti-')) {
@@ -65,6 +79,38 @@ async function ensureTables(sql: any) {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS fabrica_users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(80) UNIQUE NOT NULL,
+        display_name VARCHAR(120) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        avatar VARCHAR(50) DEFAULT '👨‍💻',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS fabrica_quizzes (
+        id SERIAL PRIMARY KEY,
+        share_code VARCHAR(32) UNIQUE NOT NULL,
+        owner_username VARCHAR(80) NOT NULL,
+        owner_name VARCHAR(120) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        questions_json TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS fabrica_quiz_shares (
+        id SERIAL PRIMARY KEY,
+        quiz_share_code VARCHAR(32) NOT NULL,
+        sender_username VARCHAR(80) NOT NULL,
+        recipient_username VARCHAR(80) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE (quiz_share_code, recipient_username)
+      );
+    `;
   } catch (e) {
     console.error("Table ensure error:", e);
   }
@@ -86,6 +132,82 @@ export default async function handler(req: any, res: any) {
 
   try {
     if (req.method === 'GET') {
+      const reqType = req.query?.type as string | undefined;
+
+      // Fetch shared quiz by share code
+      if (reqType === 'quiz') {
+        await ensureTables(sql);
+        const code = String(req.query?.code || '').trim().toUpperCase();
+        if (!code) return res.status(400).json({ error: 'Código do quiz inválido' });
+        const rows = await sql`
+          SELECT id, share_code, owner_username, owner_name, title, questions_json, created_at
+          FROM fabrica_quizzes
+          WHERE share_code = ${code}
+          LIMIT 1
+        `;
+        if (rows.length === 0) {
+          return res.status(404).json({ error: 'Quiz não encontrado para este código' });
+        }
+        const r = rows[0];
+        return res.status(200).json({
+          success: true,
+          quiz: {
+            id: r.id,
+            shareCode: r.share_code,
+            ownerUsername: r.owner_username,
+            ownerName: r.owner_name,
+            title: r.title,
+            questions: JSON.parse(r.questions_json),
+            createdAt: r.created_at,
+          }
+        });
+      }
+
+      // Fetch user's own quizzes + quizzes shared with them
+      if (reqType === 'my_quizzes') {
+        await ensureTables(sql);
+        const username = String(req.query?.username || '').trim().toLowerCase();
+        if (!username) return res.status(400).json({ error: 'Usuário não informado' });
+
+        const ownRows = await sql`
+          SELECT id, share_code, owner_username, owner_name, title, questions_json, created_at
+          FROM fabrica_quizzes
+          WHERE owner_username = ${username}
+          ORDER BY updated_at DESC
+        `;
+
+        const receivedRows = await sql`
+          SELECT q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.created_at, s.sender_username
+          FROM fabrica_quiz_shares s
+          JOIN fabrica_quizzes q ON q.share_code = s.quiz_share_code
+          WHERE s.recipient_username = ${username}
+          ORDER BY s.created_at DESC
+        `;
+
+        return res.status(200).json({
+          success: true,
+          myQuizzes: ownRows.map((r: any) => ({
+            id: r.id,
+            shareCode: r.share_code,
+            ownerUsername: r.owner_username,
+            ownerName: r.owner_name,
+            title: r.title,
+            questions: JSON.parse(r.questions_json),
+            createdAt: r.created_at,
+          })),
+          receivedQuizzes: receivedRows.map((r: any) => ({
+            id: r.id,
+            shareCode: r.share_code,
+            ownerUsername: r.owner_username,
+            ownerName: r.owner_name,
+            title: r.title,
+            questions: JSON.parse(r.questions_json),
+            createdAt: r.created_at,
+            sharedBy: r.sender_username,
+          })),
+        });
+      }
+
       const sessionId = normalizeSessionId(req.query?.session_id as string);
 
       let participants: any[] = [];
@@ -258,6 +380,130 @@ export default async function handler(req: any, res: any) {
         await sql`UPDATE swot_teams SET points = 0, candies = 0, chocolates = 0, answers_correct = 0, answers_wrong = 0, is_winner = FALSE WHERE session_id = ${sessionId}`;
         await sql`UPDATE swot_game_sessions SET current_question = 0, current_stage = 'intro', winner_team_id = NULL WHERE id = ${sessionId}`;
         return res.status(200).json({ success: true, sessionId });
+      }
+
+      // 9. Register User
+      if (action === 'register_user') {
+        const username = String(body.username || '').trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+        const displayName = String(body.displayName || '').trim();
+        const password = String(body.password || '');
+        const avatar = String(body.avatar || '👨‍💻');
+
+        if (!username || username.length < 3 || !displayName || password.length < 3) {
+          return res.status(400).json({ error: 'Preencha usuário (mín. 3 letras), nome e senha (mín. 3 caracteres).' });
+        }
+
+        const existing = await sql`SELECT id FROM fabrica_users WHERE username = ${username} LIMIT 1`;
+        if (existing.length > 0) {
+          return res.status(409).json({ error: 'Este nome de usuário já está em uso. Escolha outro!' });
+        }
+
+        const inserted = await sql`
+          INSERT INTO fabrica_users (username, display_name, password_hash, avatar)
+          VALUES (${username}, ${displayName}, ${hashPassword(password)}, ${avatar})
+          RETURNING id, username, display_name, avatar
+        `;
+        const u = inserted[0];
+        return res.status(200).json({
+          success: true,
+          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar }
+        });
+      }
+
+      // 10. Login User
+      if (action === 'login_user') {
+        const username = String(body.username || '').trim().toLowerCase();
+        const password = String(body.password || '');
+
+        if (!username || !password) {
+          return res.status(400).json({ error: 'Informe usuário e senha.' });
+        }
+
+        const rows = await sql`
+          SELECT id, username, display_name, password_hash, avatar
+          FROM fabrica_users
+          WHERE username = ${username}
+          LIMIT 1
+        `;
+        if (rows.length === 0 || rows[0].password_hash !== hashPassword(password)) {
+          return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
+        }
+        const u = rows[0];
+        return res.status(200).json({
+          success: true,
+          user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar }
+        });
+      }
+
+      // 11. Save Quiz
+      if (action === 'save_quiz') {
+        const ownerUsername = String(body.ownerUsername || '').trim().toLowerCase();
+        const ownerName = String(body.ownerName || ownerUsername);
+        const title = String(body.title || 'Meu Quiz no FabricaQuiz').trim();
+        const questionsJson = JSON.stringify(body.questions || []);
+        const shareCode = body.shareCode ? String(body.shareCode).trim().toUpperCase() : generateShareCode();
+
+        if (!ownerUsername) {
+          return res.status(400).json({ error: 'Usuário proprietário não informado.' });
+        }
+
+        const saved = await sql`
+          INSERT INTO fabrica_quizzes (share_code, owner_username, owner_name, title, questions_json, updated_at)
+          VALUES (${shareCode}, ${ownerUsername}, ${ownerName}, ${title}, ${questionsJson}, NOW())
+          ON CONFLICT (share_code) DO UPDATE SET
+            title = EXCLUDED.title,
+            questions_json = EXCLUDED.questions_json,
+            updated_at = NOW()
+          RETURNING id, share_code, owner_username, owner_name, title, created_at
+        `;
+        const q = saved[0];
+        return res.status(200).json({
+          success: true,
+          quiz: {
+            id: q.id,
+            shareCode: q.share_code,
+            ownerUsername: q.owner_username,
+            ownerName: q.owner_name,
+            title: q.title,
+            questions: body.questions || [],
+            createdAt: q.created_at,
+          }
+        });
+      }
+
+      // 12. Send Quiz directly to another user
+      if (action === 'send_quiz_to_user') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        const senderUsername = String(body.senderUsername || '').trim().toLowerCase();
+        const recipientUsername = String(body.recipientUsername || '').trim().toLowerCase().replace(/^@/, '');
+
+        if (!shareCode || !recipientUsername) {
+          return res.status(400).json({ error: 'Informe o código do quiz e o usuário destinatário.' });
+        }
+
+        const recipientRows = await sql`
+          SELECT username FROM fabrica_users WHERE username = ${recipientUsername} LIMIT 1
+        `;
+        if (recipientRows.length === 0) {
+          return res.status(404).json({ error: `Usuário "@${recipientUsername}" não encontrado no FabricaQuiz.` });
+        }
+
+        await sql`
+          INSERT INTO fabrica_quiz_shares (quiz_share_code, sender_username, recipient_username)
+          VALUES (${shareCode}, ${senderUsername}, ${recipientUsername})
+          ON CONFLICT (quiz_share_code, recipient_username) DO NOTHING
+        `;
+        return res.status(200).json({ success: true, recipientUsername });
+      }
+
+      // 13. Delete Quiz
+      if (action === 'delete_quiz') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        const ownerUsername = String(body.ownerUsername || '').trim().toLowerCase();
+        await sql`
+          DELETE FROM fabrica_quizzes WHERE share_code = ${shareCode} AND owner_username = ${ownerUsername}
+        `;
+        return res.status(200).json({ success: true });
       }
 
       return res.status(400).json({ error: 'Ação desconhecida' });

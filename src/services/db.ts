@@ -1,4 +1,4 @@
-import { Team, Participant, RoundLog } from '../types';
+import { Team, Participant, RoundLog, UserAccount, SavedQuiz, Question } from '../types';
 
 export const SESSION_KEY = 'swot_session_id';
 const LOCAL_TEAMS_KEY = 'swot_local_teams';
@@ -206,6 +206,141 @@ export class DatabaseService {
       this.isConnected = true;
     } catch {
       this.isConnected = false;
+    }
+  }
+
+  // Register User
+  async registerUser(username: string, displayName: string, password: string, avatar: string): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register_user',
+          username,
+          displayName,
+          password,
+          avatar,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao criar conta' };
+      this.isConnected = true;
+      return { success: true, user: data.user };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Login User
+  async loginUser(username: string, password: string): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login_user',
+          username,
+          password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Usuário ou senha inválidos' };
+      this.isConnected = true;
+      return { success: true, user: data.user };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Save Quiz (creates shareCode or updates existing)
+  async saveQuiz(ownerUsername: string, ownerName: string, title: string, questions: Question[], shareCode?: string): Promise<{ success: boolean; quiz?: SavedQuiz; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_quiz',
+          ownerUsername,
+          ownerName,
+          title,
+          questions,
+          shareCode,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao salvar quiz' };
+      this.isConnected = true;
+      return { success: true, quiz: data.quiz };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Get User's own quizzes and received quizzes
+  async getMyQuizzes(username: string): Promise<{ myQuizzes: SavedQuiz[]; receivedQuizzes: SavedQuiz[] }> {
+    try {
+      const res = await fetch(`/api/db?type=my_quizzes&username=${encodeURIComponent(username)}`);
+      if (!res.ok) return { myQuizzes: [], receivedQuizzes: [] };
+      const data = await res.json();
+      return {
+        myQuizzes: data.myQuizzes || [],
+        receivedQuizzes: data.receivedQuizzes || [],
+      };
+    } catch {
+      return { myQuizzes: [], receivedQuizzes: [] };
+    }
+  }
+
+  // Get Shared Quiz by Code
+  async getQuizByCode(code: string): Promise<{ success: boolean; quiz?: SavedQuiz; error?: string }> {
+    try {
+      const cleanCode = code.trim().toUpperCase().replace(/^.*QUIZ=/i, '');
+      const res = await fetch(`/api/db?type=quiz&code=${encodeURIComponent(cleanCode)}`);
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Quiz não encontrado' };
+      return { success: true, quiz: data.quiz };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Send Quiz directly to another user
+  async sendQuizToUser(shareCode: string, senderUsername: string, recipientUsername: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_quiz_to_user',
+          shareCode,
+          senderUsername,
+          recipientUsername,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Não foi possível enviar o quiz' };
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Delete Quiz
+  async deleteQuiz(shareCode: string, ownerUsername: string): Promise<boolean> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_quiz',
+          shareCode,
+          ownerUsername,
+        }),
+      });
+      return res.ok;
+    } catch {
+      return false;
     }
   }
 }

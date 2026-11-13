@@ -20,13 +20,13 @@ export const ScoreboardView: React.FC<Props> = ({
   const maxPoints = Math.max(...sorted.map(t => t.points), 1000);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-3 sm:p-4 animate-fade-in">
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-kahoot-purple/60 border border-purple-400 text-purple-200 text-sm font-semibold mb-2">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in">
+      <div className="text-center mb-5 sm:mb-6">
+        <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-kahoot-purple/60 border border-purple-400 text-purple-200 text-xs sm:text-sm font-semibold mb-2">
           <Trophy className="w-4 h-4 text-yellow-400" />
           Placar Geral da Sala • Rodada {questionNumber} de {totalQuestions}
         </div>
-        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
           Classificação das Equipes
         </h2>
       </div>

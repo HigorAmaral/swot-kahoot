@@ -101,16 +101,16 @@ export const IntroSetupView: React.FC<Props> = ({
   const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-6xl mx-auto p-3 sm:p-5 animate-fade-in">
+    <div className="flex flex-col items-center justify-center w-full max-w-6xl mx-auto p-2 sm:p-4 lg:p-5 animate-fade-in">
       {/* Top Hero Banner */}
-      <div className="w-full glass-card rounded-3xl p-6 sm:p-8 mb-6 border border-cyan-500/20 flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div className="w-full glass-card rounded-3xl p-4 sm:p-6 lg:p-8 mb-5 sm:mb-6 border border-cyan-500/20 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
         <div className="text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-extrabold text-xs uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-extrabold text-[11px] sm:text-xs uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
             {activeQuizInfo ? 'Kahoot Selecionado na Arena' : 'Arena Interativa em Sala'}
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-2">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2">
             {activeQuizInfo ? (
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
                 {activeQuizInfo.title}

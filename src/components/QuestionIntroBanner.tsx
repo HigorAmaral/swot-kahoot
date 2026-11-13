@@ -28,32 +28,32 @@ export const QuestionIntroBanner: React.FC<Props> = ({
     t.participants.some(p => p.name.toLowerCase() === currentUser.displayName.toLowerCase())
   );
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-3 sm:p-4 animate-fade-in text-center">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in text-center">
       {/* Question Counter Pill */}
-      <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-sm uppercase tracking-wider mb-6 shadow-xl">
+      <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-xs sm:text-sm uppercase tracking-wider mb-4 sm:mb-6 shadow-xl">
         <Sparkles className="w-4 h-4 fill-current text-cyan-300" />
         Pergunta #{questionIndex + 1} de {totalQuestions}
       </div>
 
       {/* Category Box */}
-      <div className="w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-8 md:p-10 shadow-2xl mb-8 flex flex-col items-center">
+      <div className="w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl mb-5 sm:mb-8 flex flex-col items-center">
         <span className="text-xs font-black uppercase text-cyan-400 tracking-widest mb-2 flex items-center gap-1.5">
           <Layers className="w-4 h-4" /> Tema da Rodada
         </span>
 
-        <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-4">
+        <h2 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight mb-3 sm:mb-4">
           {question.category}
         </h2>
 
         {question.swotQuadrant && (
-          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-400/50 text-emerald-300 font-bold text-sm">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-400/50 text-emerald-300 font-bold text-xs sm:text-sm">
             {question.swotQuadrant}
           </div>
         )}
       </div>
 
       {/* Entrar em um Grupo durante o Quiz */}
-      <div className="w-full glass-card border border-emerald-500/30 rounded-2xl p-4 mb-6 text-left">
+      <div className="w-full glass-card border border-emerald-500/30 rounded-2xl p-3.5 sm:p-4 mb-5 sm:mb-6 text-left">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <span className="text-xs font-black uppercase text-emerald-300 flex items-center gap-1.5">
             <Users className="w-4 h-4" />
@@ -65,7 +65,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
             {currentUser.avatar} {currentUser.displayName}
           </span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {teams.map(t => {
             const isMember = userTeam?.id === t.id;
             return (

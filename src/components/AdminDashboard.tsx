@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
-import { Team, Participant, RoundLog, Question } from '../types';
+import { Team, RoundLog, Question, GameStage } from '../types';
 import { questionsData } from '../data/questions';
 import { sound } from '../utils/sound';
 import {
   ShieldAlert,
   Trophy,
   Plus,
-  Minus,
   Sparkles,
   Users,
   Database,
   RotateCcw,
   X,
-  CheckCircle2,
-  AlertTriangle,
   Award,
-  ChevronRight,
-  UserCheck,
   Trash2,
-  RefreshCw,
   Clock,
   Download,
-  Sliders
+  Sliders,
+  Volume2,
+  VolumeX,
+  Pencil,
+  Check,
+  Copy,
+  Eye,
+  EyeOff,
+  FolderOpen,
+  Navigation,
+  ArrowRightLeft
 } from 'lucide-react';
 
 interface Props {
@@ -29,6 +33,9 @@ interface Props {
   onClose: () => void;
   teams: Team[];
   onUpdateTeam: (teamId: number, updater: (t: Team) => Team) => void;
+  onUpdateTeamName?: (teamId: number, newName: string) => void;
+  onUpdateAllTeams?: (updater: (t: Team) => Team) => void;
+  onMoveParticipant?: (fromTeamId: number, toTeamId: number, participantId: string) => void;
   onDeclareWinner: (teamId: number) => void;
   currentQuestionIndex: number;
   onSetQuestionIndex: (idx: number) => void;
@@ -38,6 +45,7 @@ interface Props {
   pointsPerCorrect?: number;
   onSetPointsPerCorrect?: (points: number) => void;
   onGoToPodium?: () => void;
+  onGoToStage?: (stage: GameStage) => void;
   onAddParticipant: (teamId: number, name: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
   onResetGame: () => void;
@@ -45,6 +53,8 @@ interface Props {
   isDbConnected: boolean;
   roundLogs: RoundLog[];
   onOpenCreatorModal?: () => void;
+  onOpenMyQuizzesModal?: () => void;
+  onRestoreDefaultQuestions?: () => void;
   onLogout?: () => void;
 }
 
@@ -53,6 +63,9 @@ export const AdminDashboard: React.FC<Props> = ({
   onClose,
   teams,
   onUpdateTeam,
+  onUpdateTeamName,
+  onUpdateAllTeams,
+  onMoveParticipant,
   onDeclareWinner,
   currentQuestionIndex,
   onSetQuestionIndex,
@@ -62,6 +75,7 @@ export const AdminDashboard: React.FC<Props> = ({
   pointsPerCorrect = 1000,
   onSetPointsPerCorrect,
   onGoToPodium,
+  onGoToStage,
   onAddParticipant,
   onRemoveParticipant,
   onResetGame,
@@ -69,10 +83,17 @@ export const AdminDashboard: React.FC<Props> = ({
   isDbConnected,
   roundLogs,
   onOpenCreatorModal,
+  onOpenMyQuizzesModal,
+  onRestoreDefaultQuestions,
   onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<'winner_scores' | 'participants' | 'quiz_control' | 'logs'>('winner_scores');
   const [newParticipantNames, setNewParticipantNames] = useState<{ [teamId: number]: string }>({});
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+  const [editingTeamName, setEditingTeamName] = useState('');
+  const [isMuted, setIsMuted] = useState(sound.getMuted());
+  const [showAnswerKey, setShowAnswerKey] = useState(false);
+  const [copiedSummary, setCopiedSummary] = useState(false);
 
   if (!isOpen) return null;
 
@@ -93,10 +114,68 @@ export const AdminDashboard: React.FC<Props> = ({
   };
 
   const handleAddUser = (teamId: number) => {
-    const name = newParticipantNames[teamId]?.trim();
-    if (!name) return;
-    onAddParticipant(teamId, name);
+    const raw = newParticipantNames[teamId]?.trim();
+    if (!raw) return;
+    const names = raw
+      .split(/[,;\n]+/)
+      .map(n => n.trim())
+      .filter(Boolean);
+    names.forEach(name => onAddParticipant(teamId, name));
     setNewParticipantNames(prev => ({ ...prev, [teamId]: '' }));
+  };
+
+  const handleSaveTeamName = (teamId: number) => {
+    const trimmed = editingTeamName.trim();
+    if (trimmed && onUpdateTeamName) {
+      onUpdateTeamName(teamId, trimmed);
+    }
+    setEditingTeamId(null);
+    setEditingTeamName('');
+  };
+
+  const handleToggleSoundAdmin = () => {
+    setIsMuted(sound.toggleMute());
+  };
+
+  const handleCopyRankingSummary = () => {
+    const sorted = [...teams].sort((a, b) => b.points - a.points);
+    const lines = [
+      '🏆 *PLACAR FABRICAQUIZ*',
+      ...sorted.map((t, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🔹';
+        const members = t.participants.map(p => p.name).join(', ') || 'Sem alunos';
+        return `${medal} *${t.name}*: ${t.points.toLocaleString('pt-BR')} pts (🍬${t.candies} 🍫${t.chocolates}) — ${members}`;
+      }),
+    ];
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopiedSummary(true);
+      setTimeout(() => setCopiedSummary(false), 2500);
+    }).catch(() => {});
+  };
+
+  const handleExportLogsCsv = () => {
+    const rows = [
+      ['Pergunta #', 'Enunciado', 'Categoria', 'Equipe', 'Disputa', 'Repassada', 'Acertou', 'Pontos', 'Horário'],
+      ...roundLogs.map(log => [
+        log.questionId,
+        `"${log.questionTitle.replace(/"/g, '""')}"`,
+        `"${log.category}"`,
+        `"${teams.find(t => t.id === log.answeringTeamId)?.name || `Equipe ${log.answeringTeamId}`}"`,
+        log.disputeMode,
+        log.isPassed ? 'Sim' : 'Não',
+        log.isCorrect ? 'Sim' : 'Não',
+        log.pointsAwarded,
+        new Date(log.timestamp).toLocaleTimeString('pt-BR'),
+      ]),
+    ];
+    const csv = rows.map(r => r.join(';')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historico_fabricaquiz_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
@@ -295,6 +374,70 @@ export const AdminDashboard: React.FC<Props> = ({
                 </div>
               </div>
 
+              {/* Bulk Actions Bar */}
+              {onUpdateAllTeams && (
+                <div className="p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                    Ações Rápidas (Todas as Equipes):
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        sound.playTone(700, 0.1, 'triangle', 0.15);
+                        onUpdateAllTeams(t => ({ ...t, points: t.points + 500 }));
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-xs font-bold transition"
+                    >
+                      +500 pts Todas
+                    </button>
+                    <button
+                      onClick={() => {
+                        sound.playCandyChime();
+                        onUpdateAllTeams(t => ({ ...t, candies: t.candies + 1 }));
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500/25 border border-pink-400/40 text-pink-300 text-xs font-bold transition"
+                    >
+                      +1 🍬 Todas
+                    </button>
+                    <button
+                      onClick={() => {
+                        sound.playCandyChime();
+                        onUpdateAllTeams(t => ({ ...t, chocolates: t.chocolates + 1 }));
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 text-xs font-bold transition"
+                    >
+                      +1 🍫 Todas
+                    </button>
+                    <button
+                      onClick={() => {
+                        onUpdateAllTeams(t => ({ ...t, isWinner: false }));
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold transition"
+                    >
+                      Limpar Vencedores
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Zerar pontos e brindes de todas as equipes mantendo os alunos inscritos?')) {
+                          onUpdateAllTeams(t => ({
+                            ...t,
+                            points: 0,
+                            candies: 0,
+                            chocolates: 0,
+                            answersCorrect: 0,
+                            answersWrong: 0,
+                            isWinner: false,
+                          }));
+                        }
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/70 border border-rose-500/40 text-rose-300 text-xs font-bold transition"
+                    >
+                      Zerar Pontos (Manter Alunos)
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Grid of Teams with Winner Declaration & Score adjustment */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {teams.map(team => (
@@ -304,14 +447,48 @@ export const AdminDashboard: React.FC<Props> = ({
                   >
                     <div>
                       {/* Team Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2.5">
-                          <span className={`w-4 h-4 rounded-full ${team.bgClass}`} />
-                          <h4 className="font-extrabold text-white text-lg">
-                            {team.name}
-                          </h4>
+                      <div className="flex items-center justify-between mb-3 gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className={`w-4 h-4 rounded-full shrink-0 ${team.bgClass}`} />
+                          {editingTeamId === team.id ? (
+                            <div className="flex items-center gap-1 flex-1">
+                              <input
+                                type="text"
+                                value={editingTeamName}
+                                onChange={e => setEditingTeamName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleSaveTeamName(team.id)}
+                                className="flex-1 min-w-0 bg-slate-950 border border-cyan-400 rounded-lg px-2 py-1 text-sm font-bold text-white focus:outline-none"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleSaveTeamName(team.id)}
+                                className="p-1.5 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                                title="Salvar nome"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <h4 className="font-extrabold text-white text-lg truncate">
+                                {team.name}
+                              </h4>
+                              {onUpdateTeamName && (
+                                <button
+                                  onClick={() => {
+                                    setEditingTeamId(team.id);
+                                    setEditingTeamName(team.name);
+                                  }}
+                                  className="p-1 rounded-md text-slate-400 hover:text-cyan-300 hover:bg-slate-700/60 transition"
+                                  title="Renomear equipe"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="font-mono text-2xl font-black text-white">
+                        <div className="font-mono text-2xl font-black text-white shrink-0">
                           {team.points.toLocaleString('pt-BR')} <span className="text-xs text-slate-400">pts</span>
                         </div>
                       </div>
@@ -445,8 +622,21 @@ export const AdminDashboard: React.FC<Props> = ({
                             {team.name}
                           </h4>
                         </div>
-                        <span className="text-xs text-slate-400 font-bold">
-                          {team.participants.length} participante(s)
+                        <span className="text-xs text-slate-400 font-bold flex items-center gap-2">
+                          <span>{team.participants.length} participante(s)</span>
+                          {team.participants.length > 0 && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Remover todos os alunos de "${team.name}"?`)) {
+                                  team.participants.forEach(p => onRemoveParticipant(team.id, p.id, p.name));
+                                }
+                              }}
+                              className="text-[10px] px-2 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/30 transition"
+                              title="Limpar alunos desta equipe"
+                            >
+                              Limpar
+                            </button>
+                          )}
                         </span>
                       </div>
 
@@ -457,7 +647,7 @@ export const AdminDashboard: React.FC<Props> = ({
                           value={newParticipantNames[team.id] || ''}
                           onChange={e => setNewParticipantNames({ ...newParticipantNames, [team.id]: e.target.value })}
                           onKeyDown={e => e.key === 'Enter' && handleAddUser(team.id)}
-                          placeholder="Nome do aluno..."
+                          placeholder="Nome (ou vários: Ana, João, Maria)..."
                           className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-400"
                         />
                         <button
@@ -469,7 +659,7 @@ export const AdminDashboard: React.FC<Props> = ({
                       </div>
 
                       {/* List of members */}
-                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                      <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
                         {team.participants.length === 0 ? (
                           <div className="text-xs text-slate-500 italic p-2 text-center bg-slate-900/40 rounded-lg">
                             Nenhum aluno adicionado a esta equipe ainda.
@@ -478,19 +668,38 @@ export const AdminDashboard: React.FC<Props> = ({
                           team.participants.map(p => (
                             <div
                               key={p.id}
-                              className="flex items-center justify-between p-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs"
+                              className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs"
                             >
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-base">{p.avatar}</span>
-                                <span className="font-bold text-white">{p.name}</span>
+                                <span className="font-bold text-white truncate">{p.name}</span>
                               </div>
-                              <button
-                                onClick={() => onRemoveParticipant(team.id, p.id, p.name)}
-                                className="p-1 rounded text-rose-400 hover:text-rose-300 hover:bg-rose-950 transition"
-                                title="Remover aluno"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {onMoveParticipant && (
+                                  <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-lg px-1.5 py-0.5">
+                                    <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
+                                    <select
+                                      value={team.id}
+                                      onChange={e => onMoveParticipant(team.id, Number(e.target.value), p.id)}
+                                      className="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer"
+                                      title="Mover para outra equipe"
+                                    >
+                                      {teams.map(dest => (
+                                        <option key={dest.id} value={dest.id} className="bg-slate-900 text-white">
+                                          {dest.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                                <button
+                                  onClick={() => onRemoveParticipant(team.id, p.id, p.name)}
+                                  className="p-1 rounded text-rose-400 hover:text-rose-300 hover:bg-rose-950 transition"
+                                  title="Remover aluno"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           ))
                         )}
@@ -505,6 +714,82 @@ export const AdminDashboard: React.FC<Props> = ({
           {/* TAB 3: CONTROLE DE RODADAS & CONFIGURAÇÕES */}
           {activeTab === 'quiz_control' && (
             <div className="space-y-6 animate-fade-in">
+              {/* Stage Switcher & Audio + Shortcuts */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {onGoToStage && (
+                  <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+                    <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
+                      <Navigation className="w-4 h-4 text-purple-400" /> Navegação Rápida de Telas:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => { onGoToStage('intro'); onClose(); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition"
+                      >
+                        Tela Inicial
+                      </button>
+                      <button
+                        onClick={() => { onGoToStage('question_intro'); onClose(); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition"
+                      >
+                        Pergunta #{currentQuestionIndex + 1}
+                      </button>
+                      <button
+                        onClick={() => { onGoToStage('scoreboard'); onClose(); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition"
+                      >
+                        Placar Geral
+                      </button>
+                      <button
+                        onClick={() => { onGoToStage('podium'); onClose(); }}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 text-xs font-bold transition"
+                      >
+                        Pódio Final
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4 text-emerald-400" /> Áudio & Biblioteca de Kahoots:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={handleToggleSoundAdmin}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition ${
+                        isMuted
+                          ? 'bg-rose-950/60 border-rose-500/40 text-rose-300'
+                          : 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300'
+                      }`}
+                    >
+                      {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      {isMuted ? 'Som Mutado' : 'Som Ativo'}
+                    </button>
+                    {onOpenMyQuizzesModal && (
+                      <button
+                        onClick={() => { onClose(); onOpenMyQuizzesModal(); }}
+                        className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-xs font-bold flex items-center gap-1.5 transition"
+                      >
+                        <FolderOpen className="w-3.5 h-3.5" /> Meus Kahoots / Email
+                      </button>
+                    )}
+                    {onRestoreDefaultQuestions && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Restaurar as perguntas padrão do FabricaQuiz?')) {
+                            onRestoreDefaultQuestions();
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-bold transition"
+                      >
+                        Restaurar Padrão
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Match Settings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
@@ -552,29 +837,46 @@ export const AdminDashboard: React.FC<Props> = ({
 
               {/* Question Jumper */}
               <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
-                <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-cyan-400" /> Pular Diretamente para Pergunta (1 a {questions.length}):
-                </h4>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <h4 className="font-black text-white text-sm flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-cyan-400" /> Pular Diretamente para Pergunta (1 a {questions.length}):
+                  </h4>
+                  <button
+                    onClick={() => setShowAnswerKey(prev => !prev)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition ${
+                      showAnswerKey
+                        ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
+                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {showAnswerKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showAnswerKey ? 'Ocultar Gabarito' : 'Ver Gabarito ADM'}
+                  </button>
+                </div>
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-2">
-                  {questions.map((q, idx) => (
-                    <button
-                      key={q.id}
-                      onClick={() => {
-                        onSetQuestionIndex(idx);
-                        onClose();
-                      }}
-                      className={`p-2.5 rounded-xl font-black text-sm transition flex flex-col items-center justify-center ${
-                        currentQuestionIndex === idx
-                          ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300 shadow-lg'
-                          : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
-                      }`}
-                    >
-                      <span>#{idx + 1}</span>
-                      <span className="text-[9px] uppercase opacity-75 truncate max-w-full">
-                        {q.category || q.theme}
-                      </span>
-                    </button>
-                  ))}
+                  {questions.map((q, idx) => {
+                    const letters = ['A', 'B', 'C', 'D'];
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => {
+                          onSetQuestionIndex(idx);
+                          onClose();
+                        }}
+                        className={`p-2.5 rounded-xl font-black text-sm transition flex flex-col items-center justify-center ${
+                          currentQuestionIndex === idx
+                            ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300 shadow-lg'
+                            : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        }`}
+                        title={showAnswerKey ? `${q.question} — Resp: ${letters[q.correctIndex] || '?'}` : q.question}
+                      >
+                        <span>#{idx + 1}</span>
+                        <span className="text-[9px] uppercase opacity-75 truncate max-w-full">
+                          {showAnswerKey ? `Resp: ${letters[q.correctIndex] || '?'}` : (q.category || q.theme)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -602,13 +904,31 @@ export const AdminDashboard: React.FC<Props> = ({
           {/* TAB 4: HISTÓRICO DE RODADAS & AUDITORIA */}
           {activeTab === 'logs' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <h4 className="font-black text-white text-sm">
-                  Registro de Perguntas e Respostas da Sala:
-                </h4>
-                <span className="text-xs text-slate-400 font-mono">
-                  Sessão: {sessionId}
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 className="font-black text-white text-sm">
+                    Registro de Perguntas e Respostas da Sala:
+                  </h4>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Sessão: {sessionId}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleCopyRankingSummary}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition"
+                  >
+                    <Copy className="w-3.5 h-3.5" /> {copiedSummary ? 'Resumo Copiado!' : 'Copiar Resumo (WhatsApp)'}
+                  </button>
+                  {roundLogs.length > 0 && (
+                    <button
+                      onClick={handleExportLogsCsv}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-cyan-300 text-xs font-bold flex items-center gap-1.5 transition"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Exportar Histórico CSV
+                    </button>
+                  )}
+                </div>
               </div>
 
               {roundLogs.length === 0 ? (

@@ -370,6 +370,44 @@ export function App() {
     handleUpdateTeam(teamId, t => ({ ...t, name: newName }));
   };
 
+  // Bulk update all teams (Admin)
+  const handleUpdateAllTeams = (updater: (t: Team) => Team) => {
+    updateTeamsState(teams.map(updater));
+  };
+
+  // Move participant between teams (Admin)
+  const handleMoveParticipant = (fromTeamId: number, toTeamId: number, participantId: string) => {
+    if (fromTeamId === toTeamId) return;
+    setTeams(prev => {
+      let moved: Participant | null = null;
+      const without = prev.map(t => {
+        if (t.id === fromTeamId) {
+          const found = t.participants.find(p => p.id === participantId);
+          if (found) moved = { ...found, teamId: toTeamId };
+          return { ...t, participants: t.participants.filter(p => p.id !== participantId) };
+        }
+        return t;
+      });
+      if (!moved) return prev;
+      const movedParticipant: Participant = moved;
+      const updated = without.map(t => {
+        if (t.id === toTeamId) {
+          return { ...t, participants: [...t.participants, movedParticipant] };
+        }
+        return t;
+      });
+      dbService.syncTeams(sessionId, updated);
+      return updated;
+    });
+  };
+
+  // Restore default FabricaQuiz questions (Admin)
+  const handleRestoreDefaultQuestions = () => {
+    setQuestions(questionsData);
+    setActiveQuizInfo(null);
+    setCurrentQuestionIndex(0);
+  };
+
   // Start the Quiz
   const handleStartGame = () => {
     sound.startLobbyMusic();
@@ -525,7 +563,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-grid-pattern text-white flex flex-col font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen lg:h-screen bg-grid-pattern text-white flex flex-col font-sans select-none overflow-x-hidden lg:overflow-hidden">
       {/* Top Header */}
       <HostHeader
         onOpenAdminModal={handleOpenAdmin}
@@ -538,8 +576,9 @@ export function App() {
       />
 
       {/* Main Body + Right Sidebar */}
-      <div className="flex-1 flex w-full overflow-x-hidden">
-        <main className="flex-1 min-w-0 w-full flex flex-col items-center justify-center p-2.5 sm:p-4">
+      <div className="flex-1 min-h-0 flex w-full">
+        <main className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 sm:p-4">
+          <div className="w-full my-auto flex flex-col items-center">
         {stage === 'intro' && (
           <IntroSetupView
             teams={teams}
@@ -621,6 +660,7 @@ export function App() {
             />
           )}
         </Suspense>
+          </div>
         </main>
 
         <RightKahootsSidebar
@@ -653,6 +693,12 @@ export function App() {
             pointsPerCorrect={pointsPerCorrect}
             onSetPointsPerCorrect={setPointsPerCorrect}
             onGoToPodium={() => setStage('podium')}
+            onGoToStage={setStage}
+            onUpdateTeamName={handleUpdateTeamName}
+            onUpdateAllTeams={handleUpdateAllTeams}
+            onMoveParticipant={handleMoveParticipant}
+            onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+            onRestoreDefaultQuestions={handleRestoreDefaultQuestions}
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
             onResetGame={handleResetGame}

@@ -220,8 +220,8 @@ export const RightKahootsSidebar: React.FC<Props> = ({
 
   return (
     <>
-      {/* Desktop Sticky Right Sidebar */}
-      <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 bg-slate-950/80 backdrop-blur-lg border-l border-cyan-500/20 h-[calc(100vh-65px)] sticky top-[65px]">
+      {/* Desktop Right Sidebar (flush with navbar) */}
+      <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 bg-slate-950/85 backdrop-blur-lg border-l border-cyan-500/20 h-full">
         {sidebarContent}
       </aside>
 

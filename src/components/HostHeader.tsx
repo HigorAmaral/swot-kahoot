@@ -38,7 +38,7 @@ export const HostHeader: React.FC<Props> = ({
   };
 
   return (
-    <header className="w-full bg-slate-950/90 backdrop-blur-lg border-b border-cyan-500/20 px-3 sm:px-6 py-3 sticky top-0 z-40 shadow-lg shadow-black/30">
+    <header className="w-full bg-slate-950/90 backdrop-blur-lg border-b border-cyan-500/20 px-3 sm:px-6 py-3 sticky top-0 z-40 shadow-lg shadow-black/30 shrink-0">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         {/* Logo / Title */}
         <div className="flex items-center gap-3">

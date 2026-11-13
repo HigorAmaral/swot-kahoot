@@ -114,59 +114,80 @@ export function App() {
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
   const disputeWinnerTeam = teams.find(t => t.id === disputeWinnerId) || teams[0];
 
-  // Sync with Neon Database on mount
+  // Sync with Neon Database on mount and polling every 2.5s for live updates
   useEffect(() => {
     let isMounted = true;
-    dbService.loadState(sessionId).then(data => {
-      if (!isMounted || !data) return;
-      setIsDbConnected(true);
 
-      if (data.teams && data.teams.length > 0) {
-        setTeams(prev => prev.map(pt => {
-          const remote = data.teams?.find((rt: any) => rt.id === pt.id);
-          if (!remote) return pt;
-          // Merge participants
-          const teamParticipants = data.participants
-            ? data.participants.filter(p => p.teamId === pt.id)
-            : pt.participants;
+    const syncWithDb = async () => {
+      try {
+        const data = await dbService.loadState(sessionId);
+        if (!isMounted || !data) return;
+        setIsDbConnected(true);
 
-          return {
-            ...pt,
-            name: remote.name || pt.name,
-            points: remote.points ?? pt.points,
-            candies: remote.candies ?? pt.candies,
-            chocolates: remote.chocolates ?? pt.chocolates,
-            answersCorrect: remote.answers_correct ?? pt.answersCorrect,
-            answersWrong: remote.answers_wrong ?? pt.answersWrong,
-            isWinner: remote.is_winner ?? pt.isWinner,
-            participants: teamParticipants.length > 0 ? teamParticipants : pt.participants,
-          };
-        }));
+        if (data.participants) {
+          setTeams(prev => prev.map(pt => {
+            const teamParticipants = data.participants
+              ? data.participants.filter((p: any) => p.teamId === pt.id || p.team_id === pt.id).map((p: any) => ({
+                  id: String(p.id),
+                  name: p.name || p.user_name,
+                  avatar: p.avatar || '👨‍💻',
+                  teamId: p.teamId || p.team_id,
+                  joinedAt: p.joinedAt || p.joined_at,
+                }))
+              : pt.participants;
+
+            if (JSON.stringify(teamParticipants) !== JSON.stringify(pt.participants)) {
+              return {
+                ...pt,
+                participants: teamParticipants,
+              };
+            }
+            return pt;
+          }));
+        }
+
+        if (data.teams && data.teams.length > 0) {
+          setTeams(prev => prev.map(pt => {
+            const remote = data.teams?.find((rt: any) => rt.id === pt.id);
+            if (!remote) return pt;
+            return {
+              ...pt,
+              points: Math.max(pt.points, remote.points ?? 0),
+              candies: Math.max(pt.candies, remote.candies ?? 0),
+              chocolates: Math.max(pt.chocolates, remote.chocolates ?? 0),
+              isWinner: remote.is_winner ?? pt.isWinner,
+            };
+          }));
+        }
+
+        if (data.logs && data.logs.length > 0) {
+          setRoundLogs(data.logs.map((l: any) => ({
+            id: String(l.id),
+            questionId: l.question_id,
+            questionTitle: questionsData.find(q => q.id === l.question_id)?.question || `Pergunta #${l.question_id}`,
+            category: questionsData.find(q => q.id === l.question_id)?.category || 'SWOT',
+            disputeWinnerTeamId: l.dispute_winner_team_id,
+            answeringTeamId: l.answering_team_id,
+            disputeMode: l.dispute_mode,
+            isPassed: l.is_passed,
+            selectedOptionIndex: l.selected_index,
+            correctOptionIndex: questionsData.find(q => q.id === l.question_id)?.correctIndex || 0,
+            isCorrect: l.is_correct,
+            pointsAwarded: l.points_awarded,
+            timestamp: l.created_at || new Date().toISOString(),
+          })));
+        }
+      } catch {
+        if (isMounted) setIsDbConnected(false);
       }
+    };
 
-      if (data.logs && data.logs.length > 0) {
-        setRoundLogs(data.logs.map((l: any) => ({
-          id: String(l.id),
-          questionId: l.question_id,
-          questionTitle: questionsData.find(q => q.id === l.question_id)?.question || `Pergunta #${l.question_id}`,
-          category: questionsData.find(q => q.id === l.question_id)?.category || 'SWOT',
-          disputeWinnerTeamId: l.dispute_winner_team_id,
-          answeringTeamId: l.answering_team_id,
-          disputeMode: l.dispute_mode,
-          isPassed: l.is_passed,
-          selectedOptionIndex: l.selected_index,
-          correctOptionIndex: questionsData.find(q => q.id === l.question_id)?.correctIndex || 0,
-          isCorrect: l.is_correct,
-          pointsAwarded: l.points_awarded,
-          timestamp: l.created_at || new Date().toISOString(),
-        })));
-      }
-    }).catch(() => {
-      setIsDbConnected(false);
-    });
+    syncWithDb();
+    const interval = setInterval(syncWithDb, 2500);
 
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, [sessionId]);
 

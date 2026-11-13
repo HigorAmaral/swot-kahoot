@@ -5,10 +5,17 @@ const LOCAL_TEAMS_KEY = 'swot_local_teams';
 const LOCAL_LOGS_KEY = 'swot_local_logs';
 
 export function getSessionId(): string {
-  if (typeof window === 'undefined') return 'default-session';
+  if (typeof window === 'undefined') return 'sala-principal';
+  const params = new URLSearchParams(window.location.search);
+  const paramSession = params.get('sala') || params.get('session') || params.get('pin');
+  if (paramSession) {
+    localStorage.setItem(SESSION_KEY, paramSession);
+    return paramSession;
+  }
   let id = localStorage.getItem(SESSION_KEY);
-  if (!id) {
-    id = 'sala-ti-' + Math.random().toString(36).substring(2, 7);
+  // Default to standard shared room 'sala-principal' so all students in the classroom join together!
+  if (!id || id.startsWith('sala-ti-')) {
+    id = 'sala-principal';
     localStorage.setItem(SESSION_KEY, id);
   }
   return id;

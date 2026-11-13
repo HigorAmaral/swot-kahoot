@@ -287,7 +287,7 @@ export const RightKahootsSidebar: React.FC<Props> = ({
   return (
     <>
       {/* Desktop Right Sidebar (flush with navbar) */}
-      <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 bg-slate-950/85 backdrop-blur-lg border-l border-cyan-500/20 h-full">
+      <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 bg-[#0d111a] border-l border-slate-800 h-full">
         {sidebarContent}
       </aside>
 

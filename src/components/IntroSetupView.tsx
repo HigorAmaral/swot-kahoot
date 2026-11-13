@@ -103,21 +103,19 @@ export const IntroSetupView: React.FC<Props> = ({
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-6xl mx-auto p-2 sm:p-4 lg:p-5 animate-fade-in">
       {/* Top Hero Banner */}
-      <div className="w-full glass-card rounded-3xl p-4 sm:p-6 lg:p-8 mb-5 sm:mb-6 border border-cyan-500/20 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
+      <div className="w-full glass-card rounded-2xl p-4 sm:p-6 lg:p-8 mb-5 sm:mb-6 border border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
         <div className="text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-extrabold text-[11px] sm:text-xs uppercase tracking-wider mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-            {activeQuizInfo ? 'Kahoot Selecionado na Arena' : 'Arena Interativa em Sala'}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-bold text-[11px] uppercase tracking-wider mb-3">
+            <Layers className="w-3.5 h-3.5 text-emerald-400" />
+            {activeQuizInfo ? 'Kahoot Selecionado' : 'Arena de Perguntas'}
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2">
             {activeQuizInfo ? (
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                {activeQuizInfo.title}
-              </span>
+              <span>{activeQuizInfo.title}</span>
             ) : (
               <>
-                Fabrica<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Quiz</span>
+                Fabrica<span className="text-emerald-400">Quiz</span>
               </>
             )}
           </h1>
@@ -156,10 +154,10 @@ export const IntroSetupView: React.FC<Props> = ({
         <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-stretch gap-3 w-full lg:w-auto">
           <button
             onClick={onStartGame}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-lg sm:text-xl shadow-xl shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-2.5"
+            className="px-7 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base sm:text-lg shadow-lg active:scale-95 transition flex items-center justify-center gap-2"
           >
-            <Play className="w-6 h-6 fill-current" />
-            COMEÇAR O QUIZ!
+            <Play className="w-5 h-5 fill-current" />
+            COMEÇAR O QUIZ
           </button>
 
           <div className="flex flex-wrap items-center gap-2 justify-center">
@@ -188,11 +186,11 @@ export const IntroSetupView: React.FC<Props> = ({
 
       {/* SELECTED KAHOOT QUESTIONS PREVIEW ON MAIN SCREEN */}
       {activeQuizInfo && questions.length > 0 && (
-        <div className="w-full glass-card rounded-3xl p-4 sm:p-5 mb-6 border-2 border-cyan-500/35 shadow-xl animate-fade-in">
+        <div className="w-full glass-card rounded-2xl p-4 sm:p-5 mb-6 border border-slate-800 shadow-lg animate-fade-in">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black">
-                🎯 Kahoot Carregado
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+                Kahoot Carregado
               </span>
               <h2 className="text-sm sm:text-base font-black text-white">
                 {activeQuizInfo.title}

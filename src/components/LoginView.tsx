@@ -148,28 +148,23 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
         </div>
       )}
 
-      <div className="w-full max-w-md glass-card rounded-3xl p-6 sm:p-8 border-2 border-cyan-500/25 shadow-2xl relative overflow-hidden">
-        {/* Ambient glows */}
-        <div className="absolute -top-20 -right-20 w-44 h-44 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="w-full max-w-md glass-card rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative">
         {/* Logo Header */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center font-black text-2xl text-slate-950 shadow-lg shadow-emerald-500/30 mb-3">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-xl text-slate-950 mb-3">
             FQ
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             Fabrica<span className="text-emerald-400">Quiz</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            Crie seus próprios Kahoots e envie para outras pessoas
+          <p className="text-xs text-slate-400 mt-1">
+            Crie quizzes e compartilhe com sua turma
           </p>
         </div>
 
         {/* Mode Switcher */}
         {mode !== 'forgot' && (
-          <div className="grid grid-cols-2 gap-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-slate-800 mb-6">
+          <div className="grid grid-cols-2 gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 mb-6">
             <button
               type="button"
               onClick={() => {
@@ -177,9 +172,9 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                 setError(null);
                 setSuccessMsg(null);
               }}
-              className={`py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-1.5 ${
+              className={`py-2 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 ${
                 mode === 'login'
-                  ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 shadow'
+                  ? 'bg-emerald-500 text-slate-950 font-black'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -192,9 +187,9 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                 setError(null);
                 setSuccessMsg(null);
               }}
-              className={`py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-1.5 ${
+              className={`py-2 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 ${
                 mode === 'register'
-                  ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 shadow'
+                  ? 'bg-emerald-500 text-slate-950 font-black'
                   : 'text-slate-400 hover:text-white'
               }`}
             >

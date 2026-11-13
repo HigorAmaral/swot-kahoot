@@ -217,11 +217,20 @@ export const SpinningTopDispute: React.FC<Props> = ({ teams, onDisputeResolved, 
               )}
 
               {/* Team Name & Badge */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`w-3.5 h-3.5 rounded-full ${team.bgClass}`} />
-                <h3 className="font-extrabold text-white text-base md:text-lg text-center truncate">
-                  {team.name}
-                </h3>
+              <div className="flex flex-col items-center gap-1 mb-2 w-full">
+                <div className="flex items-center gap-2">
+                  <span className={`w-3.5 h-3.5 rounded-full ${team.bgClass}`} />
+                  <h3 className="font-extrabold text-white text-base md:text-lg text-center truncate">
+                    {team.name}
+                  </h3>
+                </div>
+                {/* Active Representative or Members */}
+                {team.participants.length > 0 && (
+                  <div className="px-2 py-0.5 rounded-full bg-slate-900/90 border border-slate-700 text-[11px] font-bold text-amber-300 flex items-center gap-1 truncate max-w-full">
+                    <span>{team.participants[(questionNumber - 1) % team.participants.length].avatar}</span>
+                    <span className="truncate">Girando: {team.participants[(questionNumber - 1) % team.participants.length].name}</span>
+                  </div>
+                )}
               </div>
 
               {/* Peão SVG / Canvas Graphic */}

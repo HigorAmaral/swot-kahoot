@@ -1,5 +1,14 @@
 export type DisputeMode = 'peao' | 'buzzer' | 'alvo' | 'direto';
 
+export interface Participant {
+  id: string;
+  name: string;
+  avatar: string;
+  teamId: number;
+  isRepresentative?: boolean;
+  joinedAt?: string;
+}
+
 export interface Team {
   id: number;
   name: string;
@@ -7,15 +16,34 @@ export interface Team {
   bgClass: string;
   borderClass: string;
   textClass: string;
+  glowClass: string;
   points: number;
   candies: number; // Balas
   chocolates: number; // Chocolates
   answersCorrect: number;
   answersWrong: number;
+  participants: Participant[];
+  isWinner?: boolean;
+}
+
+export interface RoundLog {
+  id: string;
+  questionId: number;
+  questionTitle: string;
+  category: string;
+  disputeWinnerTeamId: number;
+  answeringTeamId: number;
+  disputeMode: DisputeMode;
+  isPassed: boolean;
+  selectedOptionIndex: number;
+  correctOptionIndex: number;
+  isCorrect: boolean;
+  pointsAwarded: number;
+  timestamp: string;
 }
 
 export type GameStage = 
-  | 'intro'           // Welcome, Team Setup, Case Study Reading
+  | 'intro'           // Welcome, Team Setup, Participant Join, Case Study Reading
   | 'case_study'     // Dedicated screen to read/project the IT paper
   | 'question_intro' // Announcing question X of 10 and category
   | 'dispute'        // Peão / Buzzer / Alvo dynamic to decide who gets to answer

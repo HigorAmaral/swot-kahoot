@@ -138,6 +138,12 @@ export const BuzzerDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
                 <h3 className="text-xl font-black text-white text-center">
                   {team.name}
                 </h3>
+                {team.participants.length > 0 && (
+                  <div className="mt-1 px-2.5 py-0.5 rounded-full bg-black/40 border border-white/20 text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                    <span>{team.participants[(questionNumber - 1) % team.participants.length].avatar}</span>
+                    <span>No Buzzer: {team.participants[(questionNumber - 1) % team.participants.length].name}</span>
+                  </div>
+                )}
                 <span className="text-xs text-white/80 mt-1 uppercase font-bold tracking-wider">
                   {buzz ? 'Acionado!' : 'CLIQUE AQUI!'}
                 </span>

@@ -78,6 +78,14 @@ export const ScoreboardView: React.FC<Props> = ({
                     <span>•</span>
                     <span className="text-pink-300">🍬 {team.candies} balas</span>
                     <span className="text-amber-300">🍫 {team.chocolates} chocolates</span>
+                    {team.participants.length > 0 && (
+                      <>
+                        <span>•</span>
+                        <span className="text-slate-300 truncate max-w-[200px]">
+                          👥 {team.participants.map(p => p.name).join(', ')}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

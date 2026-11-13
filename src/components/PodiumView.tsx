@@ -90,6 +90,11 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
               </div>
               <div className="text-sm text-white font-extrabold">{first.points} pts</div>
               <div className="text-xs text-yellow-200 font-bold">🍬 {first.candies} balas • 🍫 {first.chocolates} choc</div>
+              {first.participants.length > 0 && (
+                <div className="text-[11px] font-bold text-amber-200 truncate max-w-[140px] mt-0.5">
+                  🏆 {first.participants.map(p => p.name).join(', ')}
+                </div>
+              )}
             </div>
             <div className="w-full bg-gradient-to-b from-yellow-500 to-amber-600 border-t-4 border-yellow-300 rounded-t-2xl h-56 flex flex-col items-center justify-center shadow-2xl">
               <span className="text-6xl font-black text-slate-950">1</span>

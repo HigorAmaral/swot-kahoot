@@ -82,6 +82,12 @@ export const QuestionPlayView: React.FC<Props> = ({
           <span className={`px-2.5 py-0.5 rounded-lg text-xs font-black text-white ${answeringTeam.bgClass}`}>
             {answeringTeam.name}
           </span>
+          {answeringTeam.participants.length > 0 && (
+            <span className="text-xs font-bold text-amber-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-700 flex items-center gap-1">
+              <span>{answeringTeam.participants[(question.id - 1) % answeringTeam.participants.length].avatar}</span>
+              <span>{answeringTeam.participants[(question.id - 1) % answeringTeam.participants.length].name}</span>
+            </span>
+          )}
           {isPassed && (
             <span className="text-[10px] text-amber-300 font-bold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/30">
               (Passada por {disputeWinnerTeam.name})

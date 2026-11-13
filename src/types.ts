@@ -1,0 +1,25 @@
+export type DisputeMode = 'peao' | 'buzzer' | 'alvo' | 'direto';
+
+export interface Team {
+  id: number;
+  name: string;
+  color: string;
+  bgClass: string;
+  borderClass: string;
+  textClass: string;
+  points: number;
+  candies: number; // Balas
+  chocolates: number; // Chocolates
+  answersCorrect: number;
+  answersWrong: number;
+}
+
+export type GameStage = 
+  | 'intro'           // Welcome, Team Setup, Case Study Reading
+  | 'case_study'     // Dedicated screen to read/project the IT paper
+  | 'question_intro' // Announcing question X of 10 and category
+  | 'dispute'        // Peão / Buzzer / Alvo dynamic to decide who gets to answer
+  | 'question_play'  // Kahoot question screen with 4 options and countdown
+  | 'verdict'        // Grupo de comando validates: right or wrong, reveals answer
+  | 'scoreboard'     // Scoreboard after each round
+  | 'podium';        // Final celebratory podium with confetti & prize summary

@@ -1,13 +1,73 @@
 import { neon } from '@neondatabase/serverless';
 
-// Default connection string from Neon project or environment variable
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_mcyb8A5rtqQE@ep-shy-sun-b6gcu3q3-pooler.c-2.sa-east-1.aws.neon.tech/neondb?sslmode=require";
+// The verified Neon PostgreSQL connection string with our SWOT tables and participants
+const DATABASE_URL = "postgresql://neondb_owner:npg_mcyb8A5rtqQE@ep-shy-sun-b6gcu3q3-pooler.c-2.sa-east-1.aws.neon.tech/neondb?sslmode=require";
 
 function normalizeSessionId(raw?: string): string {
   if (!raw || raw === 'default-session' || raw.startsWith('sala-ti-')) {
     return 'sala-principal';
   }
   return raw;
+}
+
+// Ensure tables exist on startup
+async function ensureTables(sql: any) {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS swot_game_sessions (
+        id VARCHAR(64) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL DEFAULT 'Sessão SWOT Kahoot',
+        current_question INT DEFAULT 0,
+        current_stage VARCHAR(50) DEFAULT 'intro',
+        winner_team_id INT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS swot_teams (
+        id INT NOT NULL,
+        session_id VARCHAR(64) NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        color VARCHAR(20) NOT NULL,
+        points INT DEFAULT 0,
+        candies INT DEFAULT 0,
+        chocolates INT DEFAULT 0,
+        answers_correct INT DEFAULT 0,
+        answers_wrong INT DEFAULT 0,
+        is_winner BOOLEAN DEFAULT FALSE,
+        PRIMARY KEY (session_id, id)
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS swot_participants (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(64) NOT NULL,
+        team_id INT NOT NULL,
+        user_name VARCHAR(100) NOT NULL,
+        avatar VARCHAR(50) DEFAULT '👨‍💻',
+        is_active_representative BOOLEAN DEFAULT FALSE,
+        joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS swot_round_logs (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(64) NOT NULL,
+        question_id INT NOT NULL,
+        answering_team_id INT,
+        dispute_winner_team_id INT,
+        dispute_mode VARCHAR(50),
+        is_passed BOOLEAN DEFAULT FALSE,
+        selected_index INT,
+        is_correct BOOLEAN DEFAULT FALSE,
+        points_awarded INT DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+  } catch (e) {
+    console.error("Table ensure error:", e);
+  }
 }
 
 export default async function handler(req: any, res: any) {
@@ -28,34 +88,47 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'GET') {
       const sessionId = normalizeSessionId(req.query?.session_id as string);
 
-      // Ensure session exists
-      const sessions = await sql`
-        SELECT * FROM swot_game_sessions WHERE id = ${sessionId} LIMIT 1
-      `;
+      let participants: any[] = [];
+      let teams: any[] = [];
+      let sessions: any[] = [];
+      let logs: any[] = [];
 
-      const teams = await sql`
-        SELECT * FROM swot_teams WHERE session_id = ${sessionId} ORDER BY id ASC
-      `;
+      try {
+        participants = await sql`
+          SELECT 
+            id, 
+            session_id, 
+            team_id as "teamId", 
+            team_id, 
+            user_name as name, 
+            user_name, 
+            avatar, 
+            joined_at as "joinedAt", 
+            joined_at
+          FROM swot_participants 
+          WHERE session_id = ${sessionId} 
+          ORDER BY id ASC
+        `;
 
-      const participants = await sql`
-        SELECT 
-          id, 
-          session_id, 
-          team_id as "teamId", 
-          team_id, 
-          user_name as name, 
-          user_name, 
-          avatar, 
-          joined_at as "joinedAt", 
-          joined_at
-        FROM swot_participants 
-        WHERE session_id = ${sessionId} 
-        ORDER BY id ASC
-      `;
+        teams = await sql`
+          SELECT * FROM swot_teams WHERE session_id = ${sessionId} ORDER BY id ASC
+        `;
 
-      const logs = await sql`
-        SELECT * FROM swot_round_logs WHERE session_id = ${sessionId} ORDER BY id DESC LIMIT 50
-      `;
+        sessions = await sql`
+          SELECT * FROM swot_game_sessions WHERE id = ${sessionId} LIMIT 1
+        `;
+
+        logs = await sql`
+          SELECT * FROM swot_round_logs WHERE session_id = ${sessionId} ORDER BY id DESC LIMIT 50
+        `;
+      } catch (err: any) {
+        // If tables were missing, auto-create and retry
+        await ensureTables(sql);
+        participants = await sql`
+          SELECT id, session_id, team_id as "teamId", team_id, user_name as name, user_name, avatar, joined_at as "joinedAt", joined_at
+          FROM swot_participants WHERE session_id = ${sessionId} ORDER BY id ASC
+        `;
+      }
 
       return res.status(200).json({
         success: true,
@@ -71,6 +144,9 @@ export default async function handler(req: any, res: any) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const sessionId = normalizeSessionId(body.sessionId);
       const { action } = body;
+
+      // Ensure tables exist on POST
+      await ensureTables(sql);
 
       // 1. Initialize or Sync Session
       if (action === 'init_session') {

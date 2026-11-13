@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
-import { DisputeMode } from '../types';
 import { sound } from '../utils/sound';
-import { Volume2, VolumeX, Maximize2, HelpCircle, BookOpen, ShieldAlert, Database, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, ShieldAlert, Database, Sparkles } from 'lucide-react';
 
 interface Props {
-  disputeMode: DisputeMode;
-  onSetDisputeMode: (mode: DisputeMode) => void;
-  onOpenCaseModal: () => void;
-  onOpenGuideModal: () => void;
   onOpenAdminModal: () => void;
   onOpenCreatorModal: () => void;
   isDbConnected: boolean;
 }
 
 export const HostHeader: React.FC<Props> = ({
-  disputeMode,
-  onSetDisputeMode,
-  onOpenCaseModal,
-  onOpenGuideModal,
   onOpenAdminModal,
   onOpenCreatorModal,
   isDbConnected,
@@ -38,83 +29,46 @@ export const HostHeader: React.FC<Props> = ({
   };
 
   return (
-    <header className="w-full bg-slate-950/85 backdrop-blur-md border-b border-purple-900/40 px-3 sm:px-4 py-2.5 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
+    <header className="w-full bg-slate-950/90 backdrop-blur-lg border-b border-cyan-500/20 px-3 sm:px-6 py-3 sticky top-0 z-40 shadow-lg shadow-black/30">
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         {/* Logo / Title */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-400 flex items-center justify-center font-black text-xl text-white shadow-neon-purple">
-            K!
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center font-black text-lg text-slate-950 shadow-lg shadow-emerald-500/30 tracking-tighter">
+            FQ
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-base sm:text-lg text-white tracking-tight">
-                SWOT Kahoot!
+              <span className="font-black text-lg sm:text-xl text-white tracking-tight">
+                Fabrica<span className="text-emerald-400">Quiz</span>
               </span>
-              <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/40">
-                TI & Gestão
+              <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                Arena Interativa
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden sm:block">
-              Funções Administrativas • Planejamento Estratégico
+            <p className="text-[11px] text-slate-400 hidden sm:block">
+              Sistema de Quiz em Tempo Real • Equipes & Premiação
             </p>
           </div>
         </div>
 
-        {/* Dispute Mode Selector */}
-        <div className="flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 gap-1">
-          <button
-            onClick={() => onSetDisputeMode('peao')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition flex items-center gap-1 ${
-              disputeMode === 'peao'
-                ? 'bg-purple-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            title="Peão tradicional: quem gira por mais tempo responde ou passa!"
-          >
-            <span>🌀 Peão</span>
-          </button>
-          <button
-            onClick={() => onSetDisputeMode('buzzer')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition flex items-center gap-1 ${
-              disputeMode === 'buzzer'
-                ? 'bg-amber-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            title="Buzzer: quem bate primeiro no botão ou teclado (1, 2, 3, 4)"
-          >
-            <span>⚡ Buzzer</span>
-          </button>
-          <button
-            onClick={() => onSetDisputeMode('alvo')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition flex items-center gap-1 ${
-              disputeMode === 'alvo'
-                ? 'bg-red-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            title="Alvo de Precisão: miro e acerto o centro"
-          >
-            <span>🎯 Alvo</span>
-          </button>
-        </div>
-
         {/* Utility Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Create Kahoot Button */}
           <button
             onClick={onOpenCreatorModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:brightness-110 text-white text-xs font-black transition shadow-md active:scale-95"
-            title="Criar novo Kahoot com PDF, Planilha Excel/CSV, Texto ou na mão"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 text-xs font-black transition shadow-md shadow-emerald-500/20 active:scale-95"
+            title="Criar novo quiz com PDF, Planilha Excel/CSV, Texto ou na mão"
           >
-            <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-            <span className="hidden sm:inline">Criar Kahoot</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Criar Quiz</span>
             <span className="sm:hidden">Criar</span>
           </button>
 
           {/* Admin Dashboard Button */}
           <button
             onClick={onOpenAdminModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-amber-300 text-xs font-black transition shadow-sm animate-pulse-fast"
-            title="Abrir Painel do Administrador (Requer Senha: higoramaral)"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-300 text-xs font-black transition shadow-sm"
+            title="Abrir Painel do Administrador (Requer Senha)"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
             <span>Painel ADM</span>
@@ -122,38 +76,20 @@ export const HostHeader: React.FC<Props> = ({
 
           {/* DB Indicator */}
           <div
-            className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold"
             title="Status de Conexão com o Banco de Dados Neon PostgreSQL"
           >
-            <Database className="w-3 h-3 text-cyan-400" />
+            <Database className="w-3.5 h-3.5 text-cyan-400" />
             <span className={isDbConnected ? 'text-emerald-400' : 'text-amber-400'}>
-              {isDbConnected ? 'Neon Conectado' : 'Local'}
+              {isDbConnected ? 'Online' : 'Local'}
             </span>
           </div>
-
-          {/* Case Study */}
-          <button
-            onClick={onOpenCaseModal}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">Caso TI</span>
-          </button>
-
-          {/* Dynamic Guide */}
-          <button
-            onClick={onOpenGuideModal}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs font-bold transition border border-purple-600/40"
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-pink-400" />
-            <span className="hidden lg:inline">Regras</span>
-          </button>
 
           {/* Sound Toggle */}
           <button
             onClick={handleToggleSound}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700"
-            title={isMuted ? "Ativar Efeitos Sonoros" : "Mutar Som"}
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800"
+            title={isMuted ? 'Ativar Efeitos Sonoros' : 'Mutar Som'}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
           </button>
@@ -161,8 +97,8 @@ export const HostHeader: React.FC<Props> = ({
           {/* Fullscreen */}
           <button
             onClick={handleToggleFullscreen}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700 hidden sm:block"
-            title="Tela Cheia (Projetor da Sala)"
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 hidden sm:block"
+            title="Tela Cheia"
           >
             <Maximize2 className="w-4 h-4" />
           </button>

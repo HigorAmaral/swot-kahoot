@@ -7,15 +7,10 @@ import { dbService, getSessionId } from './services/db';
 import { HostHeader } from './components/HostHeader';
 import { IntroSetupView } from './components/IntroSetupView';
 import { QuestionIntroBanner } from './components/QuestionIntroBanner';
-import { SpinningTopDispute } from './components/SpinningTopDispute';
-import { BuzzerDispute } from './components/BuzzerDispute';
-import { TargetDispute } from './components/TargetDispute';
 import { QuestionPlayView } from './components/QuestionPlayView';
 import { VerdictView } from './components/VerdictView';
 import { ScoreboardView } from './components/ScoreboardView';
 import { PodiumView } from './components/PodiumView';
-import { CaseStudyModal } from './components/CaseStudyModal';
-import { DynamicGuideModal } from './components/DynamicGuideModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { KahootCreatorModal } from './components/KahootCreatorModal';
@@ -95,7 +90,7 @@ export function App() {
 
   const [stage, setStage] = useState<GameStage>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [disputeMode, setDisputeMode] = useState<DisputeMode>('peao');
+  const [disputeMode] = useState<DisputeMode>('direto');
 
   // Dispute & Turn state
   const [disputeWinnerId, setDisputeWinnerId] = useState<number>(1);
@@ -120,8 +115,6 @@ export function App() {
   });
 
   // Modals
-  const [isCaseModalOpen, setIsCaseModalOpen] = useState(false);
-  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
@@ -448,10 +441,6 @@ export function App() {
     <div className="min-h-screen bg-grid-pattern text-white flex flex-col font-sans select-none">
       {/* Top Header */}
       <HostHeader
-        disputeMode={disputeMode}
-        onSetDisputeMode={setDisputeMode}
-        onOpenCaseModal={() => setIsCaseModalOpen(true)}
-        onOpenGuideModal={() => setIsGuideModalOpen(true)}
         onOpenAdminModal={handleOpenAdmin}
         onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
         isDbConnected={isDbConnected}
@@ -463,11 +452,7 @@ export function App() {
           <IntroSetupView
             teams={teams}
             onUpdateTeamName={handleUpdateTeamName}
-            disputeMode={disputeMode}
-            onSetDisputeMode={setDisputeMode}
             onStartGame={handleStartGame}
-            onOpenCaseModal={() => setIsCaseModalOpen(true)}
-            onOpenGuideModal={() => setIsGuideModalOpen(true)}
             onOpenAdminModal={handleOpenAdmin}
             onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
             onAddParticipant={handleAddParticipant}
@@ -485,35 +470,7 @@ export function App() {
               setIsPassed(false);
               setStage('question_play');
             }}
-            onProceedToDispute={() => setStage('dispute')}
-            onOpenCaseModal={() => setIsCaseModalOpen(true)}
           />
-        )}
-
-        {stage === 'dispute' && (
-          <>
-            {disputeMode === 'peao' && (
-              <SpinningTopDispute
-                teams={teams}
-                onDisputeResolved={handleDisputeResolved}
-                questionNumber={currentQuestionIndex + 1}
-              />
-            )}
-            {disputeMode === 'buzzer' && (
-              <BuzzerDispute
-                teams={teams}
-                onDisputeResolved={handleDisputeResolved}
-                questionNumber={currentQuestionIndex + 1}
-              />
-            )}
-            {disputeMode === 'alvo' && (
-              <TargetDispute
-                teams={teams}
-                onDisputeResolved={handleDisputeResolved}
-                questionNumber={currentQuestionIndex + 1}
-              />
-            )}
-          </>
         )}
 
         {stage === 'question_play' && (
@@ -523,7 +480,6 @@ export function App() {
             disputeWinnerTeam={disputeWinnerTeam}
             isPassed={isPassed}
             onAnswerSelected={handleAnswerSelected}
-            onOpenCaseModal={() => setIsCaseModalOpen(true)}
             allTeams={teams}
             onSelectAnsweringTeam={(teamId) => {
               setAnsweringTeamId(teamId);
@@ -563,16 +519,6 @@ export function App() {
       </main>
 
       {/* Modals */}
-      <CaseStudyModal
-        isOpen={isCaseModalOpen}
-        onClose={() => setIsCaseModalOpen(false)}
-      />
-
-      <DynamicGuideModal
-        isOpen={isGuideModalOpen}
-        onClose={() => setIsGuideModalOpen(false)}
-      />
-
       <AdminDashboard
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
@@ -584,8 +530,6 @@ export function App() {
           setCurrentQuestionIndex(idx);
           setStage('question_intro');
         }}
-        disputeMode={disputeMode}
-        onSetDisputeMode={setDisputeMode}
         onAddParticipant={handleAddParticipant}
         onRemoveParticipant={handleRemoveParticipant}
         onResetGame={handleResetGame}
@@ -610,14 +554,14 @@ export function App() {
       />
 
       {/* Minimal Footer */}
-      <footer className="w-full text-center py-2.5 bg-slate-950/70 border-t border-purple-900/30 text-[11px] text-slate-400 flex items-center justify-center gap-4">
-        <span>SWOT Kahoot! • Funções Administrativas & Planejamento em TI</span>
+      <footer className="w-full text-center py-3 bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 flex items-center justify-center gap-4">
+        <span>FabricaQuiz • Arena Interativa em Sala</span>
         <span>•</span>
         <button
           onClick={handleOpenAdmin}
           className="text-amber-400 hover:underline font-bold"
         >
-          Acessar Painel ADM (Senha: higoramaral)
+          Acessar Painel ADM
         </button>
       </footer>
     </div>

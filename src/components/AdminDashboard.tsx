@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Team, DisputeMode, Participant, RoundLog } from '../types';
+import { Team, Participant, RoundLog } from '../types';
 import { questionsData } from '../data/questions';
 import { sound } from '../utils/sound';
 import {
@@ -29,8 +29,6 @@ interface Props {
   onDeclareWinner: (teamId: number) => void;
   currentQuestionIndex: number;
   onSetQuestionIndex: (idx: number) => void;
-  disputeMode: DisputeMode;
-  onSetDisputeMode: (mode: DisputeMode) => void;
   onAddParticipant: (teamId: number, name: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
   onResetGame: () => void;
@@ -49,8 +47,6 @@ export const AdminDashboard: React.FC<Props> = ({
   onDeclareWinner,
   currentQuestionIndex,
   onSetQuestionIndex,
-  disputeMode,
-  onSetDisputeMode,
   onAddParticipant,
   onRemoveParticipant,
   onResetGame,
@@ -453,50 +449,6 @@ export const AdminDashboard: React.FC<Props> = ({
                       </span>
                     </button>
                   ))}
-                </div>
-              </div>
-
-              {/* Dispute Mode Selector */}
-              <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
-                <h4 className="font-black text-white text-sm mb-2">
-                  Mecânica da Disputa Atual:
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button
-                    onClick={() => onSetDisputeMode('peao')}
-                    className={`p-3 rounded-xl border-2 text-left transition ${
-                      disputeMode === 'peao'
-                        ? 'border-purple-400 bg-purple-950/60 text-white'
-                        : 'border-slate-700 bg-slate-900/60 text-slate-300'
-                    }`}
-                  >
-                    <div className="font-bold text-sm">🌀 Peão Tradicional</div>
-                    <div className="text-[11px] text-slate-400">Tempo de rotação define quem responde ou passa</div>
-                  </button>
-
-                  <button
-                    onClick={() => onSetDisputeMode('buzzer')}
-                    className={`p-3 rounded-xl border-2 text-left transition ${
-                      disputeMode === 'buzzer'
-                        ? 'border-amber-400 bg-amber-950/60 text-white'
-                        : 'border-slate-700 bg-slate-900/60 text-slate-300'
-                    }`}
-                  >
-                    <div className="font-bold text-sm">⚡ Quem Bate Primeiro</div>
-                    <div className="text-[11px] text-slate-400">Buzzer com teclas (1, 2, 3, 4)</div>
-                  </button>
-
-                  <button
-                    onClick={() => onSetDisputeMode('alvo')}
-                    className={`p-3 rounded-xl border-2 text-left transition ${
-                      disputeMode === 'alvo'
-                        ? 'border-red-400 bg-red-950/60 text-white'
-                        : 'border-slate-700 bg-slate-900/60 text-slate-300'
-                    }`}
-                  >
-                    <div className="font-bold text-sm">🎯 Acerta o Alvo</div>
-                    <div className="text-[11px] text-slate-400">Mini-game de tiro ao alvo concêntrico</div>
-                  </button>
                 </div>
               </div>
 

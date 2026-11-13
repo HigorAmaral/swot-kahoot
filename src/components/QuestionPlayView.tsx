@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Question } from '../data/questions';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
-import { Clock, ShieldCheck, HelpCircle, Pause, Play } from 'lucide-react';
+import { Clock, ShieldCheck, Pause, Play } from 'lucide-react';
 
 interface Props {
   question: Question;
@@ -10,7 +10,6 @@ interface Props {
   disputeWinnerTeam: Team;
   isPassed: boolean;
   onAnswerSelected: (selectedIndex: number, timeLeft: number) => void;
-  onOpenCaseModal: () => void;
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
 }
@@ -21,7 +20,6 @@ export const QuestionPlayView: React.FC<Props> = ({
   disputeWinnerTeam,
   isPassed,
   onAnswerSelected,
-  onOpenCaseModal,
   allTeams,
   onSelectAnsweringTeam,
 }) => {
@@ -70,7 +68,7 @@ export const QuestionPlayView: React.FC<Props> = ({
       <div className="w-full flex flex-wrap items-center justify-between gap-3 mb-4">
         {/* Category & Theme Badge */}
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-purple-600/60 border border-purple-400 text-purple-200">
+          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-400/50 text-emerald-300">
             {question.category}
           </span>
           {question.swotQuadrant && (
@@ -118,33 +116,28 @@ export const QuestionPlayView: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Controls: Case button & Timer Pause */}
+        {/* Controls: Timer Pause */}
         <div className="flex items-center gap-2">
           <button
-            onClick={onOpenCaseModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200 transition"
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-cyan-400" /> Consultar Estudo de Caso TI
-          </button>
-          <button
             onClick={() => setIsPaused(!isPaused)}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200 transition"
             title={isPaused ? "Retomar Tempo" : "Pausar Tempo"}
           >
             {isPaused ? <Play className="w-4 h-4 text-emerald-400" /> : <Pause className="w-4 h-4 text-amber-400" />}
+            <span>{isPaused ? "Retomar" : "Pausar"}</span>
           </button>
         </div>
       </div>
 
       {/* Central Question Box */}
-      <div className="relative w-full bg-slate-800/90 border-2 border-slate-700 rounded-3xl p-6 md:p-8 shadow-2xl text-center mb-6 flex flex-col items-center justify-center min-h-[160px]">
+      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-6 md:p-8 shadow-2xl text-center mb-6 flex flex-col items-center justify-center min-h-[160px]">
         {/* Floating Timer Circle */}
         <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full border-4 flex items-center justify-center font-black text-xl shadow-2xl transition-all ${
           timeLeft <= 5
             ? 'bg-red-600 border-red-300 text-white animate-bounce ring-4 ring-red-400/50'
             : timeLeft <= 10
             ? 'bg-amber-600 border-amber-300 text-white'
-            : 'bg-purple-900 border-purple-400 text-purple-100'
+            : 'bg-teal-900 border-cyan-400 text-cyan-100'
         }`}>
           {timeLeft}
         </div>
@@ -152,11 +145,6 @@ export const QuestionPlayView: React.FC<Props> = ({
         <h2 className="text-xl md:text-3xl font-black text-white leading-snug tracking-tight max-w-4xl mt-2">
           {question.question}
         </h2>
-
-        {/* Small Case hint below question */}
-        <p className="text-xs text-slate-400 italic mt-3 max-w-2xl">
-          💡 Contexto do Paper: "{question.caseRelation}"
-        </p>
       </div>
 
       {/* 4 Kahoot Answer Options (2x2 Grid) */}

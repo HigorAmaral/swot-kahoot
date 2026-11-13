@@ -154,7 +154,7 @@ export const VerdictView: React.FC<Props> = ({
       {/* Educational Explanation Box for Presentation */}
       <div className="w-full bg-slate-800/90 border-2 border-cyan-500/40 rounded-2xl p-6 shadow-xl mb-6">
         <div className="flex items-center gap-2 text-cyan-400 font-extrabold text-sm uppercase tracking-wider mb-2">
-          <HelpCircle className="w-4 h-4" /> Explicação Teórica do Estudo de Caso & SWOT
+          <HelpCircle className="w-4 h-4" /> Explicação da Resposta
         </div>
         <p className="text-slate-200 text-base md:text-lg leading-relaxed font-medium">
           {question.explanation}

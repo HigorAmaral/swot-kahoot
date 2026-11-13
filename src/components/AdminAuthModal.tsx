@@ -62,7 +62,7 @@ export const AdminAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
             Acesso Restrito ao ADM
           </h3>
           <p className="text-xs text-slate-400 mt-1">
-            Digite a senha de administrador para acessar o painel de comando do Kahoot.
+            Digite a senha de administrador para acessar o painel de comando do FabricaQuiz.
           </p>
         </div>
 

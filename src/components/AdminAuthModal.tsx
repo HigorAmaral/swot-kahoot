@@ -35,12 +35,8 @@ export const AdminAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in text-white select-none">
-      <div className="relative w-full max-w-md bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
-        {/* Glow ambient background */}
-        <div className="absolute -top-16 -right-16 w-36 h-36 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-fade-in text-white select-none">
+      <div className="relative w-full max-w-md bg-[#111622] border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl overflow-hidden">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -51,11 +47,11 @@ export const AdminAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
 
         {/* Icon & Title */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-300 mb-3 shadow-lg shadow-amber-500/20">
+          <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 mb-3">
             {isSuccess ? (
-              <CheckCircle2 className="w-8 h-8 text-emerald-400 animate-bounce" />
+              <CheckCircle2 className="w-7 h-7 text-emerald-400" />
             ) : (
-              <Lock className="w-8 h-8 animate-pulse" />
+              <Lock className="w-7 h-7" />
             )}
           </div>
           <h3 className="text-2xl font-black text-white tracking-tight">
@@ -109,7 +105,7 @@ export const AdminAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:brightness-110 text-slate-950 font-black text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5"
+              className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition active:scale-95 flex items-center justify-center gap-1.5"
             >
               <Key className="w-3.5 h-3.5" /> Entrar no Painel
             </button>

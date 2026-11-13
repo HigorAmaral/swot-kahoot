@@ -206,21 +206,21 @@ export const AdminDashboard: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in text-white select-none">
-      <div className="relative w-full max-w-6xl max-h-[92vh] bg-slate-900 border-2 border-amber-500/50 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 animate-fade-in text-white select-none">
+      <div className="relative w-full max-w-6xl max-h-[92vh] bg-[#0d111a] border border-slate-800 rounded-2xl shadow-xl flex flex-col overflow-hidden">
         {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/90 gap-3">
+        <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-[#090b10] gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-500/20 border border-amber-400 text-amber-300">
-              <ShieldAlert className="w-6 h-6 animate-pulse" />
+            <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-amber-400">
+              <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white">
-                  Painel de Controle do Administrador (Host)
+                <h2 className="text-lg sm:text-xl font-black text-white">
+                  Painel do Administrador
                 </h2>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
-                  Grupo de Comando
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-amber-400">
+                  Admin
                 </span>
               </div>
               <p className="text-xs text-slate-400">
@@ -237,7 +237,7 @@ export const AdminDashboard: React.FC<Props> = ({
                   onClose();
                   onOpenCreatorModal();
                 }}
-                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110 text-white text-xs font-bold transition flex items-center gap-1.5 shadow"
+                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition flex items-center gap-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Criar Perguntas</span>
@@ -247,13 +247,13 @@ export const AdminDashboard: React.FC<Props> = ({
             {/* DB Status Badge */}
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs ${
               isDbConnected
-                ? 'bg-emerald-950/60 border-emerald-500/50'
+                ? 'bg-emerald-950/40 border-emerald-500/30'
                 : 'bg-slate-800 border-slate-700'
             }`}>
               <Database className={`w-3.5 h-3.5 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
-              <span className="text-slate-300 hidden sm:inline">Banco de Dados:</span>
+              <span className="text-slate-300 hidden sm:inline">Banco:</span>
               <span className={`font-black flex items-center gap-1.5 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
-                <span className={`w-2 h-2 rounded-full ${isDbConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${isDbConnected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                 {isDbConnected ? 'ON' : 'OFF (Local)'}
               </span>
             </div>
@@ -295,7 +295,7 @@ export const AdminDashboard: React.FC<Props> = ({
             onClick={() => setActiveTab('participants')}
             className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'participants'
-                ? 'border-purple-400 text-purple-300'
+                ? 'border-emerald-400 text-emerald-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -305,7 +305,7 @@ export const AdminDashboard: React.FC<Props> = ({
             onClick={() => setActiveTab('quiz_control')}
             className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'quiz_control'
-                ? 'border-cyan-400 text-cyan-300'
+                ? 'border-emerald-400 text-emerald-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -589,10 +589,10 @@ export const AdminDashboard: React.FC<Props> = ({
                         onDeclareWinner(team.id);
                         onClose();
                       }}
-                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transition transform active:scale-95"
+                      className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95"
                     >
                       <Trophy className="w-4 h-4 fill-current" />
-                      DECLARAR {team.name.toUpperCase()} COMO VENCEDOR! 🏆
+                      Declarar {team.name} como Vencedor
                     </button>
                   </div>
                 ))}
@@ -603,9 +603,9 @@ export const AdminDashboard: React.FC<Props> = ({
           {/* TAB 2: ALUNOS NOS GRUPOS (USUÁRIOS CADASTRADOS) */}
           {activeTab === 'participants' && (
             <div className="space-y-6 animate-fade-in">
-              <div className="bg-purple-950/40 border border-purple-500/40 p-4 rounded-2xl">
-                <h3 className="text-base font-black text-purple-300 flex items-center gap-2">
-                  <Users className="w-5 h-5" /> Inscrição de Alunos nos 4 Grupos
+              <div className="bg-[#111622] border border-slate-800 p-4 rounded-2xl">
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-emerald-400" /> Inscrição de Alunos nos 4 Grupos
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 mt-1">
                   Os estudantes podem se inscrever na tela inicial ou o Administrador pode adicionar os nomes dos participantes diretamente por aqui.
@@ -723,7 +723,7 @@ export const AdminDashboard: React.FC<Props> = ({
                 {onGoToStage && (
                   <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
                     <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
-                      <Navigation className="w-4 h-4 text-purple-400" /> Navegação Rápida de Telas:
+                      <Navigation className="w-4 h-4 text-emerald-400" /> Navegação Rápida de Telas:
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       <button
@@ -734,7 +734,7 @@ export const AdminDashboard: React.FC<Props> = ({
                       </button>
                       <button
                         onClick={() => { onGoToStage('question_intro'); onClose(); }}
-                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition"
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition"
                       >
                         Pergunta #{currentQuestionIndex + 1}
                       </button>
@@ -819,7 +819,7 @@ export const AdminDashboard: React.FC<Props> = ({
 
                 <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
                   <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-cyan-400" /> Pontuação Base por Acerto:
+                    <Sliders className="w-4 h-4 text-emerald-400" /> Pontuação Base por Acerto:
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {[500, 1000, 1500, 2000].map(pts => (
@@ -828,7 +828,7 @@ export const AdminDashboard: React.FC<Props> = ({
                         onClick={() => onSetPointsPerCorrect && onSetPointsPerCorrect(pts)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
                           pointsPerCorrect === pts
-                            ? 'bg-cyan-500 text-slate-950 shadow'
+                            ? 'bg-emerald-500 text-slate-950'
                             : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
                         }`}
                       >
@@ -843,7 +843,7 @@ export const AdminDashboard: React.FC<Props> = ({
               <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <h4 className="font-black text-white text-sm flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-cyan-400" /> Pular Diretamente para Pergunta (1 a {questions.length}):
+                    <Sparkles className="w-4 h-4 text-emerald-400" /> Pular Diretamente para Pergunta (1 a {questions.length}):
                   </h4>
                   <button
                     onClick={() => setShowAnswerKey(prev => !prev)}

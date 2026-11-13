@@ -19,7 +19,7 @@ function buildQuizEmailHtml(params: {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Convite FabricaQuiz</title>
+  <title>Convite ArenaQuiz</title>
   <style>
     body { margin: 0; padding: 0; background-color: #030712; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc; }
     .wrapper { width: 100%; background-color: #030712; padding: 32px 16px; }
@@ -47,12 +47,12 @@ function buildQuizEmailHtml(params: {
     <div class="card">
       <div class="header">
         <div class="logo-badge">FQ</div>
-        <h1>FabricaQuiz</h1>
+        <h1>ArenaQuiz</h1>
         <p>Convite para Quiz Interativo</p>
       </div>
       <div class="content">
         <p class="greeting">
-          Olá! <strong style="color:#ffffff;">${senderName}</strong> (<span style="color:#38bdf8;">@${senderUsername}</span>) enviou um Kahoot para você jogar no <strong>FabricaQuiz</strong>:
+          Olá! <strong style="color:#ffffff;">${senderName}</strong> (<span style="color:#38bdf8;">@${senderUsername}</span>) enviou um Kahoot para você jogar no <strong>ArenaQuiz</strong>:
         </p>
         <div class="quiz-box">
           <p class="quiz-label">Quiz Compartilhado</p>
@@ -70,7 +70,7 @@ function buildQuizEmailHtml(params: {
         </div>
       </div>
       <div class="footer">
-        Enviado via <strong>FabricaQuiz</strong> • Sistema Interativo de Quiz em Sala
+        Enviado via <strong>ArenaQuiz</strong> • Sistema Interativo de Quiz em Sala
       </div>
     </div>
   </div>
@@ -79,7 +79,53 @@ function buildQuizEmailHtml(params: {
 }
 
 function hashPassword(pwd: string): string {
-  return crypto.createHash('sha256').update(`fabrica_salt_${pwd}`).digest('hex');
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derived = crypto.scryptSync(pwd, salt, 64).toString('hex');
+  return `scrypt$${salt}$${derived}`;
+}
+
+function verifyPassword(pwd: string, storedHash: string): { valid: boolean; needsUpgrade: boolean } {
+  if (storedHash.startsWith('scrypt$')) {
+    const parts = storedHash.split('$');
+    if (parts.length !== 3) return { valid: false, needsUpgrade: false };
+    const [, salt, hashHex] = parts;
+    const derived = crypto.scryptSync(pwd, salt, 64);
+    const storedBuf = Buffer.from(hashHex, 'hex');
+    if (derived.length !== storedBuf.length) return { valid: false, needsUpgrade: false };
+    return { valid: crypto.timingSafeEqual(derived, storedBuf), needsUpgrade: false };
+  }
+  const legacyHash = crypto.createHash('sha256').update(`fabrica_salt_${pwd}`).digest('hex');
+  return { valid: storedHash === legacyHash, needsUpgrade: true };
+}
+
+function getSessionSecret(): string {
+  return process.env.AUTH_SECRET || process.env.DATABASE_URL || 'arenaquiz-session-secret';
+}
+
+function signSessionToken(payload: { id: number; username: string }): string {
+  const data = Buffer.from(
+    JSON.stringify({ id: payload.id, username: payload.username, iat: Date.now() })
+  ).toString('base64url');
+  const sig = crypto.createHmac('sha256', getSessionSecret()).update(data).digest('base64url');
+  return `${data}.${sig}`;
+}
+
+function verifySessionToken(token: string): { id: number; username: string } | null {
+  try {
+    const [data, sig] = token.split('.');
+    if (!data || !sig) return null;
+    const expectedSig = crypto.createHmac('sha256', getSessionSecret()).update(data).digest('base64url');
+    const sigBuf = Buffer.from(sig);
+    const expectedBuf = Buffer.from(expectedSig);
+    if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+      return null;
+    }
+    const parsed = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
+    if (!parsed?.username) return null;
+    return { id: Number(parsed.id), username: String(parsed.username) };
+  } catch {
+    return null;
+  }
 }
 
 function generateShareCode(): string {
@@ -103,7 +149,7 @@ async function sendEmailViaProvider(params: {
 
   if (process.env.RESEND_API_KEY) {
     try {
-      const fromEmail = process.env.RESEND_FROM || 'FabricaQuiz <onboarding@resend.dev>';
+      const fromEmail = process.env.RESEND_FROM || 'ArenaQuiz <onboarding@resend.dev>';
       const r = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -140,7 +186,7 @@ async function sendEmailViaProvider(params: {
         },
       });
       await transporter.sendMail({
-        from: `"FabricaQuiz" <${process.env.SMTP_USER}>`,
+        from: `"ArenaQuiz" <${process.env.SMTP_USER}>`,
         to: params.to,
         subject: params.subject,
         text: params.text,
@@ -172,13 +218,13 @@ function buildPasswordResetEmailHtml(params: {
           <td style="background:linear-gradient(135deg,#059669,#06b6d4);padding:26px 28px;text-align:center;">
             <div style="display:inline-block;background:#020617;color:#34d399;font-weight:900;font-size:18px;padding:8px 14px;border-radius:12px;margin-bottom:10px;">FQ</div>
             <h1 style="margin:0;color:#020617;font-size:22px;font-weight:900;">Recuperação de Senha</h1>
-            <p style="margin:4px 0 0;color:#064e3b;font-size:13px;font-weight:700;">FabricaQuiz • Segurança da Conta</p>
+            <p style="margin:4px 0 0;color:#064e3b;font-size:13px;font-weight:700;">ArenaQuiz • Segurança da Conta</p>
           </td>
         </tr>
         <tr>
           <td style="padding:28px;">
             <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">Olá, <strong>${params.displayName}</strong> (<span style="color:#34d399;">@${params.username}</span>)!</p>
-            <p style="margin:0 0 20px;font-size:14px;color:#94a3b8;line-height:1.6;">Use o código de verificação abaixo para criar uma nova senha no <strong>FabricaQuiz</strong>. Ele expira em <strong>15 minutos</strong>:</p>
+            <p style="margin:0 0 20px;font-size:14px;color:#94a3b8;line-height:1.6;">Use o código de verificação abaixo para criar uma nova senha no <strong>ArenaQuiz</strong>. Ele expira em <strong>15 minutos</strong>:</p>
             <div style="background:#020617;border:2px dashed rgba(52,211,153,0.5);border-radius:16px;padding:20px;text-align:center;margin-bottom:20px;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:6px;font-weight:800;">Código de Recuperação</div>
               <div style="font-size:34px;font-weight:900;letter-spacing:8px;color:#34d399;font-family:monospace;">${params.code}</div>
@@ -626,6 +672,12 @@ export default async function handler(req: any, res: any) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const sessionId = normalizeSessionId(body.sessionId);
       const { action } = body;
+      const authHeader = String(req.headers?.authorization || '');
+      const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+      const authUser = bearerToken ? verifySessionToken(bearerToken) : null;
+      if (bearerToken && !authUser) {
+        return res.status(401).json({ error: 'Sessão expirada ou token inválido. Faça login novamente.' });
+      }
 
       // Ensure tables exist on POST
       await ensureTables(sql);
@@ -765,8 +817,10 @@ export default async function handler(req: any, res: any) {
           RETURNING id, username, display_name, avatar, email
         `;
         const u = inserted[0];
+        const token = signSessionToken({ id: u.id, username: u.username });
         return res.status(200).json({
           success: true,
+          token,
           user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar, email: u.email || undefined }
         });
       }
@@ -786,12 +840,23 @@ export default async function handler(req: any, res: any) {
           WHERE username = ${username}
           LIMIT 1
         `;
-        if (rows.length === 0 || rows[0].password_hash !== hashPassword(password)) {
+        if (rows.length === 0) {
           return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
         }
         const u = rows[0];
+        const check = verifyPassword(password, String(u.password_hash || ''));
+        if (!check.valid) {
+          return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
+        }
+        if (check.needsUpgrade) {
+          await sql`
+            UPDATE fabrica_users SET password_hash = ${hashPassword(password)} WHERE id = ${u.id}
+          `.catch(() => {});
+        }
+        const token = signSessionToken({ id: u.id, username: u.username });
         return res.status(200).json({
           success: true,
+          token,
           user: { id: u.id, username: u.username, displayName: u.display_name, avatar: u.avatar, email: u.email || undefined }
         });
       }
@@ -800,7 +865,7 @@ export default async function handler(req: any, res: any) {
       if (action === 'save_quiz') {
         const ownerUsername = String(body.ownerUsername || '').trim().toLowerCase();
         const ownerName = String(body.ownerName || ownerUsername);
-        const title = String(body.title || 'Meu Quiz no FabricaQuiz').trim();
+        const title = String(body.title || 'Meu Quiz no ArenaQuiz').trim();
         const questionsJson = JSON.stringify(body.questions || []);
         const shareCode = body.shareCode ? String(body.shareCode).trim().toUpperCase() : generateShareCode();
 
@@ -846,7 +911,7 @@ export default async function handler(req: any, res: any) {
           SELECT username FROM fabrica_users WHERE username = ${recipientUsername} LIMIT 1
         `;
         if (recipientRows.length === 0) {
-          return res.status(404).json({ error: `Usuário "@${recipientUsername}" não encontrado no FabricaQuiz.` });
+          return res.status(404).json({ error: `Usuário "@${recipientUsername}" não encontrado no ArenaQuiz.` });
         }
 
         await sql`
@@ -861,6 +926,9 @@ export default async function handler(req: any, res: any) {
       if (action === 'delete_quiz') {
         const shareCode = String(body.shareCode || '').trim().toUpperCase();
         const ownerUsername = String(body.ownerUsername || '').trim().toLowerCase();
+        if (authUser && authUser.username !== ownerUsername && authUser.username !== 'higoramaral') {
+          return res.status(403).json({ error: 'Sem permissão para excluir este quiz.' });
+        }
         await sql`
           DELETE FROM fabrica_quizzes WHERE share_code = ${shareCode} AND owner_username = ${ownerUsername}
         `;
@@ -870,6 +938,9 @@ export default async function handler(req: any, res: any) {
       // 14. Update User Profile
       if (action === 'update_profile') {
         const username = String(body.username || '').trim().toLowerCase();
+        if (authUser && authUser.username !== username && authUser.username !== 'higoramaral') {
+          return res.status(403).json({ error: 'Sem permissão para alterar outro perfil.' });
+        }
         const displayName = String(body.displayName || '').trim();
         const avatar = String(body.avatar || '👨‍💻');
         const newPassword = body.newPassword ? String(body.newPassword) : '';
@@ -940,8 +1011,8 @@ export default async function handler(req: any, res: any) {
           quizUrl,
           questionCount,
         });
-        const text = `Olá!\n\n${senderName} (@${senderUsername}) enviou o quiz "${quizTitle}" para você jogar no FabricaQuiz!\n\nCódigo: ${shareCode}\nLink direto: ${quizUrl}`;
-        const subject = `🎯 FabricaQuiz: ${senderName} enviou "${quizTitle}" para você!`;
+        const text = `Olá!\n\n${senderName} (@${senderUsername}) enviou o quiz "${quizTitle}" para você jogar no ArenaQuiz!\n\nCódigo: ${shareCode}\nLink direto: ${quizUrl}`;
+        const subject = `🎯 ArenaQuiz: ${senderName} enviou "${quizTitle}" para você!`;
 
         const { emailSent, provider, emailError } = await sendEmailViaProvider({
           to: recipientEmail,
@@ -1001,11 +1072,11 @@ export default async function handler(req: any, res: any) {
           username: user.username,
           code,
         });
-        const text = `Olá ${user.display_name} (@${user.username})!\n\nSeu código de recuperação de senha do FabricaQuiz é: ${code}\nEle expira em 15 minutos.`;
+        const text = `Olá ${user.display_name} (@${user.username})!\n\nSeu código de recuperação de senha do ArenaQuiz é: ${code}\nEle expira em 15 minutos.`;
 
         const { emailSent, emailError } = await sendEmailViaProvider({
           to: userEmail,
-          subject: '🔐 FabricaQuiz: Código de recuperação de senha',
+          subject: '🔐 ArenaQuiz: Código de recuperação de senha',
           html,
           text,
         });

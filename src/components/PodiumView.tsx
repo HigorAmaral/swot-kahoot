@@ -1,14 +1,19 @@
-import React, { useEffect } from 'react';
-import { Team } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
-import { Trophy, RotateCcw, Award, Sparkles, Heart } from 'lucide-react';
+import { buildAnswerReview } from '../utils/quizReport';
+import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Props {
   teams: Team[];
   onRestart: () => void;
+  questions?: Question[];
+  roundLogs?: RoundLog[];
 }
 
-export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
+export const PodiumView: React.FC<Props> = ({ teams, onRestart, questions = [], roundLogs = [] }) => {
+  const [showReview, setShowReview] = useState(false);
+  const reviewItems = buildAnswerReview(questions, roundLogs, teams);
   const sorted = [...teams].sort((a, b) => b.points - a.points || (b.candies + b.chocolates) - (a.candies + a.chocolates));
   const first = sorted[0];
   const second = sorted[1];
@@ -132,13 +137,25 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
         <div className="h-8 w-px bg-slate-700" />
         <div className="text-center">
           <div className="text-2xl">🎯</div>
-          <div className="text-xl font-black text-white">10 / 10</div>
-          <div className="text-xs text-slate-400 font-bold">Perguntas SWOT Feitas</div>
+          <div className="text-xl font-black text-white">
+            {questions.length > 0 ? `${questions.length} / ${questions.length}` : '10 / 10'}
+          </div>
+          <div className="text-xs text-slate-400 font-bold">Perguntas Concluídas</div>
         </div>
       </div>
 
-      {/* Presentation Completion Note & Restart */}
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      {/* Presentation Completion Note & Actions */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        {questions.length > 0 && (
+          <button
+            onClick={() => setShowReview(prev => !prev)}
+            className="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base shadow-lg transition flex items-center gap-2"
+          >
+            <BookOpen className="w-5 h-5" />
+            <span>{showReview ? 'Ocultar Gabarito' : 'Ver Gabarito das Perguntas'}</span>
+            {showReview ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        )}
         <button
           onClick={onRestart}
           className="px-8 py-3.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-base shadow-lg transition flex items-center gap-2"
@@ -147,6 +164,99 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
           Reiniciar Quiz da Dinâmica
         </button>
       </div>
+
+      {/* Post-Quiz Answer Review (only visible after completing the quiz) */}
+      {showReview && reviewItems.length > 0 && (
+        <div className="w-full max-w-4xl mt-8 text-left space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-base sm:text-lg font-black text-white">
+              Gabarito Oficial ({reviewItems.length} pergunta{reviewItems.length === 1 ? '' : 's'})
+            </h3>
+            <span className="text-xs text-slate-400">
+              Liberado após a conclusão do quiz
+            </span>
+          </div>
+          <div className="space-y-3">
+            {reviewItems.map(({ index, question, log, answeringTeamName }) => (
+              <div
+                key={question.id || index}
+                className="p-4 rounded-2xl bg-[#111622] border border-slate-800 space-y-2.5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-black text-slate-200 shrink-0">
+                      #{index + 1}
+                    </span>
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                        {question.category}
+                      </span>
+                      <h4 className="text-sm sm:text-base font-bold text-white leading-snug">
+                        {question.question}
+                      </h4>
+                    </div>
+                  </div>
+                  {log && (
+                    <span
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 shrink-0 ${
+                        log.isCorrect
+                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                      }`}
+                    >
+                      {log.isCorrect ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <XCircle className="w-3.5 h-3.5" />
+                      )}
+                      {answeringTeamName ? `${answeringTeamName}: ` : ''}
+                      {log.isCorrect ? 'Acertou' : 'Errou'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {question.options.map((opt, optIdx) => {
+                    const isCorrectOpt = optIdx === question.correctIndex;
+                    const isSelectedWrong =
+                      log && log.selectedOptionIndex === optIdx && !isCorrectOpt;
+                    return (
+                      <div
+                        key={optIdx}
+                        className={`px-3 py-2 rounded-xl text-xs sm:text-sm border flex items-center justify-between gap-2 ${
+                          isCorrectOpt
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200 font-bold'
+                            : isSelectedWrong
+                            ? 'bg-rose-500/15 border-rose-500/40 text-rose-200'
+                            : 'bg-slate-900/70 border-slate-800 text-slate-300'
+                        }`}
+                      >
+                        <span className="truncate">{opt.text}</span>
+                        {isCorrectOpt && (
+                          <span className="text-[10px] uppercase font-black text-emerald-300 shrink-0">
+                            Correta
+                          </span>
+                        )}
+                        {isSelectedWrong && (
+                          <span className="text-[10px] uppercase font-black text-rose-300 shrink-0">
+                            Marcada
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {question.explanation && (
+                  <p className="text-xs text-slate-400 bg-slate-900/60 border border-slate-800/80 rounded-xl px-3 py-2">
+                    <strong className="text-slate-200">Explicação:</strong> {question.explanation}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

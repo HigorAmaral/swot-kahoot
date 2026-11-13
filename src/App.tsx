@@ -342,18 +342,29 @@ export function App() {
     };
 
     syncWithDb();
-    const interval = setInterval(syncWithDb, 3500);
+    const pollMs = stage === 'intro' || stage === 'podium' ? 4000 : 1500;
+    const interval = setInterval(syncWithDb, pollMs);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') syncWithDb();
     };
+    const handleFocus = () => syncWithDb();
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel = new BroadcastChannel('arenaquiz_sync');
+      channel.onmessage = () => syncWithDb();
+    }
 
     return () => {
       isMounted = false;
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
+      channel?.close();
     };
-  }, [sessionId, currentUser]);
+  }, [sessionId, currentUser, stage]);
 
   // Save teams whenever updated
   const updateTeamsState = (newTeams: Team[]) => {
@@ -809,6 +820,8 @@ export function App() {
           {stage === 'podium' && (
             <PodiumView
               teams={teams}
+              questions={questions}
+              roundLogs={roundLogs}
               onRestart={handleResetGame}
             />
           )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SavedQuiz, Team, RoundLog, Question, GameStage, UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
+import { buildQuizCsvReport, downloadCsvFile } from '../utils/quizReport';
 import {
   X,
   BarChart3,
@@ -15,7 +16,8 @@ import {
   Trophy,
   CheckCircle2,
   Clock,
-  Activity
+  Activity,
+  Download
 } from 'lucide-react';
 
 interface Props {
@@ -188,6 +190,24 @@ export const QuizAdminModal: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                const csv = buildQuizCsvReport({
+                  quizTitle: quiz.title,
+                  shareCode: quiz.shareCode,
+                  teams,
+                  roundLogs,
+                  runs: dbRuns,
+                  isActiveInArena,
+                });
+                downloadCsvFile(`arenaquiz-${quiz.shareCode.toLowerCase()}.csv`, csv);
+              }}
+              className="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition"
+              title="Exportar relatório CSV"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Exportar CSV</span>
+            </button>
             <button
               onClick={loadStats}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"

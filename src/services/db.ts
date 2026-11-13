@@ -2,6 +2,37 @@ import { Team, Participant, RoundLog, UserAccount, SavedQuiz, Question } from '.
 
 export const SESSION_KEY = 'swot_session_id';
 const LOCAL_TEAMS_KEY = 'swot_local_teams';
+const AUTH_TOKEN_KEY = 'arenaquiz_auth_token';
+
+function saveAuthToken(token?: string) {
+  if (typeof window === 'undefined' || !token) return;
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } catch {
+    // ignore storage quota errors
+  }
+}
+
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+function notifySyncTabs() {
+  if (typeof BroadcastChannel !== 'undefined') {
+    try {
+      const ch = new BroadcastChannel('arenaquiz_sync');
+      ch.postMessage({ type: 'sync', ts: Date.now() });
+      ch.close();
+    } catch {
+      // ignore
+    }
+  }
+}
 
 export function getSessionId(): string {
   if (typeof window === 'undefined') return 'sala-principal';
@@ -172,7 +203,7 @@ export class DatabaseService {
     try {
       await fetch('/api/db', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: 'log_round',
           sessionId,
@@ -187,6 +218,7 @@ export class DatabaseService {
         }),
       });
       this.isConnected = true;
+      notifySyncTabs();
     } catch {
       this.isConnected = false;
     }
@@ -197,13 +229,14 @@ export class DatabaseService {
     try {
       await fetch('/api/db', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: 'reset_game',
           sessionId,
         }),
       });
       this.isConnected = true;
+      notifySyncTabs();
     } catch {
       this.isConnected = false;
     }
@@ -226,6 +259,7 @@ export class DatabaseService {
       });
       const data = await res.json();
       if (!res.ok) return { success: false, error: data.error || 'Erro ao criar conta' };
+      saveAuthToken(data.token);
       this.isConnected = true;
       return { success: true, user: data.user };
     } catch {
@@ -247,6 +281,7 @@ export class DatabaseService {
       });
       const data = await res.json();
       if (!res.ok) return { success: false, error: data.error || 'Usuário ou senha inválidos' };
+      saveAuthToken(data.token);
       this.isConnected = true;
       return { success: true, user: data.user };
     } catch {

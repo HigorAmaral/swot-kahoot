@@ -91,6 +91,108 @@ function generateShareCode(): string {
   return code;
 }
 
+async function sendEmailViaProvider(params: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<{ emailSent: boolean; provider: string; emailError?: string }> {
+  let emailSent = false;
+  let provider = 'none';
+  let emailError: string | undefined;
+
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const fromEmail = process.env.RESEND_FROM || 'FabricaQuiz <onboarding@resend.dev>';
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [params.to],
+          subject: params.subject,
+          html: params.html,
+          text: params.text,
+        }),
+      });
+      if (r.ok) {
+        emailSent = true;
+        provider = 'resend';
+      } else {
+        const errData = await r.json().catch(() => ({}));
+        emailError = errData?.message || `Resend status ${r.status}`;
+      }
+    } catch (e: any) {
+      emailError = e.message;
+    }
+  } else if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT || 465),
+        secure: process.env.SMTP_SECURE !== 'false',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+      await transporter.sendMail({
+        from: `"FabricaQuiz" <${process.env.SMTP_USER}>`,
+        to: params.to,
+        subject: params.subject,
+        text: params.text,
+        html: params.html,
+      });
+      emailSent = true;
+      provider = 'smtp';
+    } catch (e: any) {
+      emailError = e.message;
+    }
+  }
+
+  return { emailSent, provider, emailError };
+}
+
+function buildPasswordResetEmailHtml(params: {
+  displayName: string;
+  username: string;
+  code: string;
+}): string {
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#020617;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e2e8f0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#020617;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#0f172a;border:1px solid rgba(34,211,238,0.28);border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#059669,#06b6d4);padding:26px 28px;text-align:center;">
+            <div style="display:inline-block;background:#020617;color:#34d399;font-weight:900;font-size:18px;padding:8px 14px;border-radius:12px;margin-bottom:10px;">FQ</div>
+            <h1 style="margin:0;color:#020617;font-size:22px;font-weight:900;">Recuperação de Senha</h1>
+            <p style="margin:4px 0 0;color:#064e3b;font-size:13px;font-weight:700;">FabricaQuiz • Segurança da Conta</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px;">
+            <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">Olá, <strong>${params.displayName}</strong> (<span style="color:#34d399;">@${params.username}</span>)!</p>
+            <p style="margin:0 0 20px;font-size:14px;color:#94a3b8;line-height:1.6;">Use o código de verificação abaixo para criar uma nova senha no <strong>FabricaQuiz</strong>. Ele expira em <strong>15 minutos</strong>:</p>
+            <div style="background:#020617;border:2px dashed rgba(52,211,153,0.5);border-radius:16px;padding:20px;text-align:center;margin-bottom:20px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:6px;font-weight:800;">Código de Recuperação</div>
+              <div style="font-size:34px;font-weight:900;letter-spacing:8px;color:#34d399;font-family:monospace;">${params.code}</div>
+            </div>
+            <p style="margin:0;font-size:12px;color:#64748b;line-height:1.5;">Se você não solicitou a troca de senha, pode ignorar este e-mail com segurança.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 function normalizeSessionId(raw?: string): string {
   if (!raw || raw === 'default-session' || raw.startsWith('sala-ti-')) {
     return 'sala-principal';
@@ -197,6 +299,17 @@ async function ensureTables(sql: any) {
         recipient_email VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE (quiz_share_code, recipient_email)
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS fabrica_password_resets (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(80) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        code VARCHAR(10) NOT NULL,
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
   } catch (e) {
@@ -731,64 +844,12 @@ export default async function handler(req: any, res: any) {
         const text = `Olá!\n\n${senderName} (@${senderUsername}) enviou o quiz "${quizTitle}" para você jogar no FabricaQuiz!\n\nCódigo: ${shareCode}\nLink direto: ${quizUrl}`;
         const subject = `🎯 FabricaQuiz: ${senderName} enviou "${quizTitle}" para você!`;
 
-        let emailSent = false;
-        let provider = 'none';
-        let emailError: string | undefined;
-
-        // Option 1: Resend API (RESEND_API_KEY)
-        if (process.env.RESEND_API_KEY) {
-          try {
-            const fromEmail = process.env.RESEND_FROM || 'FabricaQuiz <onboarding@resend.dev>';
-            const r = await fetch('https://api.resend.com/emails', {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                from: fromEmail,
-                to: [recipientEmail],
-                subject,
-                html,
-                text,
-              }),
-            });
-            if (r.ok) {
-              emailSent = true;
-              provider = 'resend';
-            } else {
-              const errData = await r.json().catch(() => ({}));
-              emailError = errData?.message || `Resend status ${r.status}`;
-            }
-          } catch (e: any) {
-            emailError = e.message;
-          }
-        }
-        // Option 2: Nodemailer SMTP / Gmail (SMTP_USER + SMTP_PASS)
-        else if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-          try {
-            const transporter = nodemailer.createTransport({
-              host: process.env.SMTP_HOST || 'smtp.gmail.com',
-              port: Number(process.env.SMTP_PORT || 465),
-              secure: process.env.SMTP_SECURE !== 'false',
-              auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-              },
-            });
-            await transporter.sendMail({
-              from: `"FabricaQuiz" <${process.env.SMTP_USER}>`,
-              to: recipientEmail,
-              subject,
-              text,
-              html,
-            });
-            emailSent = true;
-            provider = 'smtp';
-          } catch (e: any) {
-            emailError = e.message;
-          }
-        }
+        const { emailSent, provider, emailError } = await sendEmailViaProvider({
+          to: recipientEmail,
+          subject,
+          html,
+          text,
+        });
 
         return res.status(200).json({
           success: true,
@@ -798,6 +859,112 @@ export default async function handler(req: any, res: any) {
           needsEmailConfig: !emailSent,
           emailError,
           quizUrl,
+        });
+      }
+
+      // 16. Request Password Reset Code via Email
+      if (action === 'request_password_reset') {
+        const identifier = String(body.identifier || '').trim().toLowerCase().replace(/^@/, '');
+        if (!identifier) {
+          return res.status(400).json({ error: 'Informe seu usuário ou e-mail cadastrado.' });
+        }
+
+        const userRows = await sql`
+          SELECT username, display_name, email
+          FROM fabrica_users
+          WHERE LOWER(username) = ${identifier} OR LOWER(email) = ${identifier}
+          LIMIT 1
+        `;
+
+        if (userRows.length === 0) {
+          return res.status(404).json({ error: 'Nenhuma conta encontrada com esse usuário ou e-mail.' });
+        }
+
+        const user = userRows[0];
+        const userEmail = user.email ? String(user.email).trim().toLowerCase() : '';
+        if (!userEmail || !userEmail.includes('@')) {
+          return res.status(400).json({
+            error: 'Esta conta não tem um e-mail cadastrado para recuperação. Entre em contato com o administrador ou crie uma nova conta com e-mail.',
+          });
+        }
+
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        await sql`
+          UPDATE fabrica_password_resets SET used = TRUE WHERE username = ${user.username} AND used = FALSE
+        `;
+        await sql`
+          INSERT INTO fabrica_password_resets (username, email, code, expires_at)
+          VALUES (${user.username}, ${userEmail}, ${code}, NOW() + INTERVAL '15 minutes')
+        `;
+
+        const html = buildPasswordResetEmailHtml({
+          displayName: user.display_name,
+          username: user.username,
+          code,
+        });
+        const text = `Olá ${user.display_name} (@${user.username})!\n\nSeu código de recuperação de senha do FabricaQuiz é: ${code}\nEle expira em 15 minutos.`;
+
+        const { emailSent, emailError } = await sendEmailViaProvider({
+          to: userEmail,
+          subject: '🔐 FabricaQuiz: Código de recuperação de senha',
+          html,
+          text,
+        });
+
+        if (!emailSent) {
+          return res.status(500).json({
+            error: emailError || 'Não foi possível enviar o e-mail de recuperação no momento.',
+          });
+        }
+
+        const [localPart, domainPart] = userEmail.split('@');
+        const maskedEmail = `${localPart.slice(0, 2)}***@${domainPart}`;
+
+        return res.status(200).json({
+          success: true,
+          username: user.username,
+          maskedEmail,
+        });
+      }
+
+      // 17. Confirm Password Reset Code & Set New Password
+      if (action === 'confirm_password_reset') {
+        const identifier = String(body.identifier || '').trim().toLowerCase().replace(/^@/, '');
+        const code = String(body.code || '').trim();
+        const newPassword = String(body.newPassword || '').trim();
+
+        if (!identifier || !code || newPassword.length < 4) {
+          return res.status(400).json({ error: 'Preencha o código e uma nova senha (mínimo 4 caracteres).' });
+        }
+
+        const resetRows = await sql`
+          SELECT id, username
+          FROM fabrica_password_resets
+          WHERE (LOWER(username) = ${identifier} OR LOWER(email) = ${identifier})
+            AND code = ${code}
+            AND used = FALSE
+            AND expires_at > NOW()
+          ORDER BY created_at DESC
+          LIMIT 1
+        `;
+
+        if (resetRows.length === 0) {
+          return res.status(400).json({ error: 'Código inválido ou expirado. Solicite um novo código.' });
+        }
+
+        const resetRow = resetRows[0];
+        const newHash = hashPassword(newPassword);
+
+        await sql`
+          UPDATE fabrica_users SET password_hash = ${newHash} WHERE username = ${resetRow.username}
+        `;
+        await sql`
+          UPDATE fabrica_password_resets SET used = TRUE WHERE id = ${resetRow.id}
+        `;
+
+        return res.status(200).json({
+          success: true,
+          username: resetRow.username,
         });
       }
 

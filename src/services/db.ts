@@ -423,6 +423,52 @@ export class DatabaseService {
       return { success: false, error: 'Erro de conexão com o servidor.' };
     }
   }
+
+  // Request password reset code by email
+  async requestPasswordReset(
+    identifier: string
+  ): Promise<{ success: boolean; username?: string; maskedEmail?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'request_password_reset',
+          identifier: identifier.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao solicitar recuperação.' };
+      return { success: true, username: data.username, maskedEmail: data.maskedEmail };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Confirm password reset code and set new password
+  async confirmPasswordReset(
+    identifier: string,
+    code: string,
+    newPassword: string
+  ): Promise<{ success: boolean; username?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'confirm_password_reset',
+          identifier: identifier.trim(),
+          code: code.trim(),
+          newPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Código inválido ou expirado.' };
+      return { success: true, username: data.username };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
 }
 
 export const dbService = new DatabaseService();

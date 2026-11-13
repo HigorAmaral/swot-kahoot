@@ -306,6 +306,28 @@ export class DatabaseService {
     }
   }
 
+  // Search users in DB for autocomplete suggestions
+  async searchUsers(
+    query: string,
+    excludeUsername?: string
+  ): Promise<Array<{ username: string; displayName: string; avatar: string }>> {
+    const clean = query.trim().replace(/^@/, '');
+    if (!clean) return [];
+    try {
+      const params = new URLSearchParams({
+        type: 'search_users',
+        q: clean,
+        exclude: excludeUsername || '',
+      });
+      const res = await fetch(`/api/db?${params.toString()}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data.users) ? data.users : [];
+    } catch {
+      return [];
+    }
+  }
+
   // Send Quiz directly to another user
   async sendQuizToUser(shareCode: string, senderUsername: string, recipientUsername: string): Promise<{ success: boolean; error?: string }> {
     try {

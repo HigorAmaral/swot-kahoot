@@ -320,6 +320,42 @@ export default async function handler(req: any, res: any) {
         });
       }
 
+      // Search users by sequential character match (autocomplete)
+      if (reqType === 'search_users') {
+        await ensureTables(sql);
+        const rawQ = String(req.query?.q || '').trim().replace(/^@/, '').toLowerCase();
+        const excludeUsername = String(req.query?.exclude || '').trim().toLowerCase();
+        if (!rawQ) {
+          return res.status(200).json({ success: true, users: [] });
+        }
+        const escaped = rawQ.replace(/[%_\\]/g, '\\$&');
+        const prefixPattern = `${escaped}%`;
+        const containsPattern = `%${escaped}%`;
+
+        const rows = await sql`
+          SELECT username, display_name, avatar
+          FROM fabrica_users
+          WHERE (
+            LOWER(username) LIKE ${containsPattern}
+            OR LOWER(display_name) LIKE ${prefixPattern}
+          )
+          AND username <> ${excludeUsername}
+          ORDER BY
+            CASE WHEN LOWER(username) LIKE ${prefixPattern} THEN 0 ELSE 1 END,
+            username ASC
+          LIMIT 8
+        `;
+
+        return res.status(200).json({
+          success: true,
+          users: rows.map((r: any) => ({
+            username: r.username,
+            displayName: r.display_name,
+            avatar: r.avatar || '👨‍💻',
+          })),
+        });
+      }
+
       const sessionId = normalizeSessionId(req.query?.session_id as string);
 
       let participants: any[] = [];

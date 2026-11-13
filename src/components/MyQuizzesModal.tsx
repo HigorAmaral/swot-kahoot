@@ -44,6 +44,9 @@ export const MyQuizzesModal: React.FC<Props> = ({
   const [sharingQuiz, setSharingQuiz] = useState<SavedQuiz | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [targetUsername, setTargetUsername] = useState('');
+  const [userSuggestions, setUserSuggestions] = useState<Array<{ username: string; displayName: string; avatar: string }>>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [showUserSuggestions, setShowUserSuggestions] = useState(false);
   const [targetEmail, setTargetEmail] = useState('');
   const [lastSentEmail, setLastSentEmail] = useState<string | null>(null);
   const [sendFeedback, setSendFeedback] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null);
@@ -65,6 +68,31 @@ export const MyQuizzesModal: React.FC<Props> = ({
       fetchQuizzes();
     }
   }, [isOpen, currentUser.username]);
+
+  // Autocomplete search for registered users as user types
+  useEffect(() => {
+    const clean = targetUsername.trim().replace(/^@/, '');
+    if (!sharingQuiz || !clean) {
+      setUserSuggestions([]);
+      setSearchingUsers(false);
+      return;
+    }
+
+    let cancelled = false;
+    setSearchingUsers(true);
+    const timer = setTimeout(async () => {
+      const results = await dbService.searchUsers(clean, currentUser.username);
+      if (!cancelled) {
+        setUserSuggestions(results);
+        setSearchingUsers(false);
+      }
+    }, 180);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [targetUsername, sharingQuiz, currentUser.username]);
 
   if (!isOpen) return null;
 
@@ -401,13 +429,64 @@ export const MyQuizzesModal: React.FC<Props> = ({
                           )}
 
                           <form onSubmit={handleSendToUser} className="flex flex-col sm:flex-row gap-2 pt-1">
-                            <input
-                              type="text"
-                              value={targetUsername}
-                              onChange={e => setTargetUsername(e.target.value)}
-                              placeholder="Ou enviar direto para @usuario do FabricaQuiz..."
-                              className="flex-1 bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none"
-                            />
+                            <div className="relative flex-1">
+                              <input
+                                type="text"
+                                value={targetUsername}
+                                onFocus={() => setShowUserSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowUserSuggestions(false), 180)}
+                                onChange={e => {
+                                  setTargetUsername(e.target.value);
+                                  setShowUserSuggestions(true);
+                                }}
+                                placeholder="Ou enviar direto para @usuario do FabricaQuiz..."
+                                autoComplete="off"
+                                className="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none"
+                              />
+
+                              {/* Autocomplete Suggestions Dropdown */}
+                              {showUserSuggestions && targetUsername.trim().replace(/^@/, '').length > 0 && (
+                                <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-slate-950 border border-cyan-500/40 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                                  {searchingUsers ? (
+                                    <div className="px-3 py-2 text-[11px] text-slate-400">
+                                      Buscando usuários...
+                                    </div>
+                                  ) : userSuggestions.length === 0 ? (
+                                    <div className="px-3 py-2 text-[11px] text-slate-500">
+                                      Nenhum usuário correspondente encontrado.
+                                    </div>
+                                  ) : (
+                                    userSuggestions.map(u => (
+                                      <button
+                                        key={u.username}
+                                        type="button"
+                                        onMouseDown={e => {
+                                          e.preventDefault();
+                                          setTargetUsername(u.username);
+                                          setShowUserSuggestions(false);
+                                        }}
+                                        className="w-full px-3 py-2 text-left hover:bg-cyan-500/15 flex items-center justify-between gap-2 border-b border-slate-800/70 last:border-b-0 transition"
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="text-base shrink-0">{u.avatar}</span>
+                                          <div className="min-w-0">
+                                            <div className="text-xs font-black text-cyan-300 truncate">
+                                              @{u.username}
+                                            </div>
+                                            <div className="text-[11px] text-slate-400 truncate">
+                                              {u.displayName}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                          Selecionar
+                                        </span>
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             <button
                               type="submit"
                               className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"

@@ -426,6 +426,47 @@ export function App() {
     handleUpdateTeam(teamId, t => ({ ...t, name: newName }));
   };
 
+  // Add new competing group/team
+  const handleAddTeam = (name: string, colorIdx?: number) => {
+    const palette = [
+      { color: '#E21B3C', bgClass: 'bg-kahoot-red', borderClass: 'border-kahoot-red', textClass: 'text-kahoot-red', glowClass: 'shadow-neon-red' },
+      { color: '#1368CE', bgClass: 'bg-kahoot-blue', borderClass: 'border-kahoot-blue', textClass: 'text-kahoot-blue', glowClass: 'shadow-neon-blue' },
+      { color: '#D89E00', bgClass: 'bg-kahoot-yellow', borderClass: 'border-kahoot-yellow', textClass: 'text-kahoot-yellow', glowClass: 'shadow-neon-yellow' },
+      { color: '#26890C', bgClass: 'bg-kahoot-green', borderClass: 'border-kahoot-green', textClass: 'text-kahoot-green', glowClass: 'shadow-neon-green' },
+      { color: '#9333EA', bgClass: 'bg-purple-600', borderClass: 'border-purple-500', textClass: 'text-purple-400', glowClass: 'shadow-lg shadow-purple-500/30' },
+      { color: '#06B6D4', bgClass: 'bg-cyan-600', borderClass: 'border-cyan-500', textClass: 'text-cyan-400', glowClass: 'shadow-lg shadow-cyan-500/30' },
+      { color: '#EC4899', bgClass: 'bg-pink-600', borderClass: 'border-pink-500', textClass: 'text-pink-400', glowClass: 'shadow-lg shadow-pink-500/30' },
+      { color: '#F97316', bgClass: 'bg-orange-600', borderClass: 'border-orange-500', textClass: 'text-orange-400', glowClass: 'shadow-lg shadow-orange-500/30' },
+    ];
+    const nextId = teams.reduce((max, t) => Math.max(max, t.id), 0) + 1;
+    const style = palette[(colorIdx ?? (teams.length)) % palette.length];
+    const newTeam: Team = {
+      id: nextId,
+      name: name.trim() || `Grupo ${nextId}`,
+      ...style,
+      points: 0,
+      candies: 0,
+      chocolates: 0,
+      answersCorrect: 0,
+      answersWrong: 0,
+      participants: [],
+    };
+    updateTeamsState([...teams, newTeam]);
+  };
+
+  // Remove competing group/team (minimum 2 teams)
+  const handleRemoveTeam = (teamId: number) => {
+    if (teams.length <= 2) return;
+    const remaining = teams.filter(t => t.id !== teamId);
+    updateTeamsState(remaining);
+    if (answeringTeamId === teamId && remaining[0]) {
+      setAnsweringTeamId(remaining[0].id);
+    }
+    if (disputeWinnerId === teamId && remaining[0]) {
+      setDisputeWinnerId(remaining[0].id);
+    }
+  };
+
   // Bulk update all teams (Admin)
   const handleUpdateAllTeams = (updater: (t: Team) => Team) => {
     updateTeamsState(teams.map(updater));
@@ -700,6 +741,8 @@ export function App() {
             }
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
+            onAddTeam={handleAddTeam}
+            onRemoveTeam={handleRemoveTeam}
           />
         )}
 

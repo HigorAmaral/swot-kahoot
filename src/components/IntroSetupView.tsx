@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Team, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity } from 'lucide-react';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -17,7 +17,20 @@ interface Props {
   onOpenActiveQuizAdmin?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
+  onAddTeam?: (name: string, colorIdx?: number) => void;
+  onRemoveTeam?: (teamId: number) => void;
 }
+
+const GROUP_COLOR_SWATCHES = [
+  { label: 'Vermelho', bg: 'bg-kahoot-red' },
+  { label: 'Azul', bg: 'bg-kahoot-blue' },
+  { label: 'Amarelo', bg: 'bg-kahoot-yellow' },
+  { label: 'Verde', bg: 'bg-kahoot-green' },
+  { label: 'Roxo', bg: 'bg-purple-600' },
+  { label: 'Ciano', bg: 'bg-cyan-600' },
+  { label: 'Rosa', bg: 'bg-pink-600' },
+  { label: 'Laranja', bg: 'bg-orange-600' },
+];
 
 export const IntroSetupView: React.FC<Props> = ({
   teams,
@@ -32,9 +45,14 @@ export const IntroSetupView: React.FC<Props> = ({
   onOpenActiveQuizAdmin,
   onAddParticipant,
   onRemoveParticipant,
+  onAddTeam,
+  onRemoveTeam,
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<number>(1);
   const [lastJoinedMessage, setLastJoinedMessage] = useState<string | null>(null);
+  const [showNewGroupForm, setShowNewGroupForm] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupColorIdx, setNewGroupColorIdx] = useState(4);
   const [quizSummary, setQuizSummary] = useState<{
     playingCount: number;
     finishedCount: number;
@@ -278,14 +296,67 @@ export const IntroSetupView: React.FC<Props> = ({
         )}
       </div>
 
-      {/* 4 Teams Grid */}
+      {/* Teams Grid */}
       <div className="w-full text-left">
-        <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
           <span className="text-xs font-black uppercase text-cyan-300 tracking-wider flex items-center gap-2">
             <Users className="w-4 h-4 text-emerald-400" />
-            Equipes da Sala (clique para selecionar onde deseja entrar):
+            Competição entre Grupos ({teams.length} grupos ativos — clique para entrar):
           </span>
+          {onAddTeam && (
+            <button
+              type="button"
+              onClick={() => setShowNewGroupForm(prev => !prev)}
+              className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/50 text-emerald-300 text-xs font-black flex items-center gap-1.5 transition"
+            >
+              {showNewGroupForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+              {showNewGroupForm ? 'Fechar' : 'Novo Grupo'}
+            </button>
+          )}
         </div>
+
+        {/* Create New Competing Group Form */}
+        {showNewGroupForm && onAddTeam && (
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              if (!newGroupName.trim()) return;
+              onAddTeam(newGroupName.trim(), newGroupColorIdx);
+              sound.playCorrect();
+              setNewGroupName('');
+              setShowNewGroupForm(false);
+            }}
+            className="mb-4 p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/40 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 animate-fade-in"
+          >
+            <input
+              type="text"
+              value={newGroupName}
+              onChange={e => setNewGroupName(e.target.value)}
+              placeholder="Nome do novo grupo (ex: Turma A, Equipe Relâmpago)..."
+              className="flex-1 bg-slate-950 border border-slate-700 focus:border-emerald-400 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-white focus:outline-none"
+              autoFocus
+            />
+            <div className="flex items-center gap-1.5 justify-center">
+              {GROUP_COLOR_SWATCHES.map((sw, idx) => (
+                <button
+                  key={sw.label}
+                  type="button"
+                  onClick={() => setNewGroupColorIdx(idx)}
+                  title={sw.label}
+                  className={`w-6 h-6 rounded-full ${sw.bg} transition ${
+                    newGroupColorIdx === idx ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-100'
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" /> Criar Grupo
+            </button>
+          </form>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3.5 sm:gap-4">
           {teams.map(team => {
@@ -304,12 +375,33 @@ export const IntroSetupView: React.FC<Props> = ({
                 {/* Top Colored Accent Strip */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 ${team.bgClass}`} />
 
-                {/* Active Selection Indicator */}
-                {isSelected && (
-                  <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-slate-950 flex items-center gap-1 shadow">
-                    <CheckCircle2 className="w-3 h-3" /> Ativo
-                  </div>
-                )}
+                {/* Active Selection Indicator + Remove Group */}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                  {isSelected && (
+                    <div className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-slate-950 flex items-center gap-1 shadow">
+                      <CheckCircle2 className="w-3 h-3" /> Ativo
+                    </div>
+                  )}
+                  {onRemoveTeam && teams.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (confirm(`Remover "${team.name}" da competição?`)) {
+                          onRemoveTeam(team.id);
+                          if (selectedTeamId === team.id) {
+                            const next = teams.find(t => t.id !== team.id);
+                            if (next) setSelectedTeamId(next.id);
+                          }
+                        }
+                      }}
+                      className="p-1 rounded-lg bg-slate-800/80 hover:bg-rose-950 text-slate-400 hover:text-rose-300 transition"
+                      title="Remover grupo"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
 
                 <div className="mt-1">
                   {/* Team Header */}

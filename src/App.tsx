@@ -922,7 +922,7 @@ export function App() {
 
       {/* Minimal Footer */}
       <footer className="w-full text-center py-3 bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 flex items-center justify-center gap-4 shrink-0">
-        <span>FabricaQuiz • Arena Interativa em Sala</span>
+        <span>ArenaQuiz • Arena Interativa em Sala</span>
         {isAdmin && (
           <>
             <span>•</span>

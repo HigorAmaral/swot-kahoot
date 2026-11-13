@@ -781,7 +781,7 @@ export const AdminDashboard: React.FC<Props> = ({
                     {onRestoreDefaultQuestions && (
                       <button
                         onClick={() => {
-                          if (confirm('Restaurar as perguntas padrão do FabricaQuiz?')) {
+                          if (confirm('Restaurar as perguntas padrão do ArenaQuiz?')) {
                             onRestoreDefaultQuestions();
                           }
                         }}

@@ -236,25 +236,9 @@ export const IntroSetupView: React.FC<Props> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
-            {questions.map((q, idx) => (
-              <div
-                key={q.id || idx}
-                className="p-2.5 rounded-xl bg-slate-900/85 border border-slate-800 flex items-start gap-2 text-xs"
-              >
-                <span className="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-black flex items-center justify-center shrink-0 text-[11px]">
-                  #{idx + 1}
-                </span>
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-100 line-clamp-2 leading-snug">
-                    {q.question}
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-                    {q.category}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-xs text-slate-400 flex items-center justify-between gap-2">
+            <span>As perguntas ficam ocultas até você iniciar e concluir o quiz.</span>
+            <span className="text-emerald-400 font-bold shrink-0">{questions.length} pergunta(s)</span>
           </div>
         </div>
       )}

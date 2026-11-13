@@ -29,7 +29,7 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
           PÓDIO DOS VENCEDORES
         </h1>
         <p className="text-slate-300 text-sm sm:text-base md:text-lg max-w-xl mx-auto mt-2">
-          Parabéns a todas as equipes pela disputa acirrada no FabricaQuiz!
+          Parabéns a todas as equipes pela disputa acirrada no ArenaQuiz!
         </p>
       </div>
 

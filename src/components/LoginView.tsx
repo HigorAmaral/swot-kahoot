@@ -152,10 +152,10 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
         {/* Logo Header */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-xl text-slate-950 mb-3">
-            FQ
+            AQ
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Fabrica<span className="text-emerald-400">Quiz</span>
+            Arena<span className="text-emerald-400">Quiz</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Crie quizzes e compartilhe com sua turma
@@ -466,7 +466,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
               <span>Conectando...</span>
             ) : (
               <>
-                <span>{mode === 'login' ? 'Entrar no FabricaQuiz' : 'Criar Conta e Entrar'}</span>
+                <span>{mode === 'login' ? 'Entrar no ArenaQuiz' : 'Criar Conta e Entrar'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

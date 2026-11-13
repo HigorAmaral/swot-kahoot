@@ -40,7 +40,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
   currentUser,
 }) => {
   const [activeTab, setActiveTab] = useState<'manual' | 'spreadsheet' | 'file_text' | 'paste'>('manual');
-  const [quizTitle, setQuizTitle] = useState('Meu Quiz no FabricaQuiz');
+  const [quizTitle, setQuizTitle] = useState('Meu Quiz no ArenaQuiz');
   const [isSaving, setIsSaving] = useState(false);
   const [questionsList, setQuestionsList] = useState<Question[]>(currentQuestions);
 
@@ -374,7 +374,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
       const res = await dbService.saveQuiz(
         currentUser.username,
         currentUser.displayName,
-        quizTitle.trim() || 'Meu Quiz no FabricaQuiz',
+        quizTitle.trim() || 'Meu Quiz no ArenaQuiz',
         questionsList
       );
       if (res.success && res.quiz) {
@@ -384,7 +384,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
 
     setIsSaving(false);
     sound.playCorrect();
-    onSaveQuestions(questionsList, quizTitle.trim() || 'Meu Quiz no FabricaQuiz', generatedCode);
+    onSaveQuestions(questionsList, quizTitle.trim() || 'Meu Quiz no ArenaQuiz', generatedCode);
     onClose();
   };
 

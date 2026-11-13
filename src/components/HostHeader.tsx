@@ -43,12 +43,12 @@ export const HostHeader: React.FC<Props> = ({
         {/* Logo / Title */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-base sm:text-lg text-slate-950 tracking-tighter shrink-0">
-            FQ
+            AQ
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-base sm:text-xl text-white tracking-tight">
-                Fabrica<span className="text-emerald-400">Quiz</span>
+                Arena<span className="text-emerald-400">Quiz</span>
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">

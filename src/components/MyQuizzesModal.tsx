@@ -114,7 +114,7 @@ export const MyQuizzesModal: React.FC<Props> = ({
 
   const handleWhatsAppShare = (quiz: SavedQuiz) => {
     const url = getShareUrl(quiz.shareCode);
-    const text = `🎯 Jogue meu quiz "${quiz.title}" no FabricaQuiz!\n\nAcesse pelo link: ${url}\nOu use o código: *${quiz.shareCode}*`;
+    const text = `🎯 Jogue meu quiz "${quiz.title}" no ArenaQuiz!\n\nAcesse pelo link: ${url}\nOu use o código: *${quiz.shareCode}*`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -178,8 +178,8 @@ export const MyQuizzesModal: React.FC<Props> = ({
 
   const getGmailComposeUrl = (quiz: SavedQuiz, email: string) => {
     const url = getShareUrl(quiz.shareCode);
-    const subject = `Convite FabricaQuiz: ${quiz.title}`;
-    const body = `Olá!\n\n${currentUser.displayName} (@${currentUser.username}) enviou um quiz para você jogar no FabricaQuiz:\n\nTítulo: ${quiz.title}\nCódigo: ${quiz.shareCode}\n\nLink para jogar: ${url}`;
+    const subject = `Convite ArenaQuiz: ${quiz.title}`;
+    const body = `Olá!\n\n${currentUser.displayName} (@${currentUser.username}) enviou um quiz para você jogar no ArenaQuiz:\n\nTítulo: ${quiz.title}\nCódigo: ${quiz.shareCode}\n\nLink para jogar: ${url}`;
     return `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -453,7 +453,7 @@ export const MyQuizzesModal: React.FC<Props> = ({
                                   setTargetUsername(e.target.value);
                                   setShowUserSuggestions(true);
                                 }}
-                                placeholder="Ou enviar direto para @usuario do FabricaQuiz..."
+                                placeholder="Ou enviar direto para @usuario do ArenaQuiz..."
                                 autoComplete="off"
                                 className="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none"
                               />

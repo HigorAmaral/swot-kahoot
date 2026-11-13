@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Team, DisputeMode, GameStage, Participant, RoundLog, Question, UserAccount, SavedQuiz } from './types';
 import { questionsData } from './data/questions';
 import { sound } from './utils/sound';
@@ -100,6 +100,7 @@ export function App() {
   );
 
   const [managingQuiz, setManagingQuiz] = useState<SavedQuiz | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const [pendingQuizCode, setPendingQuizCode] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -239,6 +240,8 @@ export function App() {
     } catch {}
     setCurrentQuestionIndex(0);
     setStage('intro');
+    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Report per-Kahoot run progress & winner to DB
@@ -604,6 +607,8 @@ export function App() {
     setRoundLogs([]);
     setCurrentQuestionIndex(0);
     setStage('intro');
+    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Report per-Kahoot run progress & winner to DB
@@ -666,7 +671,7 @@ export function App() {
 
       {/* Main Body + Right Sidebar */}
       <div className="flex-1 min-h-0 flex w-full">
-        <main className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 sm:p-4">
+        <main ref={mainRef} className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 sm:p-4">
           <div className="w-full my-auto flex flex-col items-center">
         {stage === 'intro' && (
           <IntroSetupView
@@ -679,6 +684,20 @@ export function App() {
             activeQuizInfo={activeQuizInfo}
             questions={questions}
             onClearActiveQuiz={handleRestoreDefaultQuestions}
+            onOpenActiveQuizAdmin={
+              activeQuizInfo?.shareCode
+                ? () =>
+                    setManagingQuiz({
+                      id: 0,
+                      shareCode: activeQuizInfo.shareCode!,
+                      ownerUsername: currentUser.username,
+                      ownerName: currentUser.displayName,
+                      title: activeQuizInfo.title,
+                      questions,
+                      createdAt: new Date().toISOString(),
+                    })
+                : undefined
+            }
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
           />

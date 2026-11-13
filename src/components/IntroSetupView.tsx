@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Team, UserAccount, Question } from '../types';
+import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw } from 'lucide-react';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -13,6 +14,7 @@ interface Props {
   activeQuizInfo?: { title: string; shareCode?: string } | null;
   questions?: Question[];
   onClearActiveQuiz?: () => void;
+  onOpenActiveQuizAdmin?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
 }
@@ -27,11 +29,43 @@ export const IntroSetupView: React.FC<Props> = ({
   activeQuizInfo,
   questions = [],
   onClearActiveQuiz,
+  onOpenActiveQuizAdmin,
   onAddParticipant,
   onRemoveParticipant,
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<number>(1);
   const [lastJoinedMessage, setLastJoinedMessage] = useState<string | null>(null);
+  const [quizSummary, setQuizSummary] = useState<{
+    playingCount: number;
+    finishedCount: number;
+    winnerTeamName: string | null;
+    winnerPoints: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const code = activeQuizInfo?.shareCode;
+    if (!code) {
+      setQuizSummary(null);
+      return;
+    }
+    let cancelled = false;
+    dbService.getQuizStats(code).then(res => {
+      if (cancelled || !res.success || !res.stats) return;
+      const runs = res.stats.runs || [];
+      const playing = runs.filter(r => r.status === 'playing');
+      const finished = runs.filter(r => r.status === 'finished');
+      const lastWinner = finished.find(r => r.winnerTeamName);
+      setQuizSummary({
+        playingCount: playing.length,
+        finishedCount: finished.length,
+        winnerTeamName: lastWinner?.winnerTeamName || null,
+        winnerPoints: lastWinner?.winnerPoints || 0,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeQuizInfo?.shareCode]);
 
   const activeTeam = teams.find(t => t.id === selectedTeamId) || teams[0];
 
@@ -146,10 +180,45 @@ export const IntroSetupView: React.FC<Props> = ({
                 {activeQuizInfo.title}
               </h2>
             </div>
-            <span className="text-xs font-bold text-cyan-300">
-              {questions.length} pergunta(s) na fila
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-cyan-300">
+                {questions.length} pergunta(s) na fila
+              </span>
+              {onOpenActiveQuizAdmin && (
+                <button
+                  onClick={onOpenActiveQuizAdmin}
+                  className="px-3 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 text-xs font-black flex items-center gap-1.5 transition"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" /> Status / ADM
+                </button>
+              )}
+            </div>
           </div>
+
+          {quizSummary && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2 text-xs">
+                <Activity className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>
+                  Fazendo agora: <strong className="text-emerald-300">{quizSummary.playingCount}</strong>
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>
+                  Já concluíram: <strong className="text-cyan-300">{quizSummary.finishedCount}</strong>
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30 flex items-center gap-2 text-xs">
+                <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="truncate">
+                  {quizSummary.winnerTeamName
+                    ? <>Vencedor: <strong className="text-amber-300">{quizSummary.winnerTeamName}</strong></>
+                    : 'Sem vencedor ainda'}
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
             {questions.map((q, idx) => (

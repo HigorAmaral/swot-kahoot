@@ -189,7 +189,12 @@ export const RightKahootsSidebar: React.FC<Props> = ({
             return (
               <div
                 key={`${quiz.shareCode}_${quiz.sharedBy || 'own'}`}
-                className={`p-3 rounded-2xl border transition-all ${
+                onClick={() => {
+                  sound.playTone(650, 0.1, 'sine', 0.15);
+                  onLoadQuiz(quiz.questions, quiz.title, quiz.shareCode);
+                  setMobileOpen(false);
+                }}
+                className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                   isActive
                     ? 'bg-emerald-950/40 border-emerald-400/60 shadow-lg shadow-emerald-500/10'
                     : 'bg-slate-900/80 border-slate-800 hover:border-cyan-500/40'
@@ -220,7 +225,7 @@ export const RightKahootsSidebar: React.FC<Props> = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                   <button
                     onClick={() => {
                       sound.playTone(650, 0.1, 'sine', 0.15);

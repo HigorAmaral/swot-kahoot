@@ -137,23 +137,23 @@ export const IntroSetupView: React.FC<Props> = ({
                         <span className="text-cyan-400 text-[10px] animate-pulse">Inscrever abaixo ▼</span>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                    <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto">
                       {team.participants.length === 0 ? (
-                        <span className="text-[11px] text-slate-500 italic">Clique e adicione seu nome!</span>
+                        <span className="text-[11px] text-slate-500 italic">Nenhum aluno inscrito ainda</span>
                       ) : (
                         team.participants.map(p => (
                           <span
                             key={p.id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-white shadow-sm"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/90 border border-slate-700 text-xs font-bold text-white shadow-sm"
                           >
-                            <span>{p.avatar}</span>
-                            <span>{p.name}</span>
+                            <span>{p.avatar || '👨‍💻'}</span>
+                            <span>{p.name || (p as any).user_name || 'Aluno'}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onRemoveParticipant(team.id, p.id, p.name);
                               }}
-                              className="ml-0.5 text-slate-400 hover:text-rose-400"
+                              className="ml-1 text-slate-400 hover:text-rose-400 font-black"
                               title="Remover"
                             >
                               ×

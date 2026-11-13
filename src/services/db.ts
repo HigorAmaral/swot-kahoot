@@ -2,7 +2,6 @@ import { Team, Participant, RoundLog } from '../types';
 
 export const SESSION_KEY = 'swot_session_id';
 const LOCAL_TEAMS_KEY = 'swot_local_teams';
-const LOCAL_LOGS_KEY = 'swot_local_logs';
 
 export function getSessionId(): string {
   if (typeof window === 'undefined') return 'sala-principal';
@@ -12,13 +11,9 @@ export function getSessionId(): string {
     localStorage.setItem(SESSION_KEY, paramSession);
     return paramSession;
   }
-  let id = localStorage.getItem(SESSION_KEY);
-  // Default to standard shared room 'sala-principal' so all students in the classroom join together!
-  if (!id || id.startsWith('sala-ti-')) {
-    id = 'sala-principal';
-    localStorage.setItem(SESSION_KEY, id);
-  }
-  return id;
+  // Default to standard shared room so every student and projector connects to the same room
+  localStorage.setItem(SESSION_KEY, 'sala-principal');
+  return 'sala-principal';
 }
 
 export class DatabaseService {
@@ -44,6 +39,19 @@ export class DatabaseService {
       const data = await res.json();
       this.isConnected = true;
       this.lastSyncTime = new Date();
+
+      // Normalize participants so name and teamId are guaranteed
+      if (Array.isArray(data.participants)) {
+        data.participants = data.participants.map((p: any) => ({
+          id: String(p.id),
+          name: p.name || p.user_name || 'Aluno',
+          avatar: p.avatar || '👨‍💻',
+          teamId: Number(p.teamId || p.team_id || 1),
+          joinedAt: p.joinedAt || p.joined_at || new Date().toISOString(),
+          isRepresentative: Boolean(p.is_active_representative || p.isRepresentative),
+        }));
+      }
+
       return data;
     } catch {
       this.isConnected = false;
@@ -108,7 +116,6 @@ export class DatabaseService {
 
   // Sync teams state
   async syncTeams(sessionId: string, teams: Team[]) {
-    // Save to local cache first
     try {
       localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
     } catch {}

@@ -114,7 +114,7 @@ export function App() {
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
   const disputeWinnerTeam = teams.find(t => t.id === disputeWinnerId) || teams[0];
 
-  // Sync with Neon Database on mount and polling every 2.5s for live updates
+  // Sync with Neon Database on mount and polling every 2s for live updates
   useEffect(() => {
     let isMounted = true;
 
@@ -124,41 +124,31 @@ export function App() {
         if (!isMounted || !data) return;
         setIsDbConnected(true);
 
-        if (data.participants) {
-          setTeams(prev => prev.map(pt => {
-            const teamParticipants = data.participants
-              ? data.participants.filter((p: any) => p.teamId === pt.id || p.team_id === pt.id).map((p: any) => ({
-                  id: String(p.id),
-                  name: p.name || p.user_name,
-                  avatar: p.avatar || '👨‍💻',
-                  teamId: p.teamId || p.team_id,
-                  joinedAt: p.joinedAt || p.joined_at,
-                }))
-              : pt.participants;
+        const rawParticipants: Participant[] = (data.participants || []).map((p: any) => ({
+          id: String(p.id),
+          name: p.name || p.user_name || 'Aluno',
+          avatar: p.avatar || '👨‍💻',
+          teamId: Number(p.teamId || p.team_id || 1),
+          joinedAt: p.joinedAt || p.joined_at || new Date().toISOString(),
+          isRepresentative: Boolean(p.isRepresentative || p.is_active_representative),
+        }));
 
-            if (JSON.stringify(teamParticipants) !== JSON.stringify(pt.participants)) {
-              return {
-                ...pt,
-                participants: teamParticipants,
-              };
-            }
-            return pt;
-          }));
-        }
+        setTeams(prev => prev.map(pt => {
+          const remoteTeam = data.teams?.find((rt: any) => Number(rt.id) === pt.id);
+          const teamParticipants = rawParticipants.filter(p => p.teamId === pt.id);
 
-        if (data.teams && data.teams.length > 0) {
-          setTeams(prev => prev.map(pt => {
-            const remote = data.teams?.find((rt: any) => rt.id === pt.id);
-            if (!remote) return pt;
-            return {
-              ...pt,
-              points: Math.max(pt.points, remote.points ?? 0),
-              candies: Math.max(pt.candies, remote.candies ?? 0),
-              chocolates: Math.max(pt.chocolates, remote.chocolates ?? 0),
-              isWinner: remote.is_winner ?? pt.isWinner,
-            };
-          }));
-        }
+          return {
+            ...pt,
+            name: remoteTeam?.name || pt.name,
+            points: remoteTeam ? Math.max(pt.points, remoteTeam.points ?? 0) : pt.points,
+            candies: remoteTeam ? Math.max(pt.candies, remoteTeam.candies ?? 0) : pt.candies,
+            chocolates: remoteTeam ? Math.max(pt.chocolates, remoteTeam.chocolates ?? 0) : pt.chocolates,
+            answersCorrect: remoteTeam ? Math.max(pt.answersCorrect, remoteTeam.answers_correct ?? 0) : pt.answersCorrect,
+            answersWrong: remoteTeam ? Math.max(pt.answersWrong, remoteTeam.answers_wrong ?? 0) : pt.answersWrong,
+            isWinner: remoteTeam?.is_winner ?? pt.isWinner,
+            participants: teamParticipants, // Always sync the latest participants from database!
+          };
+        }));
 
         if (data.logs && data.logs.length > 0) {
           setRoundLogs(data.logs.map((l: any) => ({
@@ -177,13 +167,14 @@ export function App() {
             timestamp: l.created_at || new Date().toISOString(),
           })));
         }
-      } catch {
+      } catch (err) {
+        console.warn('DB Sync error:', err);
         if (isMounted) setIsDbConnected(false);
       }
     };
 
     syncWithDb();
-    const interval = setInterval(syncWithDb, 2500);
+    const interval = setInterval(syncWithDb, 2000);
 
     return () => {
       isMounted = false;

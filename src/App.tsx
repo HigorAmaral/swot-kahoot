@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Team, DisputeMode, GameStage, Participant, RoundLog, Question, UserAccount } from './types';
 import { questionsData } from './data/questions';
 import { sound } from './utils/sound';
@@ -8,16 +8,17 @@ import { HostHeader } from './components/HostHeader';
 import { IntroSetupView } from './components/IntroSetupView';
 import { QuestionIntroBanner } from './components/QuestionIntroBanner';
 import { QuestionPlayView } from './components/QuestionPlayView';
-import { VerdictView } from './components/VerdictView';
-import { ScoreboardView } from './components/ScoreboardView';
-import { PodiumView } from './components/PodiumView';
-import { AdminDashboard } from './components/AdminDashboard';
-import { AdminAuthModal } from './components/AdminAuthModal';
-import { KahootCreatorModal } from './components/KahootCreatorModal';
 import { LoginView } from './components/LoginView';
-import { MyQuizzesModal } from './components/MyQuizzesModal';
-import { ProfileModal } from './components/ProfileModal';
 import { RightKahootsSidebar } from './components/RightKahootsSidebar';
+
+const VerdictView = lazy(() => import('./components/VerdictView').then(m => ({ default: m.VerdictView })));
+const ScoreboardView = lazy(() => import('./components/ScoreboardView').then(m => ({ default: m.ScoreboardView })));
+const PodiumView = lazy(() => import('./components/PodiumView').then(m => ({ default: m.PodiumView })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AdminAuthModal = lazy(() => import('./components/AdminAuthModal').then(m => ({ default: m.AdminAuthModal })));
+const KahootCreatorModal = lazy(() => import('./components/KahootCreatorModal').then(m => ({ default: m.KahootCreatorModal })));
+const MyQuizzesModal = lazy(() => import('./components/MyQuizzesModal').then(m => ({ default: m.MyQuizzesModal })));
+const ProfileModal = lazy(() => import('./components/ProfileModal').then(m => ({ default: m.ProfileModal })));
 
 const initialTeams: Team[] = [
   {
@@ -223,11 +224,13 @@ export function App() {
     setStage('intro');
   };
 
-  // Sync with Neon Database on mount and polling every 2s for live updates
+  // Sync with Neon Database when logged in & tab is visible (every 3.5s)
   useEffect(() => {
+    if (!currentUser) return;
     let isMounted = true;
 
     const syncWithDb = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
         const data = await dbService.loadState(sessionId);
         if (!isMounted || !data) return;
@@ -283,13 +286,18 @@ export function App() {
     };
 
     syncWithDb();
-    const interval = setInterval(syncWithDb, 2000);
+    const interval = setInterval(syncWithDb, 3500);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') syncWithDb();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [sessionId]);
+  }, [sessionId, currentUser]);
 
   // Save teams whenever updated
   const updateTeamsState = (newTeams: Team[]) => {
@@ -517,7 +525,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-grid-pattern text-white flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-grid-pattern text-white flex flex-col font-sans select-none overflow-x-hidden">
       {/* Top Header */}
       <HostHeader
         onOpenAdminModal={handleOpenAdmin}
@@ -530,8 +538,8 @@ export function App() {
       />
 
       {/* Main Body + Right Sidebar */}
-      <div className="flex-1 flex w-full">
-        <main className="flex-1 min-w-0 flex flex-col items-center justify-center p-3 sm:p-4">
+      <div className="flex-1 flex w-full overflow-x-hidden">
+        <main className="flex-1 min-w-0 w-full flex flex-col items-center justify-center p-2.5 sm:p-4">
         {stage === 'intro' && (
           <IntroSetupView
             teams={teams}
@@ -582,35 +590,37 @@ export function App() {
           />
         )}
 
-        {stage === 'verdict' && (
-          <VerdictView
-            question={currentQuestion}
-            selectedIndex={lastSelectedIndex}
-            answeringTeam={answeringTeam}
-            disputeWinnerTeam={disputeWinnerTeam}
-            isPassed={isPassed}
-            onAwardBrinde={handleAwardBrinde}
-            onContinue={() => setStage('scoreboard')}
-            onReassignAnswer={handleReassignAnswer}
-            allTeams={teams}
-          />
-        )}
+        <Suspense fallback={<div className="text-xs text-slate-400 py-10">Carregando...</div>}>
+          {stage === 'verdict' && (
+            <VerdictView
+              question={currentQuestion}
+              selectedIndex={lastSelectedIndex}
+              answeringTeam={answeringTeam}
+              disputeWinnerTeam={disputeWinnerTeam}
+              isPassed={isPassed}
+              onAwardBrinde={handleAwardBrinde}
+              onContinue={() => setStage('scoreboard')}
+              onReassignAnswer={handleReassignAnswer}
+              allTeams={teams}
+            />
+          )}
 
-        {stage === 'scoreboard' && (
-          <ScoreboardView
-            teams={teams}
-            questionNumber={currentQuestionIndex + 1}
-            totalQuestions={questions.length}
-            onNextQuestion={handleNextQuestion}
-          />
-        )}
+          {stage === 'scoreboard' && (
+            <ScoreboardView
+              teams={teams}
+              questionNumber={currentQuestionIndex + 1}
+              totalQuestions={questions.length}
+              onNextQuestion={handleNextQuestion}
+            />
+          )}
 
-        {stage === 'podium' && (
-          <PodiumView
-            teams={teams}
-            onRestart={handleResetGame}
-          />
-        )}
+          {stage === 'podium' && (
+            <PodiumView
+              teams={teams}
+              onRestart={handleResetGame}
+            />
+          )}
+        </Suspense>
         </main>
 
         <RightKahootsSidebar
@@ -623,65 +633,77 @@ export function App() {
         />
       </div>
 
-      {/* Modals */}
-      <AdminDashboard
-        isOpen={isAdminModalOpen}
-        onClose={() => setIsAdminModalOpen(false)}
-        teams={teams}
-        onUpdateTeam={handleUpdateTeam}
-        onDeclareWinner={handleDeclareWinner}
-        currentQuestionIndex={currentQuestionIndex}
-        onSetQuestionIndex={idx => {
-          setCurrentQuestionIndex(idx);
-          setStage('question_intro');
-        }}
-        questions={questions}
-        questionDuration={questionDuration}
-        onSetQuestionDuration={setQuestionDuration}
-        pointsPerCorrect={pointsPerCorrect}
-        onSetPointsPerCorrect={setPointsPerCorrect}
-        onGoToPodium={() => setStage('podium')}
-        onAddParticipant={handleAddParticipant}
-        onRemoveParticipant={handleRemoveParticipant}
-        onResetGame={handleResetGame}
-        sessionId={sessionId}
-        isDbConnected={isDbConnected}
-        roundLogs={roundLogs}
-        onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
-        onLogout={handleAdminLogout}
-      />
+      {/* Modals (Lazy Loaded) */}
+      <Suspense fallback={null}>
+        {isAdminModalOpen && (
+          <AdminDashboard
+            isOpen={isAdminModalOpen}
+            onClose={() => setIsAdminModalOpen(false)}
+            teams={teams}
+            onUpdateTeam={handleUpdateTeam}
+            onDeclareWinner={handleDeclareWinner}
+            currentQuestionIndex={currentQuestionIndex}
+            onSetQuestionIndex={idx => {
+              setCurrentQuestionIndex(idx);
+              setStage('question_intro');
+            }}
+            questions={questions}
+            questionDuration={questionDuration}
+            onSetQuestionDuration={setQuestionDuration}
+            pointsPerCorrect={pointsPerCorrect}
+            onSetPointsPerCorrect={setPointsPerCorrect}
+            onGoToPodium={() => setStage('podium')}
+            onAddParticipant={handleAddParticipant}
+            onRemoveParticipant={handleRemoveParticipant}
+            onResetGame={handleResetGame}
+            sessionId={sessionId}
+            isDbConnected={isDbConnected}
+            roundLogs={roundLogs}
+            onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
+            onLogout={handleAdminLogout}
+          />
+        )}
 
-      <AdminAuthModal
-        isOpen={isAdminAuthOpen}
-        onClose={() => setIsAdminAuthOpen(false)}
-        onSuccess={handleAdminAuthSuccess}
-      />
+        {isAdminAuthOpen && (
+          <AdminAuthModal
+            isOpen={isAdminAuthOpen}
+            onClose={() => setIsAdminAuthOpen(false)}
+            onSuccess={handleAdminAuthSuccess}
+          />
+        )}
 
-      <KahootCreatorModal
-        isOpen={isCreatorModalOpen}
-        onClose={() => setIsCreatorModalOpen(false)}
-        currentQuestions={questions}
-        onSaveQuestions={handleSaveQuestions}
-        currentUser={currentUser}
-      />
+        {isCreatorModalOpen && (
+          <KahootCreatorModal
+            isOpen={isCreatorModalOpen}
+            onClose={() => setIsCreatorModalOpen(false)}
+            currentQuestions={questions}
+            onSaveQuestions={handleSaveQuestions}
+            currentUser={currentUser}
+          />
+        )}
 
-      <MyQuizzesModal
-        isOpen={isMyQuizzesModalOpen}
-        onClose={() => {
-          setIsMyQuizzesModalOpen(false);
-          setQuizzesRefreshKey(prev => prev + 1);
-        }}
-        currentUser={currentUser}
-        onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
-        onOpenCreator={() => setIsCreatorModalOpen(true)}
-      />
+        {isMyQuizzesModalOpen && (
+          <MyQuizzesModal
+            isOpen={isMyQuizzesModalOpen}
+            onClose={() => {
+              setIsMyQuizzesModalOpen(false);
+              setQuizzesRefreshKey(prev => prev + 1);
+            }}
+            currentUser={currentUser}
+            onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
+            onOpenCreator={() => setIsCreatorModalOpen(true)}
+          />
+        )}
 
-      <ProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        currentUser={currentUser}
-        onProfileUpdated={handleProfileUpdated}
-      />
+        {isProfileModalOpen && (
+          <ProfileModal
+            isOpen={isProfileModalOpen}
+            onClose={() => setIsProfileModalOpen(false)}
+            currentUser={currentUser}
+            onProfileUpdated={handleProfileUpdated}
+          />
+        )}
+      </Suspense>
 
       {/* Minimal Footer */}
       <footer className="w-full text-center py-3 bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 flex items-center justify-center gap-4">

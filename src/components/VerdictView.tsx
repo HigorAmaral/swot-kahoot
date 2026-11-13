@@ -49,7 +49,7 @@ export const VerdictView: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[620px] w-full max-w-5xl mx-auto p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in">
       {/* Result Banner */}
       <div className={`w-full p-6 md:p-8 rounded-3xl border-4 text-center shadow-2xl mb-6 transform transition-all ${
         isCorrect

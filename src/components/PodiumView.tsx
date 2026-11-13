@@ -20,16 +20,16 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart }) => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[660px] w-full max-w-5xl mx-auto p-4 animate-fade-in text-center">
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-yellow-400 text-slate-950 font-black text-sm uppercase tracking-wider mb-3 shadow-lg animate-bounce">
-          <Trophy className="w-5 h-5 fill-current" /> Fim do Quiz SWOT! Grande Campeã Definida!
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in text-center">
+      <div className="mb-6 sm:mb-8">
+        <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider mb-3 shadow-lg animate-bounce">
+          <Trophy className="w-4 h-4 sm:w-5 sm:h-5 fill-current" /> Fim do Quiz! Grande Campeã Definida!
         </div>
-        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-lg">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-lg">
           PÓDIO DOS VENCEDORES
         </h1>
-        <p className="text-slate-300 text-base md:text-lg max-w-xl mx-auto mt-2">
-          Parabéns a todas as 4 equipes pela disputa acirrada sobre as Funções Administrativas e a Matriz SWOT em TI!
+        <p className="text-slate-300 text-sm sm:text-base md:text-lg max-w-xl mx-auto mt-2">
+          Parabéns a todas as equipes pela disputa acirrada no FabricaQuiz!
         </p>
       </div>
 

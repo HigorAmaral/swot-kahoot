@@ -152,7 +152,7 @@ export const IntroSetupView: React.FC<Props> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3.5 sm:gap-4">
           {teams.map(team => {
             const isSelected = selectedTeamId === team.id;
 

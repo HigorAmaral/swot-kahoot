@@ -1,8 +1,8 @@
 import { neon } from '@neondatabase/serverless';
 import crypto from 'crypto';
 
-// The verified Neon PostgreSQL connection string with our SWOT tables and participants
-const DATABASE_URL = "postgresql://neondb_owner:npg_mcyb8A5rtqQE@ep-shy-sun-b6gcu3q3-pooler.c-2.sa-east-1.aws.neon.tech/neondb?sslmode=require";
+// Read Neon PostgreSQL connection string from environment variables (never hardcode credentials in Git)
+const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || '';
 
 function hashPassword(pwd: string): string {
   return crypto.createHash('sha256').update(`fabrica_salt_${pwd}`).digest('hex');
@@ -140,6 +140,10 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  if (!DATABASE_URL) {
+    return res.status(500).json({ error: 'Variável de ambiente DATABASE_URL não configurada no servidor.' });
   }
 
   const sql = neon(DATABASE_URL);

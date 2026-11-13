@@ -317,6 +317,25 @@ async function ensureTables(sql: any) {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS fabrica_quiz_runs (
+        id SERIAL PRIMARY KEY,
+        quiz_share_code VARCHAR(32) NOT NULL,
+        session_id VARCHAR(120) NOT NULL,
+        player_username VARCHAR(80) NOT NULL,
+        player_name VARCHAR(120) NOT NULL,
+        player_avatar VARCHAR(50) DEFAULT '👨‍💻',
+        status VARCHAR(30) DEFAULT 'playing',
+        current_question INT DEFAULT 1,
+        total_questions INT DEFAULT 0,
+        winner_team_name VARCHAR(150),
+        winner_points INT DEFAULT 0,
+        winner_members TEXT,
+        started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE (quiz_share_code, session_id, player_username)
+      );
+    `;
   } catch (e) {
     console.error("Table ensure error:", e);
   }
@@ -503,6 +522,13 @@ export default async function handler(req: any, res: any) {
           WHERE quiz_share_code = ${code}
           ORDER BY created_at DESC
         `;
+        const runs = await sql`
+          SELECT session_id, player_username, player_name, player_avatar, status, current_question, total_questions, winner_team_name, winner_points, winner_members, started_at, updated_at
+          FROM fabrica_quiz_runs
+          WHERE quiz_share_code = ${code}
+          ORDER BY updated_at DESC
+          LIMIT 30
+        `;
 
         return res.status(200).json({
           success: true,
@@ -523,6 +549,20 @@ export default async function handler(req: any, res: any) {
               recipientEmail: e.recipient_email,
               senderUsername: e.sender_username,
               createdAt: e.created_at,
+            })),
+            runs: runs.map((r: any) => ({
+              sessionId: r.session_id,
+              playerUsername: r.player_username,
+              playerName: r.player_name,
+              playerAvatar: r.player_avatar || '👨‍💻',
+              status: r.status || 'playing',
+              currentQuestion: r.current_question || 1,
+              totalQuestions: r.total_questions || 0,
+              winnerTeamName: r.winner_team_name || null,
+              winnerPoints: r.winner_points || 0,
+              winnerMembers: r.winner_members || '',
+              startedAt: r.started_at,
+              updatedAt: r.updated_at,
             })),
           },
         });
@@ -1025,6 +1065,49 @@ export default async function handler(req: any, res: any) {
           success: true,
           username: resetRow.username,
         });
+      }
+
+      // 18. Upsert per-Kahoot Run Progress & Winner
+      if (action === 'upsert_quiz_run') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        const sessionId = String(body.sessionId || '').trim();
+        const playerUsername = String(body.playerUsername || '').trim().toLowerCase();
+        const playerName = String(body.playerName || playerUsername).trim();
+        const playerAvatar = String(body.playerAvatar || '👨‍💻').trim();
+        const status = body.status === 'finished' ? 'finished' : 'playing';
+        const currentQuestion = Number(body.currentQuestion || 1);
+        const totalQuestions = Number(body.totalQuestions || 0);
+        const winnerTeamName = body.winnerTeamName ? String(body.winnerTeamName).trim() : null;
+        const winnerPoints = Number(body.winnerPoints || 0);
+        const winnerMembers = body.winnerMembers ? String(body.winnerMembers).trim() : '';
+
+        if (!shareCode || !sessionId || !playerUsername) {
+          return res.status(400).json({ error: 'Dados da partida incompletos.' });
+        }
+
+        await sql`
+          INSERT INTO fabrica_quiz_runs (
+            quiz_share_code, session_id, player_username, player_name, player_avatar,
+            status, current_question, total_questions, winner_team_name, winner_points, winner_members, updated_at
+          )
+          VALUES (
+            ${shareCode}, ${sessionId}, ${playerUsername}, ${playerName}, ${playerAvatar},
+            ${status}, ${currentQuestion}, ${totalQuestions}, ${winnerTeamName}, ${winnerPoints}, ${winnerMembers}, NOW()
+          )
+          ON CONFLICT (quiz_share_code, session_id, player_username)
+          DO UPDATE SET
+            player_name = EXCLUDED.player_name,
+            player_avatar = EXCLUDED.player_avatar,
+            status = CASE WHEN fabrica_quiz_runs.status = 'finished' AND EXCLUDED.status = 'playing' THEN 'finished' ELSE EXCLUDED.status END,
+            current_question = EXCLUDED.current_question,
+            total_questions = EXCLUDED.total_questions,
+            winner_team_name = COALESCE(EXCLUDED.winner_team_name, fabrica_quiz_runs.winner_team_name),
+            winner_points = CASE WHEN EXCLUDED.winner_points > 0 THEN EXCLUDED.winner_points ELSE fabrica_quiz_runs.winner_points END,
+            winner_members = CASE WHEN EXCLUDED.winner_members <> '' THEN EXCLUDED.winner_members ELSE fabrica_quiz_runs.winner_members END,
+            updated_at = NOW()
+        `;
+
+        return res.status(200).json({ success: true });
       }
 
       return res.status(400).json({ error: 'Ação desconhecida' });

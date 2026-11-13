@@ -483,6 +483,20 @@ export class DatabaseService {
       updatedAt: string;
       userShares: Array<{ recipientUsername: string; senderUsername: string; createdAt: string }>;
       emailInvites: Array<{ recipientEmail: string; senderUsername: string; createdAt: string }>;
+      runs: Array<{
+        sessionId: string;
+        playerUsername: string;
+        playerName: string;
+        playerAvatar: string;
+        status: 'playing' | 'finished';
+        currentQuestion: number;
+        totalQuestions: number;
+        winnerTeamName: string | null;
+        winnerPoints: number;
+        winnerMembers: string;
+        startedAt: string;
+        updatedAt: string;
+      }>;
     };
     error?: string;
   }> {
@@ -493,6 +507,34 @@ export class DatabaseService {
       return { success: true, stats: data.stats };
     } catch {
       return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Report live quiz run progress and winner to DB
+  async reportQuizRun(params: {
+    shareCode: string;
+    sessionId: string;
+    playerUsername: string;
+    playerName: string;
+    playerAvatar: string;
+    status: 'playing' | 'finished';
+    currentQuestion: number;
+    totalQuestions: number;
+    winnerTeamName?: string;
+    winnerPoints?: number;
+    winnerMembers?: string;
+  }): Promise<void> {
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'upsert_quiz_run',
+          ...params,
+        }),
+      });
+    } catch {
+      // silent background tracking
     }
   }
 }

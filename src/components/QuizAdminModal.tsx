@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SavedQuiz, Team, RoundLog, Question, GameStage } from '../types';
+import { SavedQuiz, Team, RoundLog, Question, GameStage, UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import {
@@ -26,7 +26,23 @@ interface Props {
   stage: GameStage;
   teams: Team[];
   roundLogs: RoundLog[];
+  currentUser?: UserAccount | null;
   onLoadQuiz: (questions: Question[], title: string, shareCode?: string) => void;
+}
+
+interface QuizRunData {
+  sessionId: string;
+  playerUsername: string;
+  playerName: string;
+  playerAvatar: string;
+  status: 'playing' | 'finished';
+  currentQuestion: number;
+  totalQuestions: number;
+  winnerTeamName: string | null;
+  winnerPoints: number;
+  winnerMembers: string;
+  startedAt: string;
+  updatedAt: string;
 }
 
 interface QuizStatsData {
@@ -39,6 +55,7 @@ interface QuizStatsData {
   updatedAt: string;
   userShares: Array<{ recipientUsername: string; senderUsername: string; createdAt: string }>;
   emailInvites: Array<{ recipientEmail: string; senderUsername: string; createdAt: string }>;
+  runs?: QuizRunData[];
 }
 
 export const QuizAdminModal: React.FC<Props> = ({
@@ -49,6 +66,7 @@ export const QuizAdminModal: React.FC<Props> = ({
   stage,
   teams,
   roundLogs,
+  currentUser,
   onLoadQuiz,
 }) => {
   const [stats, setStats] = useState<QuizStatsData | null>(null);
@@ -100,6 +118,31 @@ export const QuizAdminModal: React.FC<Props> = ({
 
   const sortedTeams = [...teams].sort((a, b) => b.points - a.points);
   const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
+
+  const declaredWinner = isActiveInArena ? teams.find(t => t.isWinner) : undefined;
+  const arenaFinished = isActiveInArena && (stage === 'podium' || Boolean(declaredWinner));
+  const arenaWinnerTeam = arenaFinished ? (declaredWinner || sortedTeams[0]) : undefined;
+
+  const dbRuns = stats?.runs || [];
+  const finishedRuns = dbRuns.filter(r => r.status === 'finished');
+  const activeRuns = dbRuns.filter(r => r.status === 'playing');
+  const latestWinnerRun = finishedRuns.find(r => r.winnerTeamName);
+
+  const winnerDisplay = arenaWinnerTeam
+    ? {
+        teamName: arenaWinnerTeam.name,
+        points: arenaWinnerTeam.points,
+        members: arenaWinnerTeam.participants.map(p => p.name).join(', '),
+        hostedBy: currentUser ? `@${currentUser.username}` : 'Sessão Atual',
+      }
+    : latestWinnerRun
+    ? {
+        teamName: latestWinnerRun.winnerTeamName!,
+        points: latestWinnerRun.winnerPoints,
+        members: latestWinnerRun.winnerMembers,
+        hostedBy: `@${latestWinnerRun.playerUsername}`,
+      }
+    : null;
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/?quiz=${quiz.shareCode}`;
@@ -216,6 +259,129 @@ export const QuizAdminModal: React.FC<Props> = ({
               <div className="text-2xl font-black text-amber-400 mt-0.5">
                 {isActiveInArena && answeredCount > 0 ? `${accuracy}%` : '—'}
               </div>
+            </div>
+          </div>
+
+          {/* Winner Highlight Card */}
+          <div className={`p-4 rounded-2xl border-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+            winnerDisplay
+              ? 'bg-gradient-to-r from-amber-950/70 via-yellow-950/40 to-slate-900 border-amber-400/60'
+              : 'bg-slate-950/60 border-slate-800'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                winnerDisplay ? 'bg-amber-400 text-slate-950 shadow-lg' : 'bg-slate-800 text-slate-500'
+              }`}>
+                <Trophy className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-wider text-amber-300">
+                  Quem Ganhou este Kahoot
+                </div>
+                {winnerDisplay ? (
+                  <>
+                    <div className="text-base sm:text-lg font-black text-white">
+                      {winnerDisplay.teamName} •{' '}
+                      <span className="text-amber-300">{winnerDisplay.points.toLocaleString('pt-BR')} pts</span>
+                    </div>
+                    <div className="text-xs text-slate-300">
+                      {winnerDisplay.members ? `Integrantes: ${winnerDisplay.members} • ` : ''}
+                      Partida de <strong className="text-emerald-300">{winnerDisplay.hostedBy}</strong>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    Ainda não há vencedor registrado para este Kahoot. Quando uma partida terminar, o vencedor aparecerá aqui!
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Who is playing now & Who already finished */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2.5">
+              <h3 className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                <Activity className="w-4 h-4" /> Fazendo Agora ({activeRuns.length + (isActiveInArena && !arenaFinished && !activeRuns.some(r => r.playerUsername === currentUser?.username) ? 1 : 0)})
+              </h3>
+              {activeRuns.length === 0 && (!isActiveInArena || arenaFinished) ? (
+                <p className="text-xs text-slate-500 italic py-3">
+                  Ninguém está jogando este Kahoot neste momento.
+                </p>
+              ) : (
+                <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                  {isActiveInArena && !arenaFinished && currentUser && !activeRuns.some(r => r.playerUsername === currentUser.username) && (
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base">{currentUser.avatar}</span>
+                        <div className="min-w-0">
+                          <div className="font-black text-white truncate">{currentUser.displayName}</div>
+                          <div className="text-[10px] text-emerald-300">@{currentUser.username} • Você agora</div>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-black text-emerald-300 shrink-0">
+                        Pergunta {currentStep}/{totalQuestions}
+                      </span>
+                    </div>
+                  )}
+                  {activeRuns.map((r, idx) => (
+                    <div
+                      key={`${r.sessionId}_${r.playerUsername}_${idx}`}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base">{r.playerAvatar}</span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-white truncate">{r.playerName}</div>
+                          <div className="text-[10px] text-slate-400">@{r.playerUsername}</div>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-black text-cyan-300 shrink-0">
+                        Pergunta {r.currentQuestion}/{r.totalQuestions || totalQuestions}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2.5">
+              <h3 className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" /> Quem Já Fez ({finishedRuns.length})
+              </h3>
+              {finishedRuns.length === 0 ? (
+                <p className="text-xs text-slate-500 italic py-3">
+                  Nenhuma partida concluída registrada ainda.
+                </p>
+              ) : (
+                <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                  {finishedRuns.map((r, idx) => (
+                    <div
+                      key={`${r.sessionId}_${r.playerUsername}_${idx}`}
+                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base">{r.playerAvatar}</span>
+                          <span className="font-bold text-white truncate">{r.playerName}</span>
+                          <span className="text-[10px] text-slate-400">@{r.playerUsername}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 shrink-0">
+                          {new Date(r.updatedAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                      {r.winnerTeamName && (
+                        <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1 flex-wrap">
+                          <span>🏆 Ganhou: {r.winnerTeamName} ({r.winnerPoints.toLocaleString('pt-BR')} pts)</span>
+                          {r.winnerMembers && (
+                            <span className="text-slate-400 font-normal">• {r.winnerMembers}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

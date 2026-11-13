@@ -241,6 +241,42 @@ export function App() {
     setStage('intro');
   };
 
+  // Report per-Kahoot run progress & winner to DB
+  useEffect(() => {
+    if (!currentUser || !activeQuizInfo?.shareCode) return;
+    if (stage === 'intro' && roundLogs.length === 0) return;
+
+    const declaredWinner = teams.find(t => t.isWinner);
+    const topTeam = [...teams].sort((a, b) => b.points - a.points)[0];
+    const isFinished = stage === 'podium' || Boolean(declaredWinner);
+    const winnerTeam = isFinished ? (declaredWinner || topTeam) : undefined;
+
+    dbService.reportQuizRun({
+      shareCode: activeQuizInfo.shareCode,
+      sessionId,
+      playerUsername: currentUser.username,
+      playerName: currentUser.displayName,
+      playerAvatar: currentUser.avatar,
+      status: isFinished ? 'finished' : 'playing',
+      currentQuestion: Math.min(currentQuestionIndex + 1, questions.length),
+      totalQuestions: questions.length,
+      winnerTeamName: winnerTeam ? winnerTeam.name : undefined,
+      winnerPoints: winnerTeam ? winnerTeam.points : undefined,
+      winnerMembers: winnerTeam
+        ? winnerTeam.participants.map(p => p.name).join(', ')
+        : undefined,
+    });
+  }, [
+    currentUser?.username,
+    activeQuizInfo?.shareCode,
+    stage,
+    currentQuestionIndex,
+    questions.length,
+    teams,
+    sessionId,
+    roundLogs.length,
+  ]);
+
   // Sync with Neon Database when logged in & tab is visible (every 3.5s)
   useEffect(() => {
     if (!currentUser) return;
@@ -570,6 +606,42 @@ export function App() {
     setStage('intro');
   };
 
+  // Report per-Kahoot run progress & winner to DB
+  useEffect(() => {
+    if (!currentUser || !activeQuizInfo?.shareCode) return;
+    if (stage === 'intro' && roundLogs.length === 0) return;
+
+    const declaredWinner = teams.find(t => t.isWinner);
+    const topTeam = [...teams].sort((a, b) => b.points - a.points)[0];
+    const isFinished = stage === 'podium' || Boolean(declaredWinner);
+    const winnerTeam = isFinished ? (declaredWinner || topTeam) : undefined;
+
+    dbService.reportQuizRun({
+      shareCode: activeQuizInfo.shareCode,
+      sessionId,
+      playerUsername: currentUser.username,
+      playerName: currentUser.displayName,
+      playerAvatar: currentUser.avatar,
+      status: isFinished ? 'finished' : 'playing',
+      currentQuestion: Math.min(currentQuestionIndex + 1, questions.length),
+      totalQuestions: questions.length,
+      winnerTeamName: winnerTeam ? winnerTeam.name : undefined,
+      winnerPoints: winnerTeam ? winnerTeam.points : undefined,
+      winnerMembers: winnerTeam
+        ? winnerTeam.participants.map(p => p.name).join(', ')
+        : undefined,
+    });
+  }, [
+    currentUser?.username,
+    activeQuizInfo?.shareCode,
+    stage,
+    currentQuestionIndex,
+    questions.length,
+    teams,
+    sessionId,
+    roundLogs.length,
+  ]);
+
   if (!currentUser) {
     return (
       <LoginView
@@ -769,6 +841,7 @@ export function App() {
             stage={stage}
             teams={teams}
             roundLogs={roundLogs}
+            currentUser={currentUser}
             onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
           />
         )}

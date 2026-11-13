@@ -389,36 +389,36 @@ export const KahootCreatorModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in text-white select-none">
-      <div className="relative w-full max-w-6xl max-h-[92vh] bg-slate-900 border-2 border-purple-500/60 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 animate-fade-in text-white select-none">
+      <div className="relative w-full max-w-6xl max-h-[92vh] bg-[#0d111a] border border-slate-800 rounded-2xl shadow-xl flex flex-col overflow-hidden">
         {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/90 gap-3">
+        <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-[#090b10] gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 text-white shadow-lg">
-              <Sparkles className="w-6 h-6" />
+            <div className="p-2.5 rounded-xl bg-emerald-500 text-slate-950">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white">
-                  Criador de Kahoots & Perguntas
+                <h2 className="text-lg sm:text-xl font-black text-white">
+                  Criar Quiz & Perguntas
                 </h2>
-                <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/40">
-                  {questionsList.length} pergunta(s) no Quiz
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-800 text-emerald-400 border border-slate-700">
+                  {questionsList.length} pergunta(s)
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Crie perguntas clicando na mão, importando planilhas Excel/CSV ou colando texto/PDF.
+                Adicione perguntas manualmente, importe planilhas Excel/CSV ou envie PDF/TXT.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <input
               type="text"
               value={quizTitle}
               onChange={e => setQuizTitle(e.target.value)}
-              placeholder="Nome do seu Kahoot..."
-              className="bg-slate-900 border border-cyan-500/40 focus:border-emerald-400 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none w-44 sm:w-56"
+              placeholder="Nome do seu Quiz..."
+              className="bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none w-44 sm:w-56"
             />
             <button
               onClick={handleRestoreDefaults}
@@ -443,7 +443,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
             onClick={() => setActiveTab('manual')}
             className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'manual'
-                ? 'border-purple-400 text-purple-300'
+                ? 'border-emerald-400 text-emerald-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -463,7 +463,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
             onClick={() => setActiveTab('file_text')}
             className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'file_text'
-                ? 'border-cyan-400 text-cyan-300'
+                ? 'border-emerald-400 text-emerald-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -494,9 +494,9 @@ export const KahootCreatorModal: React.FC<Props> = ({
           {/* TAB 1: CRIAR NA MÃO (MANUAL) */}
           {activeTab === 'manual' && (
             <form onSubmit={handleAddManualQuestion} className="space-y-4 animate-fade-in">
-              <div className="bg-purple-950/30 border border-purple-500/40 p-4 rounded-2xl">
-                <span className="text-xs font-black uppercase text-purple-300 tracking-wider block mb-2">
-                  Nova Pergunta do Kahoot
+              <div className="bg-[#111622] border border-slate-800 p-4 rounded-2xl">
+                <span className="text-xs font-black uppercase text-emerald-400 tracking-wider block mb-2">
+                  Nova Pergunta do Quiz
                 </span>
 
                 <div className="space-y-3">
@@ -509,7 +509,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
                       value={manualTitle}
                       onChange={e => setManualTitle(e.target.value)}
                       placeholder="Ex: Qual é a função administrativa responsável por medir resultados e corrigir desvios?"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -523,7 +523,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
                         value={manualCategory}
                         onChange={e => setManualCategory(e.target.value)}
                         placeholder="Ex: Análise SWOT - Forças, Funções Administrativas..."
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-purple-400"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div>
@@ -533,7 +533,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
                       <select
                         value={manualTheme}
                         onChange={e => setManualTheme(e.target.value as any)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-purple-400"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
                       >
                         <option value="PLANEJAMENTO">PLANEJAMENTO</option>
                         <option value="FORÇAS">FORÇAS (STRENGTHS)</option>
@@ -662,15 +662,15 @@ export const KahootCreatorModal: React.FC<Props> = ({
                   value={manualExplanation}
                   onChange={e => setManualExplanation(e.target.value)}
                   placeholder="Ex: O controle monitora os padrões planejados e aciona medidas corretivas..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110 text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95"
+                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 transition active:scale-95"
               >
-                <Plus className="w-4 h-4" /> ADICIONAR PERGUNTA AO QUIZ
+                <Plus className="w-4 h-4" /> Adicionar Pergunta ao Quiz
               </button>
             </form>
           )}
@@ -725,7 +725,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
 
           {/* TAB 3: UPLOAD ARQUIVO (PDF / TXT) */}
           {activeTab === 'file_text' && (
-            <div className="space-y-4 animate-fade-in text-center p-6 border-2 border-dashed border-cyan-500/40 rounded-3xl bg-cyan-950/10">
+            <div className="space-y-4 animate-fade-in text-center p-6 border-2 border-dashed border-slate-700 rounded-2xl bg-[#111622]">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -734,20 +734,20 @@ export const KahootCreatorModal: React.FC<Props> = ({
                 className="hidden"
               />
 
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 mb-2 shadow-lg">
-                <Upload className="w-8 h-8" />
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 mb-2">
+                <Upload className="w-7 h-7" />
               </div>
 
               <h4 className="text-base font-extrabold text-white">
                 Envie seu arquivo de perguntas (.pdf, .txt, .csv, .md)
               </h4>
-              <p className="text-xs text-slate-300 max-w-md mx-auto">
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
                 O sistema lê o arquivo e identifica automaticamente perguntas numeradas com opções A), B), C), D) e gabarito.
               </p>
 
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3 px-8 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-sm shadow-xl transition active:scale-95 inline-flex items-center gap-2"
+                className="mt-3 px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition active:scale-95 inline-flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" /> Selecionar Arquivo do Computador
               </button>
@@ -824,7 +824,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
                   className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                 >
                   <div className="flex items-start gap-3 flex-1">
-                    <span className="w-7 h-7 rounded-lg bg-purple-600/40 border border-purple-400 text-purple-200 flex items-center justify-center font-black flex-shrink-0">
+                    <span className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-emerald-400 flex items-center justify-center font-black flex-shrink-0">
                       #{q.id}
                     </span>
                     <div>
@@ -832,7 +832,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
                         {q.question}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-400">
-                        <span className="text-purple-300 font-bold">{q.category}</span>
+                        <span className="text-slate-300 font-bold">{q.category}</span>
                         <span>•</span>
                         <span className="text-emerald-400 font-bold">
                           Correta: Opção {q.correctIndex === 0 ? 'A (▲)' : q.correctIndex === 1 ? 'B (◆)' : q.correctIndex === 2 ? 'C (●)' : 'D (■)'} ({q.options[q.correctIndex]?.text})
@@ -902,7 +902,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
             <button
               onClick={handleSaveAndApply}
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-60 text-white font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-black text-xs transition active:scale-95 flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
               {isSaving ? 'Salvando...' : 'Salvar na Conta & Usar no Jogo!'}

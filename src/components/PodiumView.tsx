@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import confetti from 'canvas-confetti';
 import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
 import { buildAnswerReview, buildQuizCsvReport, downloadCsvFile } from '../utils/quizReport';
@@ -31,6 +32,20 @@ export const PodiumView: React.FC<Props> = ({
 
   useEffect(() => {
     sound.playCorrect();
+    try {
+      confetti({
+        particleCount: 90,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+      const timer = window.setTimeout(() => {
+        try {
+          confetti({ particleCount: 55, angle: 60, spread: 55, origin: { x: 0 } });
+          confetti({ particleCount: 55, angle: 120, spread: 55, origin: { x: 1 } });
+        } catch {}
+      }, 350);
+      return () => window.clearTimeout(timer);
+    } catch {}
   }, []);
 
   const handlePrintCertificate = () => {

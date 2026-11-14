@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Question } from '../data/questions';
-import { Team } from '../types';
+import { Team, DisputeMode } from '../types';
 import { sound } from '../utils/sound';
-import { Sparkles, ArrowRight, ArrowLeft, Layers, Dices } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Layers, Dices, Gamepad2 } from 'lucide-react';
 
 interface Props {
   question: Question;
@@ -10,6 +10,7 @@ interface Props {
   totalQuestions: number;
   teams?: Team[];
   isTiebreaker?: boolean;
+  disputeMode?: DisputeMode;
   onProceedToQuestion: (chosenTeamId?: number) => void;
   onBack: () => void;
 }
@@ -20,6 +21,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   totalQuestions,
   teams = [],
   isTiebreaker = false,
+  disputeMode = 'direto',
   onProceedToQuestion,
   onBack,
 }) => {
@@ -27,6 +29,30 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   const [spunTeam, setSpunTeam] = useState<Team | null>(null);
   const [spunParticipant, setSpunParticipant] = useState<string | null>(null);
   const isFinalDouble = !isTiebreaker && totalQuestions > 1 && questionIndex === totalQuestions - 1;
+
+  // Presenter PC Keyboard shortcuts: Enter, Space, or ArrowRight to proceed
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isSpinning) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        onProceedToQuestion(spunTeam?.id);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isSpinning, onProceedToQuestion, spunTeam?.id]);
+
+  const disputeBadgeLabel =
+    disputeMode === 'peao'
+      ? '🌀 Mini-Game Ativo: Arena de Piões'
+      : disputeMode === 'buzzer'
+      ? '⚡ Mini-Game Ativo: Buzzer de Reflexo'
+      : disputeMode === 'alvo'
+      ? '🎯 Mini-Game Ativo: Tiro ao Alvo'
+      : null;
 
   const handleSpinRoulette = () => {
     if (isSpinning || teams.length === 0) return;
@@ -65,6 +91,12 @@ export const QuestionIntroBanner: React.FC<Props> = ({
         {isFinalDouble && (
           <div className="inline-flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/25 border border-amber-400 text-amber-200 font-black text-xs sm:text-sm uppercase tracking-wider animate-pulse">
             🔥 Pontos em Dobro (2x)!
+          </div>
+        )}
+        {disputeBadgeLabel && !spunTeam && (
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/20 border border-purple-400/50 text-purple-200 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg">
+            <Gamepad2 className="w-4 h-4 text-purple-300" />
+            {disputeBadgeLabel}
           </div>
         )}
       </div>
@@ -145,10 +177,17 @@ export const QuestionIntroBanner: React.FC<Props> = ({
           onClick={() => onProceedToQuestion(spunTeam?.id)}
           className="px-8 sm:px-10 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-base sm:text-xl shadow-2xl shadow-emerald-500/25 transition transform active:scale-95 flex items-center gap-3"
         >
-          <span>Ir para a Pergunta #{questionIndex + 1}</span>
+          <span>
+            {disputeMode !== 'direto' && !spunTeam
+              ? `Disputar Vez (Mini-Game) #${questionIndex + 1}`
+              : `Ir para a Pergunta #${questionIndex + 1}`}
+          </span>
           <ArrowRight className="w-6 h-6" />
         </button>
       </div>
+      <p className="hidden md:block mt-3 text-[11px] text-slate-400 font-semibold">
+        Atalho no PC: pressione <strong className="text-slate-200">Espaço</strong>, <strong className="text-slate-200">Enter</strong> ou <strong className="text-slate-200">→</strong> para avançar
+      </p>
     </div>
   );
 };

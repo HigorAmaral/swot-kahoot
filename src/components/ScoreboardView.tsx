@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Team } from '../types';
 import { Trophy, ArrowRight, Flame, Award } from 'lucide-react';
 
@@ -18,6 +18,20 @@ export const ScoreboardView: React.FC<Props> = ({
   // Sort teams descending by points, then by candies
   const sorted = [...teams].sort((a, b) => b.points - a.points || (b.candies + b.chocolates) - (a.candies + a.chocolates));
   const maxPoints = Math.max(...sorted.map(t => t.points), 1000);
+
+  // Presenter PC Keyboard shortcuts: Enter, Space, or ArrowRight to advance
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        onNextQuestion();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onNextQuestion]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-5xl mx-auto p-2.5 sm:p-4 lg:p-6 animate-fade-in">

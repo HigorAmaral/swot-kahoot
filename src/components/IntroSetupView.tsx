@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Team, UserAccount, Question, GamePlayMode } from '../types';
+import { Team, UserAccount, Question, GamePlayMode, DisputeMode } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import { showAlert } from '../utils/toast';
 import { showConfirm } from '../utils/confirm';
 import { QRCodeSVG } from 'qrcode.react';
-import { Play, Users, User, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode, Sliders } from 'lucide-react';
+import { Play, Users, User, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode, Sliders, BookOpen, HelpCircle, Smartphone, Gamepad2 } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -14,7 +14,7 @@ interface Props {
   onStartGame: () => void;
   onOpenCreatorModal?: () => void;
   onOpenMyQuizzesModal?: () => void;
-  activeQuizInfo?: { title: string; shareCode?: string } | null;
+  activeQuizInfo?: { title: string; shareCode?: string; ownerUsername?: string } | null;
   questions?: Question[];
   onClearActiveQuiz?: () => void;
   onShuffleQuestions?: () => void;
@@ -23,8 +23,12 @@ interface Props {
   gameMode?: GamePlayMode;
   onSetGameMode?: (mode: GamePlayMode) => void;
   participationMode?: 'equipes' | 'individual';
+  disputeMode?: DisputeMode;
   onOpenRoomConfig?: () => void;
   onOpenActiveQuizAdmin?: () => void;
+  onOpenCaseStudy?: () => void;
+  onOpenDynamicGuide?: () => void;
+  onOpenRemoteControl?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
   onAddTeam?: (name: string, colorIdx?: number) => void;
@@ -58,8 +62,12 @@ export const IntroSetupView: React.FC<Props> = ({
   gameMode = 'turno',
   onSetGameMode,
   participationMode = 'equipes',
+  disputeMode = 'direto',
   onOpenRoomConfig,
   onOpenActiveQuizAdmin,
+  onOpenCaseStudy,
+  onOpenDynamicGuide,
+  onOpenRemoteControl,
   onAddParticipant,
   onRemoveParticipant,
   onAddTeam,
@@ -297,6 +305,49 @@ export const IntroSetupView: React.FC<Props> = ({
                 <Shuffle className="w-3.5 h-3.5 text-cyan-400" />
                 Embaralhar
               </button>
+            )}
+
+            {onOpenRemoteControl && (
+              <button
+                type="button"
+                onClick={onOpenRemoteControl}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-xs font-black transition"
+                title="Abrir controle no celular para responder com figuras geométricas"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                Controle Mobile
+              </button>
+            )}
+
+            {onOpenCaseStudy && (
+              <button
+                type="button"
+                onClick={onOpenCaseStudy}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-300 text-xs font-bold transition"
+                title="Ver Estudo de Caso InovaTech e Matriz SWOT"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Estudo de Caso
+              </button>
+            )}
+
+            {onOpenDynamicGuide && (
+              <button
+                type="button"
+                onClick={onOpenDynamicGuide}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-pink-500/15 hover:bg-pink-500/25 border border-pink-400/40 text-pink-300 text-xs font-bold transition"
+                title="Ver Roteiro da Dinâmica de Sala"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                Guia da Dinâmica
+              </button>
+            )}
+
+            {disputeMode && disputeMode !== 'direto' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-purple-500/20 border border-purple-400/50 text-purple-200 text-xs font-black">
+                <Gamepad2 className="w-3.5 h-3.5 text-purple-300" />
+                Mini-Game: {disputeMode === 'peao' ? '🌀 Piões' : disputeMode === 'buzzer' ? '⚡ Buzzer' : '🎯 Alvo'}
+              </span>
             )}
 
             {participationMode === 'individual' && (

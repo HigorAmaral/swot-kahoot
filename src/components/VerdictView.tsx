@@ -55,6 +55,20 @@ export const VerdictView: React.FC<Props> = ({
     onAwardBrinde(answeringTeam.id, type);
   };
 
+  // Presenter PC Keyboard shortcuts: Enter, Space, or ArrowRight to continue
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        onContinue();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onContinue]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-6xl mx-auto p-3 sm:p-5 lg:p-6 animate-fade-in">
       {/* Result Banner */}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { GamePlayMode } from '../types';
-import { X, Sliders, Users, User, Clock, Award, Check } from 'lucide-react';
+import { GamePlayMode, DisputeMode } from '../types';
+import { X, Sliders, Users, User, Clock, Award, Check, Gamepad2 } from 'lucide-react';
 
 export interface RoomSettings {
   participationMode: 'equipes' | 'individual';
   teamCount: number;
   gameMode: GamePlayMode;
+  disputeMode: DisputeMode;
   questionDuration: number;
   pointsPerCorrect: number;
 }
@@ -15,6 +16,7 @@ interface Props {
   onClose: () => void;
   sessionId: string;
   initialSettings: RoomSettings;
+  canConfigureDispute?: boolean;
   onApplySettings: (settings: RoomSettings) => void;
 }
 
@@ -23,6 +25,7 @@ export const RoomConfigModal: React.FC<Props> = ({
   onClose,
   sessionId,
   initialSettings,
+  canConfigureDispute = true,
   onApplySettings,
 }) => {
   const [participationMode, setParticipationMode] = useState<'equipes' | 'individual'>(
@@ -30,6 +33,7 @@ export const RoomConfigModal: React.FC<Props> = ({
   );
   const [teamCount, setTeamCount] = useState<number>(initialSettings.teamCount);
   const [gameMode, setGameMode] = useState<GamePlayMode>(initialSettings.gameMode);
+  const [disputeMode, setDisputeMode] = useState<DisputeMode>(initialSettings.disputeMode || 'direto');
   const [questionDuration, setQuestionDuration] = useState<number>(initialSettings.questionDuration);
   const [pointsPerCorrect, setPointsPerCorrect] = useState<number>(initialSettings.pointsPerCorrect);
 
@@ -38,6 +42,7 @@ export const RoomConfigModal: React.FC<Props> = ({
       setParticipationMode(initialSettings.participationMode);
       setTeamCount(initialSettings.teamCount);
       setGameMode(initialSettings.gameMode);
+      setDisputeMode(initialSettings.disputeMode || 'direto');
       setQuestionDuration(initialSettings.questionDuration);
       setPointsPerCorrect(initialSettings.pointsPerCorrect);
     }
@@ -51,6 +56,7 @@ export const RoomConfigModal: React.FC<Props> = ({
       participationMode,
       teamCount,
       gameMode,
+      disputeMode,
       questionDuration,
       pointsPerCorrect,
     });
@@ -232,6 +238,41 @@ export const RoomConfigModal: React.FC<Props> = ({
             ))}
           </div>
         </div>
+
+        {/* Mini-Games de Disputa (Apenas ADM do Quiz ou Dono da Sala) */}
+        {canConfigureDispute && (
+          <div className="space-y-2 pt-2 border-t border-slate-800/80">
+            <label className="text-xs font-black uppercase text-purple-300 flex items-center gap-1.5">
+              <Gamepad2 className="w-4 h-4 text-purple-400" />
+              Mini-Game antes da Pergunta (Dono da Sala / ADM do Quiz)
+            </label>
+            <p className="text-[11px] text-slate-400">
+              Opcional: ative um mini-game para definir qual equipe ganha o direito de responder ou passar a pergunta.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { id: 'direto', label: 'Direto (Sem Mini-Game)', desc: 'Vai direto para a pergunta' },
+                { id: 'peao', label: '🌀 Arena de Piões', desc: 'Pião que girar por mais tempo vence' },
+                { id: 'buzzer', label: '⚡ Buzzer (Teclas 1-4)', desc: 'Passa ou repassa por reflexo' },
+                { id: 'alvo', label: '🎯 Tiro ao Alvo', desc: 'Quem acertar mais perto do centro' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setDisputeMode(opt.id)}
+                  className={`p-2.5 rounded-xl border text-left transition ${
+                    disputeMode === opt.id
+                      ? 'bg-purple-500/20 border-purple-400 text-purple-200 shadow-md'
+                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="text-xs font-black">{opt.label}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
           <button

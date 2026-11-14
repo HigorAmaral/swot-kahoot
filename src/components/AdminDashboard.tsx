@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Team, RoundLog, Question, GameStage } from '../types';
+import { Team, RoundLog, Question, GameStage, DisputeMode } from '../types';
 import { questionsData } from '../data/questions';
 import { sound } from '../utils/sound';
 import { showConfirm } from '../utils/confirm';
@@ -47,6 +47,8 @@ interface Props {
   onSetQuestionDuration?: (seconds: number) => void;
   pointsPerCorrect?: number;
   onSetPointsPerCorrect?: (points: number) => void;
+  disputeMode?: DisputeMode;
+  onSetDisputeMode?: (mode: DisputeMode) => void;
   onGoToPodium?: () => void;
   onGoToStage?: (stage: GameStage) => void;
   onAddParticipant: (teamId: number, name: string) => void;
@@ -79,6 +81,8 @@ export const AdminDashboard: React.FC<Props> = ({
   onSetQuestionDuration,
   pointsPerCorrect = 1000,
   onSetPointsPerCorrect,
+  disputeMode = 'direto',
+  onSetDisputeMode,
   onGoToPodium,
   onGoToStage,
   onAddParticipant,
@@ -915,6 +919,36 @@ export const AdminDashboard: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Mini-Game Dispute Selector (Admin / Room Owner) */}
+              {onSetDisputeMode && (
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-purple-500/40">
+                  <h4 className="font-black text-white text-sm mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-400" /> Mini-Game de Disputa (Ativado pelo ADM / Dono):
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { id: 'direto', label: 'Direto (Desativado)' },
+                      { id: 'peao', label: '🌀 Arena de Piões' },
+                      { id: 'buzzer', label: '⚡ Buzzer (Teclas 1-4)' },
+                      { id: 'alvo', label: '🎯 Tiro ao Alvo' },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => onSetDisputeMode(opt.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                          disputeMode === opt.id
+                            ? 'bg-purple-500 text-slate-950 shadow'
+                            : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Question Jumper */}
               <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">

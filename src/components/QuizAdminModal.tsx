@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SavedQuiz, Team, RoundLog, Question, GameStage, UserAccount } from '../types';
+import { SavedQuiz, Team, RoundLog, Question, GameStage, UserAccount, DisputeMode } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import { buildQuizCsvReport, downloadCsvFile } from '../utils/quizReport';
@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   Clock,
   Activity,
-  Download
+  Download,
+  Gamepad2
 } from 'lucide-react';
 
 interface Props {
@@ -29,6 +30,8 @@ interface Props {
   teams: Team[];
   roundLogs: RoundLog[];
   currentUser?: UserAccount | null;
+  disputeMode?: DisputeMode;
+  onSetDisputeMode?: (mode: DisputeMode) => void;
   onLoadQuiz: (questions: Question[], title: string, shareCode?: string) => void;
 }
 
@@ -69,6 +72,8 @@ export const QuizAdminModal: React.FC<Props> = ({
   teams,
   roundLogs,
   currentUser,
+  disputeMode = 'direto',
+  onSetDisputeMode,
   onLoadQuiz,
 }) => {
   const [stats, setStats] = useState<QuizStatsData | null>(null);
@@ -255,6 +260,45 @@ export const QuizAdminModal: React.FC<Props> = ({
               <span className="text-emerald-400">{progressPercent}% concluído</span>
             </div>
           </div>
+
+          {/* Mini-Games Activation (Exclusive to Quiz Admin / Owner) */}
+          {onSetDisputeMode && (
+            <div className="p-4 rounded-2xl bg-purple-950/25 border border-purple-500/40 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-black text-purple-200">
+                  <Gamepad2 className="w-4 h-4 text-purple-400" />
+                  <span>Mini-Game de Disputa deste Kahoot (Exclusivo ADM / Dono)</span>
+                </div>
+                <span className="text-[11px] font-bold text-purple-300">
+                  Atual: {disputeMode === 'direto' ? 'Desativado (Direto)' : disputeMode === 'peao' ? 'Arena de Piões' : disputeMode === 'buzzer' ? 'Buzzer' : 'Tiro ao Alvo'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {([
+                  { id: 'direto', label: 'Direto (Padrão)' },
+                  { id: 'peao', label: '🌀 Pião Beyblade' },
+                  { id: 'buzzer', label: '⚡ Buzzer (1-4)' },
+                  { id: 'alvo', label: '🎯 Tiro ao Alvo' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      sound.playTone(620, 0.1, 'sine', 0.15);
+                      onSetDisputeMode(opt.id);
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-black border transition ${
+                      disputeMode === opt.id
+                        ? 'bg-purple-500 text-slate-950 border-purple-300 shadow-lg'
+                        : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:border-purple-400/50'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 4 Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

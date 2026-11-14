@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
-import { FastForward, Sparkles, Clock, Zap, Shield } from 'lucide-react';
+import { FastForward, Sparkles, Clock, Zap, Shield, Smartphone } from 'lucide-react';
 
 interface PowerUpsUsedInRound {
   usedFiftyFifty?: boolean;
@@ -23,6 +23,8 @@ interface Props {
   onAnswerSelected: (selectedIndex: number, timeLeft: number, powerUps?: PowerUpsUsedInRound) => void;
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
+  sessionId?: string;
+  onOpenRemoteControl?: () => void;
 }
 
 export const QuestionPlayView: React.FC<Props> = ({
@@ -38,6 +40,8 @@ export const QuestionPlayView: React.FC<Props> = ({
   onAnswerSelected,
   allTeams,
   onSelectAnsweringTeam,
+  sessionId,
+  onOpenRemoteControl,
 }) => {
   const [timeLeft, setTimeLeft] = useState(questionDuration || 30);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -122,6 +126,43 @@ export const QuestionPlayView: React.FC<Props> = ({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [handleSelect, question.options.length]);
+
+  // Listen for Remote Mobile Votes via BroadcastChannel & localStorage
+  useEffect(() => {
+    const applyRemoteVote = (payload: any) => {
+      if (!payload || typeof payload.optionIndex !== 'number') return;
+      if (sessionId && payload.sessionId && payload.sessionId !== sessionId) return;
+      if (payload.questionId && payload.questionId !== question.id) return;
+      if (gameMode === 'turno' && payload.teamId && payload.teamId !== answeringTeam.id) return;
+      if (payload.optionIndex >= 0 && payload.optionIndex < question.options.length) {
+        handleSelect(payload.optionIndex);
+      }
+    };
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'arenaquiz_remote_vote' && e.newValue) {
+        try {
+          applyRemoteVote(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel = new BroadcastChannel('arenaquiz_sync');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'REMOTE_VOTE') {
+          applyRemoteVote(event.data.payload);
+        }
+      };
+    }
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      channel?.close();
+    };
+  }, [sessionId, question.id, question.options.length, gameMode, answeringTeam.id, handleSelect]);
 
   // Timer countdown
   useEffect(() => {
@@ -233,11 +274,22 @@ export const QuestionPlayView: React.FC<Props> = ({
 
         {/* Controls: Power-Ups & Reveal */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {onOpenRemoteControl && (
+            <button
+              type="button"
+              onClick={onOpenRemoteControl}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/50 text-cyan-200 text-xs font-black transition"
+              title="Abrir Controle Mobile para votar com figuras geométricas"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Controle</span>
+            </button>
+          )}
           <button
             onClick={handleFiftyFifty}
-            disabled={teamPowerUps.fiftyFifty || usedFiftyFifty || selectedOption !== null}
+            disabled={teamPowerUps.fiftyFifty || usedFiftyFifty || selectedOption !== null || question.options.length <= 2}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-black transition ${
-              teamPowerUps.fiftyFifty || usedFiftyFifty
+              teamPowerUps.fiftyFifty || usedFiftyFifty || question.options.length <= 2
                 ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
                 : 'bg-purple-600/25 hover:bg-purple-600/40 border-purple-400/50 text-purple-200'
             }`}

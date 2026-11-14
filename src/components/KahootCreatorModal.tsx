@@ -52,6 +52,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
   const [genCount, setGenCount] = useState<number>(5);
 
   // Manual Form State
+  const [manualQuestionType, setManualQuestionType] = useState<'multiple' | 'boolean'>('multiple');
   const [manualTitle, setManualTitle] = useState('');
   const [manualCategory, setManualCategory] = useState('Análise SWOT');
   const [manualTheme, setManualTheme] = useState<'FORÇAS' | 'FRAQUEZAS' | 'OPORTUNIDADES' | 'AMEAÇAS' | 'PLANEJAMENTO' | 'CONTROLE'>('PLANEJAMENTO');
@@ -75,23 +76,39 @@ export const KahootCreatorModal: React.FC<Props> = ({
   // Add Manual Question
   const handleAddManualQuestion = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualTitle.trim() || !manualOptA.trim() || !manualOptB.trim() || !manualOptC.trim() || !manualOptD.trim()) {
-      showAlert("Por favor, preencha a pergunta e as 4 opções!", 'warning');
+    const isBoolean = manualQuestionType === 'boolean';
+    const optAText = isBoolean ? (manualOptA.trim() || 'Verdadeiro') : manualOptA.trim();
+    const optBText = isBoolean ? (manualOptB.trim() || 'Falso') : manualOptB.trim();
+
+    if (!manualTitle.trim() || !optAText || !optBText || (!isBoolean && (!manualOptC.trim() || !manualOptD.trim()))) {
+      showAlert(
+        isBoolean
+          ? 'Por favor, preencha o enunciado da pergunta de Verdadeiro ou Falso!'
+          : 'Por favor, preencha a pergunta e as 4 opções!',
+        'warning'
+      );
       return;
     }
+
+    const options = isBoolean
+      ? [
+          { text: optAText, symbol: 'triangle' as const, color: 'bg-kahoot-blue' },
+          { text: optBText, symbol: 'diamond' as const, color: 'bg-kahoot-red' },
+        ]
+      : [
+          { text: optAText, symbol: 'triangle' as const, color: 'bg-kahoot-red' },
+          { text: optBText, symbol: 'diamond' as const, color: 'bg-kahoot-blue' },
+          { text: manualOptC.trim(), symbol: 'circle' as const, color: 'bg-kahoot-yellow' },
+          { text: manualOptD.trim(), symbol: 'square' as const, color: 'bg-kahoot-green' },
+        ];
 
     const newQ: Question = {
       id: questionsList.length + 1,
       category: manualCategory.trim() || 'Geral',
       theme: manualTheme,
       question: manualTitle.trim(),
-      options: [
-        { text: manualOptA.trim(), symbol: 'triangle', color: 'bg-kahoot-red' },
-        { text: manualOptB.trim(), symbol: 'diamond', color: 'bg-kahoot-blue' },
-        { text: manualOptC.trim(), symbol: 'circle', color: 'bg-kahoot-yellow' },
-        { text: manualOptD.trim(), symbol: 'square', color: 'bg-kahoot-green' },
-      ],
-      correctIndex: manualCorrectIndex,
+      options,
+      correctIndex: isBoolean ? Math.min(manualCorrectIndex, 1) : manualCorrectIndex,
       caseRelation: 'Criada manualmente pelo condutor do Quiz.',
       explanation: manualExplanation.trim() || 'Resposta correta confirmada pelo criador do quiz.',
       ...(manualCodeSnippet.trim() ? { codeSnippet: manualCodeSnippet.trim() } : {}),
@@ -154,6 +171,8 @@ export const KahootCreatorModal: React.FC<Props> = ({
     setManualTitle(q.question);
     setManualCategory(q.category || 'Geral');
     setManualTheme(q.theme || 'PLANEJAMENTO');
+    const isBool = q.options.length === 2;
+    setManualQuestionType(isBool ? 'boolean' : 'multiple');
     setManualOptA(q.options[0]?.text || '');
     setManualOptB(q.options[1]?.text || '');
     setManualOptC(q.options[2]?.text || '');
@@ -646,6 +665,18 @@ export const KahootCreatorModal: React.FC<Props> = ({
             <FileText className="w-4 h-4 shrink-0" />
             <span className="truncate">4. Colar Texto / IA</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('generator')}
+            className={`col-span-2 sm:col-span-1 px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-2 ${
+              activeTab === 'generator'
+                ? 'bg-fuchsia-500/15 sm:bg-transparent border border-fuchsia-500/40 sm:border-0 sm:border-fuchsia-400 text-fuchsia-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Wand2 className="w-4 h-4 shrink-0" />
+            <span className="truncate">5. Gerador Rápido</span>
+          </button>
         </div>
 
         {/* Feedback message banner */}
@@ -714,55 +745,112 @@ export const KahootCreatorModal: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* 4 Colored Kahoot Options */}
+              {/* Colored Kahoot Options (4 Alternatives or True/False) */}
               <div>
-                <label className="text-xs font-black uppercase text-amber-300 block mb-2">
-                  As 4 Opções do Kahoot (Marque o círculo da resposta correta):
-                </label>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                  <label className="text-xs font-black uppercase text-amber-300">
+                    {manualQuestionType === 'boolean'
+                      ? 'Verdadeiro ou Falso (Marque a resposta correta):'
+                      : 'As 4 Opções do Kahoot (Marque a resposta correta):'}
+                  </label>
+                  <div className="inline-flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setManualQuestionType('multiple')}
+                      className={`px-3 py-1 rounded-lg transition ${
+                        manualQuestionType === 'multiple'
+                          ? 'bg-emerald-500 text-slate-950 font-black'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      4 Alternativas
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setManualQuestionType('boolean');
+                        if (!manualOptA.trim()) setManualOptA('Verdadeiro');
+                        if (!manualOptB.trim()) setManualOptB('Falso');
+                        if (manualCorrectIndex > 1) setManualCorrectIndex(0);
+                      }}
+                      className={`px-3 py-1 rounded-lg transition ${
+                        manualQuestionType === 'boolean'
+                          ? 'bg-cyan-500 text-slate-950 font-black'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Verdadeiro / Falso
+                    </button>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-                  {[
-                    {
-                      idx: 0,
-                      val: manualOptA,
-                      setVal: setManualOptA,
-                      symbol: '▲',
-                      badgeBg: 'bg-kahoot-red',
-                      activeCls: 'bg-red-950/60 border-red-400',
-                      idleCls: 'bg-slate-950/80 border-red-500/40',
-                      placeholder: 'Opção Vermelha (▲)...',
-                    },
-                    {
-                      idx: 1,
-                      val: manualOptB,
-                      setVal: setManualOptB,
-                      symbol: '◆',
-                      badgeBg: 'bg-kahoot-blue',
-                      activeCls: 'bg-blue-950/60 border-blue-400',
-                      idleCls: 'bg-slate-950/80 border-blue-500/40',
-                      placeholder: 'Opção Azul (◆)...',
-                    },
-                    {
-                      idx: 2,
-                      val: manualOptC,
-                      setVal: setManualOptC,
-                      symbol: '●',
-                      badgeBg: 'bg-kahoot-yellow',
-                      activeCls: 'bg-amber-950/60 border-amber-400',
-                      idleCls: 'bg-slate-950/80 border-yellow-500/40',
-                      placeholder: 'Opção Amarela (●)...',
-                    },
-                    {
-                      idx: 3,
-                      val: manualOptD,
-                      setVal: setManualOptD,
-                      symbol: '■',
-                      badgeBg: 'bg-kahoot-green',
-                      activeCls: 'bg-emerald-950/60 border-emerald-400',
-                      idleCls: 'bg-slate-950/80 border-green-500/40',
-                      placeholder: 'Opção Verde (■)...',
-                    },
-                  ].map(opt => {
+                  {(manualQuestionType === 'boolean'
+                    ? [
+                        {
+                          idx: 0,
+                          val: manualOptA || 'Verdadeiro',
+                          setVal: setManualOptA,
+                          symbol: '▲',
+                          badgeBg: 'bg-kahoot-blue',
+                          activeCls: 'bg-blue-950/60 border-blue-400',
+                          idleCls: 'bg-slate-950/80 border-blue-500/40',
+                          placeholder: 'Verdadeiro',
+                        },
+                        {
+                          idx: 1,
+                          val: manualOptB || 'Falso',
+                          setVal: setManualOptB,
+                          symbol: '◆',
+                          badgeBg: 'bg-kahoot-red',
+                          activeCls: 'bg-red-950/60 border-red-400',
+                          idleCls: 'bg-slate-950/80 border-red-500/40',
+                          placeholder: 'Falso',
+                        },
+                      ]
+                    : [
+                        {
+                          idx: 0,
+                          val: manualOptA,
+                          setVal: setManualOptA,
+                          symbol: '▲',
+                          badgeBg: 'bg-kahoot-red',
+                          activeCls: 'bg-red-950/60 border-red-400',
+                          idleCls: 'bg-slate-950/80 border-red-500/40',
+                          placeholder: 'Opção Vermelha (▲)...',
+                        },
+                        {
+                          idx: 1,
+                          val: manualOptB,
+                          setVal: setManualOptB,
+                          symbol: '◆',
+                          badgeBg: 'bg-kahoot-blue',
+                          activeCls: 'bg-blue-950/60 border-blue-400',
+                          idleCls: 'bg-slate-950/80 border-blue-500/40',
+                          placeholder: 'Opção Azul (◆)...',
+                        },
+                        {
+                          idx: 2,
+                          val: manualOptC,
+                          setVal: setManualOptC,
+                          symbol: '●',
+                          badgeBg: 'bg-kahoot-yellow',
+                          activeCls: 'bg-amber-950/60 border-amber-400',
+                          idleCls: 'bg-slate-950/80 border-yellow-500/40',
+                          placeholder: 'Opção Amarela (●)...',
+                        },
+                        {
+                          idx: 3,
+                          val: manualOptD,
+                          setVal: setManualOptD,
+                          symbol: '■',
+                          badgeBg: 'bg-kahoot-green',
+                          activeCls: 'bg-emerald-950/60 border-emerald-400',
+                          idleCls: 'bg-slate-950/80 border-green-500/40',
+                          placeholder: 'Opção Verde (■)...',
+                        },
+                      ]
+                  ).map(opt => {
                     const isCorrectOpt = manualCorrectIndex === opt.idx;
                     return (
                       <div

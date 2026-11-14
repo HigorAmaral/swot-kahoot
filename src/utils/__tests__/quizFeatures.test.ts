@@ -33,6 +33,20 @@ describe('quizShuffle', () => {
     const shuffledTexts = new Set(shuffled.map(q => q.question));
     expect(shuffledTexts).toEqual(originalTexts);
   });
+
+  it('supports 2-option (Verdadeiro/Falso) questions when shuffling', () => {
+    const tfQuestion = {
+      ...questionsData[0],
+      options: [
+        { text: 'Verdadeiro', symbol: 'triangle' as const, color: 'bg-kahoot-blue' },
+        { text: 'Falso', symbol: 'diamond' as const, color: 'bg-kahoot-red' },
+      ],
+      correctIndex: 0,
+    };
+    const shuffled = shuffleQuestionOptions(tfQuestion);
+    expect(shuffled.options).toHaveLength(2);
+    expect(shuffled.options[shuffled.correctIndex].text).toBe('Verdadeiro');
+  });
 });
 
 describe('toast & confirm utilities', () => {

@@ -223,6 +223,109 @@
       inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
       inset 0 -2px 0 0 rgba(0, 0, 0, 0.3);
   }
+
+  /* Tactile 3D Arcade Button (chunky game-show feel) */
+  .btn-arcade-green {
+    background-color: #22c55e;
+    border-bottom: 5px solid #15803d;
+    transition: transform 0.1s ease, border-bottom-width 0.1s ease, background-color 0.15s ease;
+  }
+  .btn-arcade-green:hover:not(:disabled) {
+    background-color: #4ade80;
+  }
+  .btn-arcade-green:active:not(:disabled) {
+    transform: translateY(3px);
+    border-bottom-width: 2px;
+  }
+
+  .btn-arcade-amber {
+    background-color: #f59e0b;
+    border-bottom: 5px solid #b45309;
+    transition: transform 0.1s ease, border-bottom-width 0.1s ease, background-color 0.15s ease;
+  }
+  .btn-arcade-amber:hover:not(:disabled) {
+    background-color: #fbbf24;
+  }
+  .btn-arcade-amber:active:not(:disabled) {
+    transform: translateY(3px);
+    border-bottom-width: 2px;
+  }
+
+  /* Animated Mascot Keyframes */
+  @keyframes mascotFloat {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-9px) rotate(1deg);
+    }
+  }
+
+  @keyframes mascotWave {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-16deg);
+    }
+    75% {
+      transform: rotate(12deg);
+    }
+  }
+
+  @keyframes mascotTail {
+    0%, 100% {
+      transform: rotate(-8deg);
+    }
+    50% {
+      transform: rotate(14deg);
+    }
+  }
+
+  @keyframes mascotBlink {
+    0%, 92%, 100% {
+      transform: scaleY(1);
+    }
+    96% {
+      transform: scaleY(0.08);
+    }
+  }
+
+  @keyframes mascotEarTwitch {
+    0%, 86%, 100% {
+      transform: rotate(0deg);
+    }
+    90% {
+      transform: rotate(-8deg);
+    }
+    95% {
+      transform: rotate(5deg);
+    }
+  }
+
+  .animate-mascot-float {
+    animation: mascotFloat 3.4s ease-in-out infinite;
+  }
+
+  .animate-mascot-wave {
+    transform-origin: 185px 158px;
+    animation: mascotWave 2.2s ease-in-out infinite;
+  }
+
+  .animate-mascot-tail {
+    transform-origin: 68px 195px;
+    animation: mascotTail 1.8s ease-in-out infinite;
+  }
+
+  .animate-mascot-blink {
+    transform-origin: center;
+    animation: mascotBlink 4.2s ease-in-out infinite;
+  }
+
+  .animate-mascot-ear {
+    transform-origin: 85px 65px;
+    animation: mascotEarTwitch 5s ease-in-out infinite;
+  }
 }
 
 /* Custom Scrollbar */

@@ -20,6 +20,9 @@ import { shuffleQuestionsAndOptions } from './utils/quizShuffle';
 const VerdictView = lazy(() => import('./components/VerdictView').then(m => ({ default: m.VerdictView })));
 const ScoreboardView = lazy(() => import('./components/ScoreboardView').then(m => ({ default: m.ScoreboardView })));
 const PodiumView = lazy(() => import('./components/PodiumView').then(m => ({ default: m.PodiumView })));
+const SpinningTopDispute = lazy(() => import('./components/SpinningTopDispute').then(m => ({ default: m.SpinningTopDispute })));
+const BuzzerDispute = lazy(() => import('./components/BuzzerDispute').then(m => ({ default: m.BuzzerDispute })));
+const TargetDispute = lazy(() => import('./components/TargetDispute').then(m => ({ default: m.TargetDispute })));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const AdminAuthModal = lazy(() => import('./components/AdminAuthModal').then(m => ({ default: m.AdminAuthModal })));
 const KahootCreatorModal = lazy(() => import('./components/KahootCreatorModal').then(m => ({ default: m.KahootCreatorModal })));
@@ -27,6 +30,9 @@ const MyQuizzesModal = lazy(() => import('./components/MyQuizzesModal').then(m =
 const ProfileModal = lazy(() => import('./components/ProfileModal').then(m => ({ default: m.ProfileModal })));
 const QuizAdminModal = lazy(() => import('./components/QuizAdminModal').then(m => ({ default: m.QuizAdminModal })));
 const CommunityModal = lazy(() => import('./components/CommunityModal').then(m => ({ default: m.CommunityModal })));
+const CaseStudyModal = lazy(() => import('./components/CaseStudyModal').then(m => ({ default: m.CaseStudyModal })));
+const DynamicGuideModal = lazy(() => import('./components/DynamicGuideModal').then(m => ({ default: m.DynamicGuideModal })));
+const PlayerRemoteModal = lazy(() => import('./components/PlayerRemoteModal').then(m => ({ default: m.PlayerRemoteModal })));
 
 const initialTeams: Team[] = [
   {
@@ -119,7 +125,7 @@ export function App() {
     return params.get('quiz');
   });
 
-  const [activeQuizInfo, setActiveQuizInfo] = useState<{ title: string; shareCode?: string } | null>(null);
+  const [activeQuizInfo, setActiveQuizInfo] = useState<{ title: string; shareCode?: string; ownerUsername?: string } | null>(null);
   const [quizzesRefreshKey, setQuizzesRefreshKey] = useState<number>(0);
   const [sessionId, setSessionIdState] = useState<string>(getSessionId());
   const [teams, setTeams] = useState<Team[]>(() => {
@@ -132,11 +138,18 @@ export function App() {
 
   const [stage, setStage] = useState<GameStage>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [disputeMode] = useState<DisputeMode>('direto');
+  const [disputeMode, setDisputeMode] = useState<DisputeMode>('direto');
   const [gameMode, setGameMode] = useState<'turno' | 'todos'>('turno');
   const [participationMode, setParticipationMode] = useState<'equipes' | 'individual'>('equipes');
   const [questionDuration, setQuestionDuration] = useState<number>(30);
   const [pointsPerCorrect, setPointsPerCorrect] = useState<number>(1000);
+
+  // Only the quiz admin/owner or the room owner can activate Mini-Games in Kahoots
+  const canConfigureDispute = Boolean(
+    isAdmin ||
+      !activeQuizInfo?.ownerUsername ||
+      (currentUser && activeQuizInfo.ownerUsername.trim().toLowerCase() === currentUser.username.trim().toLowerCase())
+  );
 
   // Dispute & Turn state
   const [disputeWinnerId, setDisputeWinnerId] = useState<number>(1);
@@ -170,6 +183,9 @@ export function App() {
   const [isMobileKahootsOpen, setIsMobileKahootsOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isRoomConfigOpen, setIsRoomConfigOpen] = useState(false);
+  const [isCaseStudyOpen, setIsCaseStudyOpen] = useState(false);
+  const [isDynamicGuideOpen, setIsDynamicGuideOpen] = useState(false);
+  const [isRemoteControlOpen, setIsRemoteControlOpen] = useState(false);
 
   // Unlock Web Audio and start pleasant background music on first user gesture
   useEffect(() => {
@@ -250,7 +266,11 @@ export function App() {
     dbService.getQuizByCode(pendingQuizCode).then(res => {
       if (res.success && res.quiz && res.quiz.questions.length > 0) {
         setQuestions(res.quiz.questions);
-        setActiveQuizInfo({ title: res.quiz.title, shareCode: res.quiz.shareCode });
+        setActiveQuizInfo({
+          title: res.quiz.title,
+          shareCode: res.quiz.shareCode,
+          ownerUsername: res.quiz.ownerUsername,
+        });
         setCurrentQuestionIndex(0);
         setStage('intro');
       }
@@ -259,10 +279,14 @@ export function App() {
   }, [currentUser, pendingQuizCode]);
 
   // Save Custom Questions from Creator
-  const handleSaveQuestions = (newQuestions: Question[], quizTitle?: string, shareCode?: string) => {
+  const handleSaveQuestions = (newQuestions: Question[], quizTitle?: string, shareCode?: string, ownerUsername?: string) => {
     setQuestions(newQuestions);
     if (quizTitle || shareCode) {
-      setActiveQuizInfo({ title: quizTitle || 'Meu Quiz', shareCode });
+      setActiveQuizInfo({
+        title: quizTitle || 'Meu Quiz',
+        shareCode,
+        ownerUsername: ownerUsername || currentUser?.username,
+      });
     }
     setQuizzesRefreshKey(prev => prev + 1);
     try {
@@ -641,6 +665,9 @@ export function App() {
     setGameMode(settings.gameMode);
     setQuestionDuration(settings.questionDuration);
     setPointsPerCorrect(settings.pointsPerCorrect);
+    if (canConfigureDispute && settings.disputeMode) {
+      setDisputeMode(settings.disputeMode);
+    }
 
     const palette = [
       { color: '#E21B3C', bgClass: 'bg-kahoot-red', borderClass: 'border-kahoot-red', textClass: 'text-kahoot-red', glowClass: 'shadow-neon-red' },
@@ -983,14 +1010,18 @@ export function App() {
             gameMode={gameMode}
             onSetGameMode={setGameMode}
             participationMode={participationMode}
+            disputeMode={disputeMode}
             onOpenRoomConfig={() => setIsRoomConfigOpen(true)}
+            onOpenCaseStudy={() => setIsCaseStudyOpen(true)}
+            onOpenDynamicGuide={() => setIsDynamicGuideOpen(true)}
+            onOpenRemoteControl={() => setIsRemoteControlOpen(true)}
             onOpenActiveQuizAdmin={
               activeQuizInfo?.shareCode
                 ? () =>
                     setManagingQuiz({
                       id: 0,
                       shareCode: activeQuizInfo.shareCode!,
-                      ownerUsername: currentUser.username,
+                      ownerUsername: activeQuizInfo.ownerUsername || currentUser.username,
                       ownerName: currentUser.displayName,
                       title: activeQuizInfo.title,
                       questions,
@@ -1012,10 +1043,21 @@ export function App() {
             totalQuestions={questions.length}
             teams={teams}
             isTiebreaker={isTiebreaker}
+            disputeMode={disputeMode}
             onBack={() => setStage('intro')}
             onProceedToQuestion={(chosenTeamId?: number) => {
               const fallbackId = teams[currentQuestionIndex % teams.length]?.id ?? teams[0]?.id ?? 1;
-              setAnsweringTeamId(chosenTeamId ?? fallbackId);
+              if (chosenTeamId !== undefined) {
+                setAnsweringTeamId(chosenTeamId);
+                setIsPassed(false);
+                setStage('question_play');
+                return;
+              }
+              if (disputeMode !== 'direto') {
+                setStage('dispute');
+                return;
+              }
+              setAnsweringTeamId(fallbackId);
               setIsPassed(false);
               setStage('question_play');
             }}
@@ -1038,10 +1080,36 @@ export function App() {
             onSelectAnsweringTeam={(teamId) => {
               setAnsweringTeamId(teamId);
             }}
+            sessionId={sessionId}
+            onOpenRemoteControl={() => setIsRemoteControlOpen(true)}
           />
         )}
 
         <Suspense fallback={<div className="text-xs text-slate-400 py-10">Carregando...</div>}>
+          {stage === 'dispute' && disputeMode === 'peao' && (
+            <SpinningTopDispute
+              teams={teams}
+              onDisputeResolved={handleDisputeResolved}
+              questionNumber={currentQuestionIndex + 1}
+            />
+          )}
+
+          {stage === 'dispute' && disputeMode === 'buzzer' && (
+            <BuzzerDispute
+              teams={teams}
+              onDisputeResolved={handleDisputeResolved}
+              questionNumber={currentQuestionIndex + 1}
+            />
+          )}
+
+          {stage === 'dispute' && disputeMode === 'alvo' && (
+            <TargetDispute
+              teams={teams}
+              onDisputeResolved={handleDisputeResolved}
+              questionNumber={currentQuestionIndex + 1}
+            />
+          )}
+
           {stage === 'verdict' && (
             <VerdictView
               question={currentQuestion}
@@ -1122,6 +1190,8 @@ export function App() {
             onSetQuestionDuration={setQuestionDuration}
             pointsPerCorrect={pointsPerCorrect}
             onSetPointsPerCorrect={setPointsPerCorrect}
+            disputeMode={disputeMode}
+            onSetDisputeMode={setDisputeMode}
             onGoToPodium={() => setStage('podium')}
             onGoToStage={setStage}
             onUpdateTeamName={handleUpdateTeamName}
@@ -1184,7 +1254,13 @@ export function App() {
             teams={teams}
             roundLogs={roundLogs}
             currentUser={currentUser}
-            onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
+            onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode, managingQuiz.ownerUsername)}
+            disputeMode={disputeMode}
+            onSetDisputeMode={
+              isAdmin || managingQuiz.ownerUsername.trim().toLowerCase() === currentUser.username.trim().toLowerCase()
+                ? setDisputeMode
+                : undefined
+            }
           />
         )}
 
@@ -1207,18 +1283,46 @@ export function App() {
             onQuizCloned={() => setQuizzesRefreshKey(prev => prev + 1)}
           />
         )}
+
+        {isCaseStudyOpen && (
+          <CaseStudyModal
+            isOpen={isCaseStudyOpen}
+            onClose={() => setIsCaseStudyOpen(false)}
+          />
+        )}
+
+        {isDynamicGuideOpen && (
+          <DynamicGuideModal
+            isOpen={isDynamicGuideOpen}
+            onClose={() => setIsDynamicGuideOpen(false)}
+          />
+        )}
+
+        {isRemoteControlOpen && (
+          <PlayerRemoteModal
+            isOpen={isRemoteControlOpen}
+            onClose={() => setIsRemoteControlOpen(false)}
+            sessionId={sessionId}
+            teams={teams}
+            currentUser={currentUser}
+            currentQuestion={currentQuestion}
+            stage={stage}
+          />
+        )}
       </Suspense>
 
       <RoomConfigModal
         isOpen={isRoomConfigOpen}
         onClose={() => setIsRoomConfigOpen(false)}
         sessionId={sessionId}
+        canConfigureDispute={canConfigureDispute}
         initialSettings={{
           participationMode,
           teamCount: Math.max(2, Math.min(6, teams.length)),
           gameMode,
           questionDuration,
           pointsPerCorrect,
+          disputeMode,
         }}
         onApplySettings={handleApplyRoomSettings}
       />

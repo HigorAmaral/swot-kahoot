@@ -47,19 +47,19 @@ export const ArenaMascot: React.FC<Props> = ({
   const isCoveringEyes = mood === 'hiding' || mood === 'peeking';
 
   return (
-    <div className="flex flex-col items-center select-none">
-      {/* Comic Speech Bubble */}
+    <div className="w-full flex flex-col items-center select-none">
+      {/* Comic Speech Bubble (fixed min-height prevents layout shift while typing) */}
       <div
         onClick={handleMascotClick}
-        className={`relative cursor-pointer group bg-[#182032] hover:bg-[#1e2940] border-2 border-amber-400/70 rounded-2xl px-4 py-2.5 text-center shadow-xl transition-all duration-200 ${
-          compact ? 'max-w-[260px] mb-2' : 'max-w-xs sm:max-w-sm mb-3'
+        className={`relative cursor-pointer group bg-[#182032] hover:bg-[#1e2940] border-2 border-amber-400/70 rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 text-center shadow-xl transition-all duration-200 flex items-center justify-center min-h-[48px] sm:min-h-[54px] w-full ${
+          compact ? 'max-w-[270px] sm:max-w-xs mb-2' : 'max-w-[290px] sm:max-w-sm lg:max-w-md mb-2.5 sm:mb-3.5'
         }`}
       >
-        <p className="text-xs sm:text-sm font-extrabold text-amber-100 leading-snug">
+        <p className="text-[11px] sm:text-xs xl:text-sm font-extrabold text-amber-100 leading-snug line-clamp-2">
           {activeSpeech}
         </p>
         {/* Speech Bubble Tail */}
-        <div className="w-3.5 h-3.5 bg-[#182032] group-hover:bg-[#1e2940] border-r-2 border-b-2 border-amber-400/70 rotate-45 absolute -bottom-2 left-1/2 -translate-x-1/2 transition-colors" />
+        <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-[#182032] group-hover:bg-[#1e2940] border-r-2 border-b-2 border-amber-400/70 rotate-45 absolute -bottom-2 left-1/2 -translate-x-1/2 transition-colors" />
       </div>
 
       {/* Animated SVG Character Container */}
@@ -67,42 +67,42 @@ export const ArenaMascot: React.FC<Props> = ({
         onClick={handleMascotClick}
         title="Clique no Kiko para interagir!"
         className={`relative cursor-pointer transition-transform duration-300 ${
-          isJumping ? '-translate-y-5 scale-105' : 'hover:scale-[1.03]'
-        } ${compact ? 'w-36 h-36' : 'w-56 h-56 sm:w-64 sm:h-64'}`}
+          isJumping ? '-translate-y-4 sm:-translate-y-5 scale-105' : 'hover:scale-[1.03]'
+        } ${
+          compact
+            ? 'w-28 h-28 sm:w-36 sm:h-36'
+            : 'w-32 h-32 sm:w-44 sm:h-44 md:w-48 md:h-48 lg:w-56 lg:h-56 xl:w-64 xl:h-64'
+        }`}
       >
         {/* Floating Kahoot Geometric Badges around the Mascot */}
-        {!compact && (
-          <>
-            <div
-              className="absolute -left-2 top-6 w-9 h-9 rounded-xl bg-kahoot-red border-2 border-white/25 flex items-center justify-center text-white font-black text-sm shadow-lg animate-bounce"
-              style={{ animationDuration: '2.8s' }}
-            >
-              ▲
-            </div>
-            <div
-              className="absolute -right-2 top-10 w-9 h-9 rounded-xl bg-kahoot-blue border-2 border-white/25 flex items-center justify-center text-white font-black text-sm shadow-lg animate-bounce"
-              style={{ animationDuration: '3.2s', animationDelay: '0.4s' }}
-            >
-              ◆
-            </div>
-            <div
-              className="absolute left-1 bottom-8 w-8 h-8 rounded-xl bg-kahoot-yellow border-2 border-white/25 flex items-center justify-center text-white font-black text-xs shadow-lg animate-bounce"
-              style={{ animationDuration: '2.5s', animationDelay: '0.8s' }}
-            >
-              ●
-            </div>
-            <div
-              className="absolute right-1 bottom-6 w-8 h-8 rounded-xl bg-kahoot-green border-2 border-white/25 flex items-center justify-center text-white font-black text-xs shadow-lg animate-bounce"
-              style={{ animationDuration: '3s', animationDelay: '0.2s' }}
-            >
-              ■
-            </div>
-          </>
-        )}
+        <div
+          className="absolute left-0 sm:-left-1 top-3 sm:top-6 w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-kahoot-red border-2 border-white/25 flex items-center justify-center text-white font-black text-[10px] sm:text-xs lg:text-sm shadow-lg animate-bounce"
+          style={{ animationDuration: '2.8s' }}
+        >
+          ▲
+        </div>
+        <div
+          className="absolute right-0 sm:-right-1 top-5 sm:top-9 w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-kahoot-blue border-2 border-white/25 flex items-center justify-center text-white font-black text-[10px] sm:text-xs lg:text-sm shadow-lg animate-bounce"
+          style={{ animationDuration: '3.2s', animationDelay: '0.4s' }}
+        >
+          ◆
+        </div>
+        <div
+          className="absolute left-1 bottom-4 sm:bottom-7 w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-lg sm:rounded-xl bg-kahoot-yellow border-2 border-white/25 flex items-center justify-center text-white font-black text-[9px] sm:text-xs shadow-lg animate-bounce"
+          style={{ animationDuration: '2.5s', animationDelay: '0.8s' }}
+        >
+          ●
+        </div>
+        <div
+          className="absolute right-1 bottom-3 sm:bottom-6 w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-lg sm:rounded-xl bg-kahoot-green border-2 border-white/25 flex items-center justify-center text-white font-black text-[9px] sm:text-xs shadow-lg animate-bounce"
+          style={{ animationDuration: '3s', animationDelay: '0.2s' }}
+        >
+          ■
+        </div>
 
         <svg
           viewBox="0 0 260 250"
-          className="w-full h-full overflow-visible animate-mascot-float drop-shadow-[0_14px_24px_rgba(0,0,0,0.6)]"
+          className="w-full h-full overflow-visible animate-mascot-float drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)]"
         >
           {/* Glow Stage Shadow */}
           <ellipse cx="130" cy="234" rx="68" ry="11" fill="rgba(245, 158, 11, 0.22)" />

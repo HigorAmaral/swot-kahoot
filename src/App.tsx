@@ -102,6 +102,10 @@ export function App() {
 
   const [managingQuiz, setManagingQuiz] = useState<SavedQuiz | null>(null);
   const mainRef = useRef<HTMLElement>(null);
+  const syncTeamsTimerRef = useRef<number | null>(null);
+  const isSyncingRef = useRef<boolean>(false);
+  const lastSyncedTeamsJsonRef = useRef<string>('');
+  const lastSyncedLogsCountRef = useRef<number>(0);
 
   const [pendingQuizCode, setPendingQuizCode] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -289,6 +293,8 @@ export function App() {
 
     const syncWithDb = async () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
       try {
         const data = await dbService.loadState(sessionId);
         if (!isMounted || !data) return;
@@ -303,24 +309,31 @@ export function App() {
           isRepresentative: Boolean(p.isRepresentative || p.is_active_representative),
         }));
 
-        setTeams(prev => prev.map(pt => {
-          const remoteTeam = data.teams?.find((rt: any) => Number(rt.id) === pt.id);
-          const teamParticipants = rawParticipants.filter(p => p.teamId === pt.id);
+        setTeams(prev => {
+          const next = prev.map(pt => {
+            const remoteTeam = data.teams?.find((rt: any) => Number(rt.id) === pt.id);
+            const teamParticipants = rawParticipants.filter(p => p.teamId === pt.id);
 
-          return {
-            ...pt,
-            name: remoteTeam?.name || pt.name,
-            points: remoteTeam ? Math.max(pt.points, remoteTeam.points ?? 0) : pt.points,
-            candies: remoteTeam ? Math.max(pt.candies, remoteTeam.candies ?? 0) : pt.candies,
-            chocolates: remoteTeam ? Math.max(pt.chocolates, remoteTeam.chocolates ?? 0) : pt.chocolates,
-            answersCorrect: remoteTeam ? Math.max(pt.answersCorrect, remoteTeam.answers_correct ?? 0) : pt.answersCorrect,
-            answersWrong: remoteTeam ? Math.max(pt.answersWrong, remoteTeam.answers_wrong ?? 0) : pt.answersWrong,
-            isWinner: remoteTeam?.is_winner ?? pt.isWinner,
-            participants: teamParticipants, // Always sync the latest participants from database!
-          };
-        }));
+            return {
+              ...pt,
+              name: remoteTeam?.name || pt.name,
+              points: remoteTeam ? Math.max(pt.points, remoteTeam.points ?? 0) : pt.points,
+              candies: remoteTeam ? Math.max(pt.candies, remoteTeam.candies ?? 0) : pt.candies,
+              chocolates: remoteTeam ? Math.max(pt.chocolates, remoteTeam.chocolates ?? 0) : pt.chocolates,
+              answersCorrect: remoteTeam ? Math.max(pt.answersCorrect, remoteTeam.answers_correct ?? 0) : pt.answersCorrect,
+              answersWrong: remoteTeam ? Math.max(pt.answersWrong, remoteTeam.answers_wrong ?? 0) : pt.answersWrong,
+              isWinner: remoteTeam?.is_winner ?? pt.isWinner,
+              participants: teamParticipants,
+            };
+          });
+          const nextJson = JSON.stringify(next);
+          if (nextJson === lastSyncedTeamsJsonRef.current) return prev;
+          lastSyncedTeamsJsonRef.current = nextJson;
+          return next;
+        });
 
-        if (data.logs && data.logs.length > 0) {
+        if (data.logs && data.logs.length > 0 && data.logs.length !== lastSyncedLogsCountRef.current) {
+          lastSyncedLogsCountRef.current = data.logs.length;
           setRoundLogs(data.logs.map((l: any) => ({
             id: String(l.id),
             questionId: l.question_id,
@@ -340,11 +353,13 @@ export function App() {
       } catch (err) {
         console.warn('DB Sync error:', err);
         if (isMounted) setIsDbConnected(false);
+      } finally {
+        isSyncingRef.current = false;
       }
     };
 
     syncWithDb();
-    const pollMs = stage === 'intro' || stage === 'podium' ? 4000 : 1500;
+    const pollMs = stage === 'intro' || stage === 'podium' ? 5000 : 2000;
     const interval = setInterval(syncWithDb, pollMs);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') syncWithDb();
@@ -368,50 +383,78 @@ export function App() {
     };
   }, [sessionId, currentUser, stage]);
 
-  // Save teams whenever updated
-  const updateTeamsState = (newTeams: Team[]) => {
+  // Save teams whenever updated (optionally debounced for keystrokes)
+  const updateTeamsState = (newTeams: Team[], debounceSync = false) => {
     setTeams(newTeams);
-    dbService.syncTeams(sessionId, newTeams);
+    lastSyncedTeamsJsonRef.current = JSON.stringify(newTeams);
+    if (debounceSync) {
+      if (syncTeamsTimerRef.current) window.clearTimeout(syncTeamsTimerRef.current);
+      syncTeamsTimerRef.current = window.setTimeout(() => {
+        dbService.syncTeams(sessionId, newTeams);
+      }, 450);
+    } else {
+      dbService.syncTeams(sessionId, newTeams);
+    }
   };
 
-  // Add Participant to Team
+  // Add Participant to Team (Optimistic UI update for instant feedback)
   const handleAddParticipant = async (teamId: number, userName: string, avatar: string = '👨‍💻') => {
-    const participant = await dbService.addParticipant(sessionId, teamId, userName, avatar);
+    const tempId = 'p_temp_' + Date.now();
+    const optimisticParticipant: Participant = {
+      id: tempId,
+      name: userName,
+      avatar,
+      teamId,
+      joinedAt: new Date().toISOString(),
+    };
+
     setTeams(prev => {
       const updated = prev.map(t => {
         if (t.id === teamId) {
-          // Avoid duplicate name in same team
           if (t.participants.some(p => p.name.toLowerCase() === userName.toLowerCase())) {
             return t;
           }
-          return {
-            ...t,
-            participants: [...t.participants, participant]
-          };
+          return { ...t, participants: [...t.participants, optimisticParticipant] };
         }
         return t;
       });
-      dbService.syncTeams(sessionId, updated);
+      lastSyncedTeamsJsonRef.current = JSON.stringify(updated);
       return updated;
+    });
+
+    const participant = await dbService.addParticipant(sessionId, teamId, userName, avatar);
+    setTeams(prev => {
+      const reconciled = prev.map(t =>
+        t.id === teamId
+          ? {
+              ...t,
+              participants: t.participants.map(p => (p.id === tempId ? participant : p)),
+            }
+          : t
+      );
+      lastSyncedTeamsJsonRef.current = JSON.stringify(reconciled);
+      dbService.syncTeams(sessionId, reconciled);
+      return reconciled;
     });
   };
 
-  // Remove Participant from Team
+  // Remove Participant from Team (Optimistic UI update for instant feedback)
   const handleRemoveParticipant = async (teamId: number, participantId: string, userName: string) => {
-    await dbService.removeParticipant(sessionId, participantId, userName);
     setTeams(prev => {
       const updated = prev.map(t => {
         if (t.id === teamId) {
           return {
             ...t,
-            participants: t.participants.filter(p => p.id !== participantId && p.name !== userName)
+            participants: t.participants.filter(p => p.id !== participantId && p.name !== userName),
           };
         }
         return t;
       });
-      dbService.syncTeams(sessionId, updated);
+      lastSyncedTeamsJsonRef.current = JSON.stringify(updated);
       return updated;
     });
+
+    await dbService.removeParticipant(sessionId, participantId, userName);
   };
 
   // Admin Declares Winner Directly!
@@ -434,9 +477,10 @@ export function App() {
     updateTeamsState(updated);
   };
 
-  // Team name update
+  // Team name update (debounced DB sync)
   const handleUpdateTeamName = (teamId: number, newName: string) => {
-    handleUpdateTeam(teamId, t => ({ ...t, name: newName }));
+    const updated = teams.map(t => (t.id === teamId ? { ...t, name: newName } : t));
+    updateTeamsState(updated, true);
   };
 
   // Add new competing group/team
@@ -690,13 +734,13 @@ export function App() {
         ? winnerTeam.participants.map(p => p.name).join(', ')
         : undefined,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentUser?.username,
     activeQuizInfo?.shareCode,
     stage,
     currentQuestionIndex,
     questions.length,
-    teams,
     sessionId,
     roundLogs.length,
   ]);

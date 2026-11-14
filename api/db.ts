@@ -246,10 +246,14 @@ function normalizeSessionId(raw?: string): string {
   return raw;
 }
 
-// Ensure tables exist on startup
+let tablesEnsuredPromise: Promise<void> | null = null;
+
+// Ensure tables exist once per warm serverless instance
 async function ensureTables(sql: any) {
-  try {
-    await sql`
+  if (tablesEnsuredPromise) return tablesEnsuredPromise;
+  tablesEnsuredPromise = (async () => {
+    try {
+      await sql`
       CREATE TABLE IF NOT EXISTS swot_game_sessions (
         id VARCHAR(64) PRIMARY KEY,
         title VARCHAR(255) NOT NULL DEFAULT 'Sessão SWOT Kahoot',
@@ -382,9 +386,12 @@ async function ensureTables(sql: any) {
         UNIQUE (quiz_share_code, session_id, player_username)
       );
     `;
-  } catch (e) {
-    console.error("Table ensure error:", e);
-  }
+    } catch (e) {
+      tablesEnsuredPromise = null;
+      console.error("Table ensure error:", e);
+    }
+  })();
+  return tablesEnsuredPromise;
 }
 
 export default async function handler(req: any, res: any) {
@@ -622,33 +629,32 @@ export default async function handler(req: any, res: any) {
       let logs: any[] = [];
 
       try {
-        participants = await sql`
-          SELECT 
-            id, 
-            session_id, 
-            team_id as "teamId", 
-            team_id, 
-            user_name as name, 
-            user_name, 
-            avatar, 
-            joined_at as "joinedAt", 
-            joined_at
-          FROM swot_participants 
-          WHERE session_id = ${sessionId} 
-          ORDER BY id ASC
-        `;
-
-        teams = await sql`
-          SELECT * FROM swot_teams WHERE session_id = ${sessionId} ORDER BY id ASC
-        `;
-
-        sessions = await sql`
-          SELECT * FROM swot_game_sessions WHERE id = ${sessionId} LIMIT 1
-        `;
-
-        logs = await sql`
-          SELECT * FROM swot_round_logs WHERE session_id = ${sessionId} ORDER BY id DESC LIMIT 50
-        `;
+        [participants, teams, sessions, logs] = await Promise.all([
+          sql`
+            SELECT 
+              id, 
+              session_id, 
+              team_id as "teamId", 
+              team_id, 
+              user_name as name, 
+              user_name, 
+              avatar, 
+              joined_at as "joinedAt", 
+              joined_at
+            FROM swot_participants 
+            WHERE session_id = ${sessionId} 
+            ORDER BY id ASC
+          `,
+          sql`
+            SELECT * FROM swot_teams WHERE session_id = ${sessionId} ORDER BY id ASC
+          `,
+          sql`
+            SELECT * FROM swot_game_sessions WHERE id = ${sessionId} LIMIT 1
+          `,
+          sql`
+            SELECT * FROM swot_round_logs WHERE session_id = ${sessionId} ORDER BY id DESC LIMIT 50
+          `,
+        ]);
       } catch (err: any) {
         // If tables were missing, auto-create and retry
         await ensureTables(sql);

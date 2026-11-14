@@ -343,58 +343,62 @@ export const IntroSetupView: React.FC<Props> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3.5 sm:gap-4">
           {teams.map(team => {
             const isSelected = selectedTeamId === team.id;
+            const isUserInTeam = team.participants.some(
+              p => (p.name || (p as any).user_name || '').toLowerCase() === currentUser.displayName.toLowerCase()
+            );
 
             return (
               <div
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
-                className={`relative overflow-hidden p-4 sm:p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer select-none flex flex-col justify-between ${
+                className={`relative overflow-hidden p-4 rounded-2xl border-2 transition-colors duration-150 cursor-pointer select-none flex flex-col justify-between h-full ${
                   isSelected
-                    ? `${team.borderClass} ${team.glowClass} bg-slate-900/95 scale-[1.02] ring-2 ring-white/30`
-                    : 'border-slate-800 bg-slate-900/65 hover:bg-slate-800/80 hover:border-slate-700'
+                    ? `${team.borderClass} bg-slate-900/95 shadow-lg`
+                    : 'border-slate-800 bg-slate-900/70 hover:bg-slate-800/80 hover:border-slate-700'
                 }`}
               >
                 {/* Top Colored Accent Strip */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 ${team.bgClass}`} />
 
-                {/* Active Selection Indicator + Remove Group */}
-                <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                  {isSelected && (
-                    <div className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-slate-950 flex items-center gap-1 shadow">
-                      <CheckCircle2 className="w-3 h-3" /> Ativo
+                <div className="pt-1">
+                  {/* Team Header (no overlapping absolute badges) */}
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${team.bgClass}`} />
+                      <span className="text-[11px] font-black uppercase text-slate-400 tracking-wide truncate">
+                        Grupo #{team.id}
+                      </span>
                     </div>
-                  )}
-                  {onRemoveTeam && teams.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={e => {
-                        e.stopPropagation();
-                        if (confirm(`Remover "${team.name}" da competição?`)) {
-                          onRemoveTeam(team.id);
-                          if (selectedTeamId === team.id) {
-                            const next = teams.find(t => t.id !== team.id);
-                            if (next) setSelectedTeamId(next.id);
-                          }
-                        }
-                      }}
-                      className="p-1 rounded-lg bg-slate-800/80 hover:bg-rose-950 text-slate-400 hover:text-rose-300 transition"
-                      title="Remover grupo"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
 
-                <div className="mt-1">
-                  {/* Team Header */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-3 h-3 rounded-full ${team.bgClass}`} />
-                      <span className="text-xs font-black uppercase text-slate-400">Grupo #{team.id}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isSelected && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-slate-950 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Ativo
+                        </span>
+                      )}
+                      <span className="text-xs font-bold text-slate-200 bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700">
+                        👥 {team.participants.length}
+                      </span>
+                      {onRemoveTeam && teams.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (confirm(`Remover "${team.name}" da competição?`)) {
+                              onRemoveTeam(team.id);
+                              if (selectedTeamId === team.id) {
+                                const next = teams.find(t => t.id !== team.id);
+                                if (next) setSelectedTeamId(next.id);
+                              }
+                            }
+                          }}
+                          className="p-1 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 transition"
+                          title="Remover grupo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
-                    <span className="text-xs font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700">
-                      👥 {team.participants.length}
-                    </span>
                   </div>
 
                   {/* Editable Team Name */}
@@ -403,32 +407,33 @@ export const IntroSetupView: React.FC<Props> = ({
                     value={team.name}
                     onChange={e => onUpdateTeamName(team.id, e.target.value)}
                     onClick={e => e.stopPropagation()}
-                    className="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-3 py-1.5 text-sm font-extrabold text-white focus:outline-none focus:border-emerald-400 transition"
+                    className="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-3 py-2 text-sm font-extrabold text-white focus:outline-none focus:border-emerald-400 transition"
                     placeholder={`Nome da Equipe ${team.id}`}
                   />
 
                   {/* Participant Chips */}
-                  <div className="mt-3 min-h-[56px]">
+                  <div className="mt-3 min-h-[60px]">
                     <div className="text-[11px] font-bold text-slate-400 mb-1.5">
                       Integrantes:
                     </div>
-                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-0.5">
                       {team.participants.length === 0 ? (
                         <span className="text-[11px] text-slate-500 italic">Nenhum aluno inscrito ainda</span>
                       ) : (
                         team.participants.map(p => (
                           <span
                             key={p.id}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-white shadow-sm"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800/90 border border-slate-700 text-xs font-bold text-white"
                           >
                             <span>{p.avatar || '👨‍💻'}</span>
-                            <span>{p.name || (p as any).user_name || 'Aluno'}</span>
+                            <span className="max-w-[110px] truncate">{p.name || (p as any).user_name || 'Aluno'}</span>
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onRemoveParticipant(team.id, p.id, p.name);
                               }}
-                              className="ml-1 text-slate-400 hover:text-rose-400 font-black"
+                              className="ml-0.5 text-slate-400 hover:text-rose-400 font-black leading-none"
                               title="Remover"
                             >
                               ×
@@ -440,11 +445,27 @@ export const IntroSetupView: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* Card footer select prompt */}
-                <div className="mt-3 pt-2 border-t border-slate-800/70 text-center">
-                  <span className={`text-xs font-bold ${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}>
-                    {isSelected ? '✓ Selecionado para inscrição' : 'Clique para selecionar'}
-                  </span>
+                {/* Card footer direct join action */}
+                <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+                  {isUserInTeam ? (
+                    <div className="w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-black flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Você está neste grupo
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTeamId(team.id);
+                        handleJoinTeam(team.id);
+                      }}
+                      className="w-full py-2 rounded-xl bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 border border-slate-700 hover:border-emerald-400 text-slate-200 text-xs font-black flex items-center justify-center gap-1.5 transition active:scale-95"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      Entrar neste grupo
+                    </button>
+                  )}
                 </div>
               </div>
             );

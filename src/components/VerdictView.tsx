@@ -83,6 +83,7 @@ export const VerdictView: React.FC<Props> = ({
             variant="face"
             size="md"
             mood={isCorrect ? 'happy' : 'error'}
+            label={isCorrect ? 'Mandou bem!' : undefined}
           />
           {isCorrect ? (
             <CheckCircle2 className="w-9 h-9 sm:w-12 sm:h-12 text-emerald-400 animate-bounce shrink-0" />
@@ -92,7 +93,6 @@ export const VerdictView: React.FC<Props> = ({
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">
             {isCorrect ? 'RESPOSTA CORRETA! 🎉' : isTimeout ? 'TEMPO ESGOTADO! ⏰' : 'RESPOSTA INCORRETA! ❌'}
           </h2>
-          {isCorrect && <MascotDetail variant="paw" size="sm" label="Mandou bem!" className="hidden sm:inline-flex" />}
         </div>
 
         <p className="text-base sm:text-lg md:text-xl font-bold text-slate-200 mt-1">

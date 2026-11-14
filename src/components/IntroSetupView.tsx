@@ -525,18 +525,14 @@ export const IntroSetupView: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <MascotDetail variant="paw" size="sm" className="hidden sm:inline-flex" />
-            <button
-              type="button"
-              onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
-            >
-              <UserPlus className="w-4 h-4" />
-              {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
-            </button>
-            <MascotDetail variant="tail" size="sm" className="hidden md:inline-flex" />
-          </div>
+          <button
+            type="button"
+            onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
+          >
+            <UserPlus className="w-4 h-4" />
+            {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
+          </button>
         </div>
 
         {/* Success Alert */}

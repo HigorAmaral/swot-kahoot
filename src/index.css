@@ -352,6 +352,40 @@
   .animate-mascot-peek {
     animation: mascotPeekBob 2.8s ease-in-out infinite;
   }
+
+  /* Mobile GPU & Scroll Performance Optimization */
+  @media (max-width: 768px) {
+    .bg-grid-pattern {
+      background-attachment: scroll;
+    }
+
+    .glass-card,
+    .glass-card-interactive {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(10, 15, 26, 0.98) 100%);
+      box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.65);
+    }
+
+    .backdrop-blur-md,
+    .backdrop-blur-xl,
+    .backdrop-blur-sm {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-mascot-float,
+    .animate-mascot-wave,
+    .animate-mascot-tail,
+    .animate-mascot-blink,
+    .animate-mascot-ear,
+    .animate-mascot-paw,
+    .animate-mascot-peek {
+      animation: none !important;
+    }
+  }
 }
 
 /* Custom Scrollbar */

@@ -117,6 +117,7 @@ export function App() {
   const isSyncingRef = useRef<boolean>(false);
   const lastSyncedTeamsJsonRef = useRef<string>('');
   const lastSyncedLogsCountRef = useRef<number>(0);
+  const lastReportedRunRef = useRef<string>('');
 
   const [pendingQuizCode, setPendingQuizCode] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -304,6 +305,10 @@ export function App() {
     const topTeam = [...teams].sort((a, b) => b.points - a.points)[0];
     const isFinished = stage === 'podium' || Boolean(declaredWinner);
     const winnerTeam = isFinished ? (declaredWinner || topTeam) : undefined;
+    const progressQ = Math.min(currentQuestionIndex + 1, questions.length);
+    const runKey = `${activeQuizInfo.shareCode}:${sessionId}:${isFinished ? 'finished' : 'playing'}:${progressQ}:${winnerTeam?.id || ''}:${winnerTeam?.points || 0}`;
+    if (lastReportedRunRef.current === runKey) return;
+    lastReportedRunRef.current = runKey;
 
     dbService.reportQuizRun({
       shareCode: activeQuizInfo.shareCode,
@@ -312,7 +317,7 @@ export function App() {
       playerName: currentUser.displayName,
       playerAvatar: currentUser.avatar,
       status: isFinished ? 'finished' : 'playing',
-      currentQuestion: Math.min(currentQuestionIndex + 1, questions.length),
+      currentQuestion: progressQ,
       totalQuestions: questions.length,
       winnerTeamName: winnerTeam ? winnerTeam.name : undefined,
       winnerPoints: winnerTeam ? winnerTeam.points : undefined,
@@ -404,7 +409,7 @@ export function App() {
     };
 
     syncWithDb();
-    const pollMs = stage === 'intro' || stage === 'podium' ? 5000 : 2000;
+    const pollMs = stage === 'intro' || stage === 'podium' ? 6000 : 3000;
     const interval = setInterval(syncWithDb, pollMs);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') syncWithDb();

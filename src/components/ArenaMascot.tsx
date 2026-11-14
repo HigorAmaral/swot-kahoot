@@ -72,27 +72,27 @@ export const ArenaMascot: React.FC<Props> = ({
             : 'w-32 h-32 sm:w-44 sm:h-44 md:w-48 md:h-48 lg:w-56 lg:h-56 xl:w-64 xl:h-64'
         }`}
       >
-        {/* Floating Kahoot Geometric Badges around the Mascot */}
+        {/* Floating Kahoot Geometric Badges around the Mascot (hidden on small mobile for 60fps) */}
         <div
-          className="absolute left-0 sm:-left-1 top-3 sm:top-6 w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-kahoot-red border-2 border-white/25 flex items-center justify-center text-white font-black text-[10px] sm:text-xs lg:text-sm shadow-lg animate-bounce"
+          className="hidden sm:flex absolute -left-1 top-6 w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-kahoot-red border-2 border-white/25 items-center justify-center text-white font-black text-xs lg:text-sm shadow-lg animate-bounce"
           style={{ animationDuration: '2.8s' }}
         >
           ▲
         </div>
         <div
-          className="absolute right-0 sm:-right-1 top-5 sm:top-9 w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-kahoot-blue border-2 border-white/25 flex items-center justify-center text-white font-black text-[10px] sm:text-xs lg:text-sm shadow-lg animate-bounce"
+          className="hidden sm:flex absolute -right-1 top-9 w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-kahoot-blue border-2 border-white/25 items-center justify-center text-white font-black text-xs lg:text-sm shadow-lg animate-bounce"
           style={{ animationDuration: '3.2s', animationDelay: '0.4s' }}
         >
           ◆
         </div>
         <div
-          className="absolute left-1 bottom-4 sm:bottom-7 w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-lg sm:rounded-xl bg-kahoot-yellow border-2 border-white/25 flex items-center justify-center text-white font-black text-[9px] sm:text-xs shadow-lg animate-bounce"
+          className="hidden sm:flex absolute left-1 bottom-7 w-7 h-7 lg:w-8 lg:h-8 rounded-xl bg-kahoot-yellow border-2 border-white/25 items-center justify-center text-white font-black text-xs shadow-lg animate-bounce"
           style={{ animationDuration: '2.5s', animationDelay: '0.8s' }}
         >
           ●
         </div>
         <div
-          className="absolute right-1 bottom-3 sm:bottom-6 w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-lg sm:rounded-xl bg-kahoot-green border-2 border-white/25 flex items-center justify-center text-white font-black text-[9px] sm:text-xs shadow-lg animate-bounce"
+          className="hidden sm:flex absolute right-1 bottom-6 w-7 h-7 lg:w-8 lg:h-8 rounded-xl bg-kahoot-green border-2 border-white/25 items-center justify-center text-white font-black text-xs shadow-lg animate-bounce"
           style={{ animationDuration: '3s', animationDelay: '0.2s' }}
         >
           ■
@@ -100,7 +100,7 @@ export const ArenaMascot: React.FC<Props> = ({
 
         <svg
           viewBox="0 0 260 250"
-          className="w-full h-full overflow-visible animate-mascot-float drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)]"
+          className="w-full h-full overflow-visible animate-mascot-float sm:drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)]"
         >
           {/* Glow Stage Shadow */}
           <ellipse cx="130" cy="234" rx="68" ry="11" fill="rgba(245, 158, 11, 0.22)" />

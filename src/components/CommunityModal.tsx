@@ -27,8 +27,29 @@ interface Props {
   onQuizCloned?: () => void;
 }
 
-const CATEGORIES = ['Todos', 'Geral', 'TI / SWOT', 'Administração', 'Provas', 'Curiosidades'];
-const PUBLISH_CATEGORIES = ['Geral', 'TI / SWOT', 'Administração', 'Provas', 'Curiosidades'];
+const CATEGORIES = [
+  'Todos',
+  'Programação',
+  'Frontend & Web',
+  'Backend & APIs',
+  'Banco de Dados',
+  'Cloud & DevOps',
+  'Segurança & Redes',
+  'IA & Dados',
+  'TI / SWOT',
+  'Geral',
+];
+const PUBLISH_CATEGORIES = [
+  'Programação',
+  'Frontend & Web',
+  'Backend & APIs',
+  'Banco de Dados',
+  'Cloud & DevOps',
+  'Segurança & Redes',
+  'IA & Dados',
+  'TI / SWOT',
+  'Geral',
+];
 
 export const CommunityModal: React.FC<Props> = ({
   isOpen,

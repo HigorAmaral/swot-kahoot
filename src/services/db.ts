@@ -1,8 +1,25 @@
 import { Team, Participant, RoundLog, UserAccount, SavedQuiz, Question } from '../types';
+import { communitySeedQuizzes } from '../data/communityQuizzes';
 
 export const SESSION_KEY = 'swot_session_id';
 const LOCAL_TEAMS_KEY = 'swot_local_teams';
 const AUTH_TOKEN_KEY = 'arenaquiz_auth_token';
+const SEED_STATS_KEY = 'arenaquiz_seed_stats';
+
+function getSeedStats(): Record<string, { likes: number; plays: number }> {
+  try {
+    const raw = localStorage.getItem(SEED_STATS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveSeedStats(stats: Record<string, { likes: number; plays: number }>) {
+  try {
+    localStorage.setItem(SEED_STATS_KEY, JSON.stringify(stats));
+  } catch {}
+}
 
 function saveAuthToken(token?: string) {
   if (typeof window === 'undefined' || !token) return;
@@ -328,19 +345,53 @@ export class DatabaseService {
     }
   }
 
-  // Get Public Community Quizzes
+  // Get Public Community Quizzes (DB + 30 built-in tech & programming quizzes)
   async getCommunityQuizzes(search?: string, category?: string): Promise<SavedQuiz[]> {
+    let dbQuizzes: SavedQuiz[] = [];
     try {
       const params = new URLSearchParams({ type: 'community_quizzes' });
       if (search?.trim()) params.set('q', search.trim());
       if (category && category !== 'Todos') params.set('category', category);
       const res = await fetch(`/api/db?${params.toString()}`);
-      if (!res.ok) return [];
-      const data = await res.json();
-      return data.quizzes || [];
+      if (res.ok) {
+        const data = await res.json();
+        dbQuizzes = data.quizzes || [];
+      }
     } catch {
-      return [];
+      // Fallback to built-in community quizzes when offline
     }
+
+    const stats = getSeedStats();
+    const term = search?.trim().toLowerCase() || '';
+    const existingCodes = new Set(dbQuizzes.map(q => q.shareCode));
+
+    const filteredSeeds = communitySeedQuizzes
+      .filter(q => !existingCodes.has(q.shareCode))
+      .map(q => {
+        const extra = stats[q.shareCode];
+        return {
+          ...q,
+          likesCount: (q.likesCount || 0) + (extra?.likes || 0),
+          playsCount: (q.playsCount || 0) + (extra?.plays || 0),
+        };
+      })
+      .filter(q => {
+        if (category && category !== 'Todos' && (q.category || 'Geral') !== category) {
+          return false;
+        }
+        if (!term) return true;
+        return (
+          q.title.toLowerCase().includes(term) ||
+          q.ownerName.toLowerCase().includes(term) ||
+          q.ownerUsername.toLowerCase().includes(term) ||
+          q.shareCode.toLowerCase().includes(term) ||
+          (q.category || '').toLowerCase().includes(term)
+        );
+      });
+
+    return [...dbQuizzes, ...filteredSeeds].sort(
+      (a, b) => (b.likesCount || 0) - (a.likesCount || 0)
+    );
   }
 
   // Publish or unpublish a quiz in Community
@@ -372,6 +423,16 @@ export class DatabaseService {
 
   // Like a Community Quiz
   async likeCommunityQuiz(shareCode: string): Promise<{ success: boolean; likesCount?: number }> {
+    const seed = communitySeedQuizzes.find(q => q.shareCode === shareCode);
+    if (seed) {
+      const stats = getSeedStats();
+      const cur = stats[shareCode] || { likes: 0, plays: 0 };
+      cur.likes += 1;
+      stats[shareCode] = cur;
+      saveSeedStats(stats);
+      return { success: true, likesCount: (seed.likesCount || 0) + cur.likes };
+    }
+
     try {
       const res = await fetch('/api/db', {
         method: 'POST',
@@ -388,6 +449,16 @@ export class DatabaseService {
 
   // Increment Community Quiz play count
   async incrementQuizPlay(shareCode: string): Promise<void> {
+    const seed = communitySeedQuizzes.find(q => q.shareCode === shareCode);
+    if (seed) {
+      const stats = getSeedStats();
+      const cur = stats[shareCode] || { likes: 0, plays: 0 };
+      cur.plays += 1;
+      stats[shareCode] = cur;
+      saveSeedStats(stats);
+      return;
+    }
+
     try {
       await fetch('/api/db', {
         method: 'POST',
@@ -403,6 +474,11 @@ export class DatabaseService {
     username: string,
     displayName: string
   ): Promise<{ success: boolean; quiz?: SavedQuiz; error?: string }> {
+    const seed = communitySeedQuizzes.find(q => q.shareCode === shareCode);
+    if (seed) {
+      return this.saveQuiz(username, displayName, `${seed.title} (Cópia)`, seed.questions);
+    }
+
     try {
       const res = await fetch('/api/db', {
         method: 'POST',
@@ -424,13 +500,17 @@ export class DatabaseService {
 
   // Get Shared Quiz by Code
   async getQuizByCode(code: string): Promise<{ success: boolean; quiz?: SavedQuiz; error?: string }> {
+    const cleanCode = code.trim().toUpperCase().replace(/^.*QUIZ=/i, '');
+    const seed = communitySeedQuizzes.find(q => q.shareCode === cleanCode);
+
     try {
-      const cleanCode = code.trim().toUpperCase().replace(/^.*QUIZ=/i, '');
       const res = await fetch(`/api/db?type=quiz&code=${encodeURIComponent(cleanCode)}`);
       const data = await res.json();
-      if (!res.ok) return { success: false, error: data.error || 'Quiz não encontrado' };
-      return { success: true, quiz: data.quiz };
+      if (res.ok && data.quiz) return { success: true, quiz: data.quiz };
+      if (seed) return { success: true, quiz: seed };
+      return { success: false, error: data.error || 'Quiz não encontrado' };
     } catch {
+      if (seed) return { success: true, quiz: seed };
       return { success: false, error: 'Erro de conexão com o servidor.' };
     }
   }

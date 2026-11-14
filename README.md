@@ -1,6 +1,6 @@
-# 🎯 ArenaQuiz (SWOT Kahoot!) — Quiz Interativo em Tempo Real
+# 🎯 ArenaQuiz — Quiz Interativo em Tempo Real
 
-Plataforma completa de Quiz interativo e gamificado no estilo **Kahoot!**, desenvolvida para dinâmicas de sala de aula, treinamentos corporativos e competições em equipe — com suporte completo a **Mobile**, **PWA instalável**, **criação/importação de quizzes**, **compartilhamento** e **música de fundo**.
+Plataforma completa de Quiz interativo, desenvolvida para dinâmicas de sala de aula, treinamentos corporativos e competições em equipe — com suporte completo a **Mobile**, **PWA instalável**, **criação/importação de quizzes**, **compartilhamento** e **música de fundo**.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHigorAmaral%2Fswot-kahoot)
 

@@ -2,16 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
 import { buildAnswerReview } from '../utils/quizReport';
-import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp, Printer } from 'lucide-react';
 
 interface Props {
   teams: Team[];
   onRestart: () => void;
   questions?: Question[];
   roundLogs?: RoundLog[];
+  quizTitle?: string;
+  sessionId?: string;
 }
 
-export const PodiumView: React.FC<Props> = ({ teams, onRestart, questions = [], roundLogs = [] }) => {
+export const PodiumView: React.FC<Props> = ({
+  teams,
+  onRestart,
+  questions = [],
+  roundLogs = [],
+  quizTitle = 'ArenaQuiz',
+  sessionId = 'sala-principal',
+}) => {
   const [showReview, setShowReview] = useState(false);
   const reviewItems = buildAnswerReview(questions, roundLogs, teams);
   const sorted = [...teams].sort((a, b) => b.points - a.points || (b.candies + b.chocolates) - (a.candies + a.chocolates));
@@ -23,6 +32,76 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart, questions = [], 
   useEffect(() => {
     sound.playCorrect();
   }, []);
+
+  const handlePrintCertificate = () => {
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return;
+    const dateStr = new Date().toLocaleDateString('pt-BR');
+    const rowsHtml = sorted
+      .map(
+        (t, idx) => `
+        <tr>
+          <td style="padding:10px;border-bottom:1px solid #e2e8f0;font-weight:700;">#${idx + 1}</td>
+          <td style="padding:10px;border-bottom:1px solid #e2e8f0;font-weight:700;">${t.name}</td>
+          <td style="padding:10px;border-bottom:1px solid #e2e8f0;">${t.participants.map(p => p.name).join(', ') || '-'}</td>
+          <td style="padding:10px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:800;">${t.points} pts</td>
+          <td style="padding:10px;border-bottom:1px solid #e2e8f0;text-align:center;">${t.answersCorrect}/${t.answersCorrect + t.answersWrong}</td>
+        </tr>`
+      )
+      .join('');
+
+    win.document.write(`
+      <!doctype html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="utf-8" />
+        <title>Certificado ArenaQuiz - ${quizTitle}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 32px; color: #0f172a; background: #fff; }
+          .cert { border: 6px double #10b981; border-radius: 16px; padding: 32px; max-width: 800px; margin: 0 auto; }
+          .badge { display:inline-block; background:#10b981; color:#fff; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+          h1 { margin: 14px 0 6px; font-size: 30px; }
+          .winner { margin: 20px 0; padding: 18px; border-radius: 12px; background: #fef9c3; border: 2px solid #eab308; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+          th { text-align:left; background:#f1f5f9; padding:10px; border-bottom:2px solid #cbd5e1; }
+          .footer { margin-top: 28px; font-size: 11px; color: #64748b; display:flex; justify-content:space-between; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="cert">
+          <span class="badge">Certificado Oficial • ArenaQuiz</span>
+          <h1>${quizTitle}</h1>
+          <p style="color:#475569;margin:0;">Sala: <strong>${sessionId}</strong> • Data: <strong>${dateStr}</strong> • ${questions.length} pergunta(s)</p>
+          ${first ? `
+          <div class="winner">
+            <div style="font-size:12px;font-weight:800;color:#a16207;text-transform:uppercase;">🏆 Equipe Campeã</div>
+            <div style="font-size:24px;font-weight:900;margin:4px 0;">${first.name} — ${first.points} pontos</div>
+            ${first.participants.length > 0 ? `<div style="font-size:13px;color:#713f12;">Integrantes: ${first.participants.map(p => p.name).join(', ')}</div>` : ''}
+          </div>` : ''}
+          <table>
+            <thead>
+              <tr>
+                <th>Pos.</th>
+                <th>Equipe</th>
+                <th>Participantes</th>
+                <th style="text-align:right;">Pontuação</th>
+                <th style="text-align:center;">Acertos</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+          <div class="footer">
+            <span>Desenvolvido por Higor Amaral • ArenaQuiz</span>
+            <span>© ${new Date().getFullYear()} Licença MIT</span>
+          </div>
+        </div>
+        <script>window.onload = () => { window.print(); };</script>
+      </body>
+      </html>
+    `);
+    win.document.close();
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in text-center">
@@ -156,6 +235,14 @@ export const PodiumView: React.FC<Props> = ({ teams, onRestart, questions = [], 
             {showReview ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         )}
+        <button
+          type="button"
+          onClick={handlePrintCertificate}
+          className="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-base shadow-lg transition flex items-center gap-2"
+        >
+          <Printer className="w-5 h-5" />
+          <span>Certificado / Relatório PDF</span>
+        </button>
         <button
           onClick={onRestart}
           className="px-8 py-3.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-base shadow-lg transition flex items-center gap-2"

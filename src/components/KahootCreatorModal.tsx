@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Question, questionsData } from '../data/questions';
+import { communitySeedQuizzes } from '../data/communityQuizzes';
 import { UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
@@ -24,7 +25,8 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowDown,
-  Pencil
+  Pencil,
+  Wand2
 } from 'lucide-react';
 
 interface Props {
@@ -42,10 +44,12 @@ export const KahootCreatorModal: React.FC<Props> = ({
   onSaveQuestions,
   currentUser,
 }) => {
-  const [activeTab, setActiveTab] = useState<'manual' | 'spreadsheet' | 'file_text' | 'paste'>('manual');
+  const [activeTab, setActiveTab] = useState<'manual' | 'spreadsheet' | 'file_text' | 'paste' | 'generator'>('manual');
   const [quizTitle, setQuizTitle] = useState('Meu Quiz no ArenaQuiz');
   const [isSaving, setIsSaving] = useState(false);
   const [questionsList, setQuestionsList] = useState<Question[]>(currentQuestions);
+  const [genTopic, setGenTopic] = useState<string>('Todos');
+  const [genCount, setGenCount] = useState<number>(5);
 
   // Manual Form State
   const [manualTitle, setManualTitle] = useState('');
@@ -347,27 +351,138 @@ export const KahootCreatorModal: React.FC<Props> = ({
     setTimeout(() => setImportFeedback(null), 3500);
   };
 
-  // File Upload (PDF, CSV, TXT)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Quick Topic Generator (from curated tech/management bank)
+  const handleGenerateByTopic = () => {
+    const pool: Question[] = [
+      ...questionsData,
+      ...communitySeedQuizzes.flatMap(q => q.questions),
+    ];
+    const filtered =
+      genTopic === 'Todos'
+        ? pool
+        : pool.filter(
+            q =>
+              q.category.toLowerCase().includes(genTopic.toLowerCase()) ||
+              q.question.toLowerCase().includes(genTopic.toLowerCase())
+          );
+    const source = filtered.length > 0 ? filtered : pool;
+    const shuffled = [...source].sort(() => Math.random() - 0.5).slice(0, genCount);
+    const cloned = shuffled.map((q, idx) => ({
+      ...q,
+      id: questionsList.length + idx + 1,
+    }));
+    setQuestionsList(prev => [...prev, ...cloned].map((q, i) => ({ ...q, id: i + 1 })));
+    sound.playCorrect();
+    setImportFeedback(`${cloned.length} pergunta(s) gerada(s) sobre "${genTopic}"!`);
+    setTimeout(() => setImportFeedback(null), 3500);
+  };
+
+  // File Upload (Excel, PDF, CSV, TXT)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const lowerName = file.name.toLowerCase();
+
+    if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
+      try {
+        setImportFeedback(`Lendo planilha "${file.name}"...`);
+        const { default: readXlsxFile } = await import('read-excel-file/browser');
+        const rows = (await readXlsxFile(file)) as unknown as unknown[][];
+        const startIndex =
+          rows[0] && String(rows[0][0] ?? '').toLowerCase().includes('pergunta') ? 1 : 0;
+        const imported: Question[] = [];
+        for (let i = startIndex; i < rows.length; i++) {
+          const cols = rows[i].map((c: unknown) => String(c ?? '').trim());
+          if (cols.length >= 5 && cols[0]) {
+            const rawAns = (cols[5] || 'A').toUpperCase();
+            let correctIndex = 0;
+            if (rawAns === 'B' || rawAns === '2') correctIndex = 1;
+            if (rawAns === 'C' || rawAns === '3') correctIndex = 2;
+            if (rawAns === 'D' || rawAns === '4') correctIndex = 3;
+            imported.push({
+              id: imported.length + 1,
+              category: cols[6] || 'Excel',
+              theme: 'PLANEJAMENTO',
+              question: cols[0],
+              options: [
+                { text: cols[1] || 'Opção A', symbol: 'triangle', color: 'bg-kahoot-red' },
+                { text: cols[2] || 'Opção B', symbol: 'diamond', color: 'bg-kahoot-blue' },
+                { text: cols[3] || 'Opção C', symbol: 'circle', color: 'bg-kahoot-yellow' },
+                { text: cols[4] || 'Opção D', symbol: 'square', color: 'bg-kahoot-green' },
+              ],
+              correctIndex,
+              caseRelation: 'Pergunta importada via Excel.',
+              explanation: cols[7] || 'Importada de planilha Excel.',
+            });
+          }
+        }
+        if (imported.length > 0) {
+          setQuestionsList(prev => [...prev, ...imported].map((q, i) => ({ ...q, id: i + 1 })));
+          sound.playCorrect();
+          setImportFeedback(`${imported.length} pergunta(s) importada(s) do Excel ${file.name}!`);
+          setTimeout(() => setImportFeedback(null), 3500);
+        } else {
+          setImportFeedback(null);
+          showAlert('Nenhuma pergunta válida encontrada no Excel (colunas: Pergunta, A, B, C, D, Resposta).', 'warning');
+        }
+      } catch (err) {
+        console.error('Erro ao ler Excel:', err);
+        setImportFeedback(null);
+        showAlert('Erro ao ler o arquivo Excel (.xlsx).', 'error');
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+      return;
+    }
+
+    if (lowerName.endsWith('.pdf')) {
+      try {
+        setImportFeedback(`Lendo PDF "${file.name}"...`);
+        const content = await extractTextFromPdfFile(file);
+        if (!content) {
+          setImportFeedback(null);
+          showAlert('Não foi possível extrair texto deste PDF (pode ser um PDF escaneado como imagem).', 'warning');
+          return;
+        }
+        const imported = parseRawText(content);
+        if (imported.length > 0) {
+          setQuestionsList(prev => [...prev, ...imported].map((q, i) => ({ ...q, id: i + 1 })));
+          sound.playCorrect();
+          setImportFeedback(`${imported.length} pergunta(s) importada(s) do PDF ${file.name}!`);
+          setTimeout(() => setImportFeedback(null), 3500);
+        } else {
+          setImportFeedback(null);
+          setPastedText(content);
+          setActiveTab('paste');
+          showAlert("Texto extraído do PDF! Revise na aba 'Colar Texto' e clique em 'Processar'.", 'info');
+        }
+      } catch (err) {
+        console.error('Erro ao ler PDF:', err);
+        setImportFeedback(null);
+        showAlert('Erro ao processar o arquivo PDF. Tente exportar o texto ou usar CSV.', 'error');
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result as string;
       if (!content) return;
 
-      if (file.name.endsWith('.csv') || file.name.endsWith('.tsv')) {
+      if (lowerName.endsWith('.csv') || lowerName.endsWith('.tsv')) {
         const imported = parseCSV(content);
         if (imported.length > 0) {
           setQuestionsList(prev => [...prev, ...imported].map((q, i) => ({ ...q, id: i + 1 })));
           sound.playCorrect();
           setImportFeedback(`${imported.length} perguntas importadas do arquivo ${file.name}!`);
+          setTimeout(() => setImportFeedback(null), 3500);
         } else {
           showAlert("Nenhuma pergunta válida encontrada no CSV.", 'warning');
         }
       } else {
-        // Text / Markdown / PDF stream text
         const imported = parseRawText(content);
         if (imported.length > 0) {
           setQuestionsList(prev => [...prev, ...imported].map((q, i) => ({ ...q, id: i + 1 })));
@@ -761,13 +876,13 @@ export const KahootCreatorModal: React.FC<Props> = ({
             </div>
           )}
 
-          {/* TAB 3: UPLOAD ARQUIVO (PDF / TXT) */}
+          {/* TAB 3: UPLOAD ARQUIVO (EXCEL / PDF / TXT) */}
           {activeTab === 'file_text' && (
             <div className="space-y-4 animate-fade-in text-center p-5 sm:p-7 border-2 border-dashed border-slate-700 rounded-2xl bg-[#111622]">
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".txt,.csv,.tsv,.md,.pdf"
+                accept=".xlsx,.xls,.txt,.csv,.tsv,.md,.pdf"
                 onChange={handleFileUpload}
                 className="hidden"
               />
@@ -778,10 +893,10 @@ export const KahootCreatorModal: React.FC<Props> = ({
 
               <div>
                 <h4 className="text-sm sm:text-base font-extrabold text-white">
-                  Importar Arquivo (.pdf, .txt, .csv, .md)
+                  Importar Arquivo (.xlsx, .pdf, .csv, .txt, .md)
                 </h4>
                 <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
-                  O sistema lê o arquivo e identifica perguntas numeradas com opções A), B), C), D) e gabarito.
+                  O sistema lê planilhas Excel/CSV (Pergunta, A, B, C, D, Resposta), PDFs ou arquivos de texto numerados.
                 </p>
               </div>
 
@@ -791,6 +906,78 @@ export const KahootCreatorModal: React.FC<Props> = ({
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition active:scale-95 inline-flex items-center justify-center gap-2 shadow-lg"
               >
                 <Upload className="w-4 h-4 shrink-0" /> Escolher Arquivo do Aparelho
+              </button>
+            </div>
+          )}
+
+          {/* TAB 5: GERADOR RÁPIDO POR TÓPICO */}
+          {activeTab === 'generator' && (
+            <div className="space-y-4 animate-fade-in bg-[#111622] border border-fuchsia-500/30 rounded-2xl p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-fuchsia-500/15 border border-fuchsia-400/40 text-fuchsia-300 shrink-0">
+                  <Wand2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm sm:text-base font-black text-white">
+                    Gerador Rápido por Tópico
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Escolha um tema e a quantidade para adicionar perguntas prontas ao seu quiz em 1 clique.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1.5">
+                    Tópico / Área:
+                  </label>
+                  <select
+                    value={genTopic}
+                    onChange={e => setGenTopic(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-fuchsia-400"
+                  >
+                    <option value="Todos">Todos os Temas (Misto)</option>
+                    <option value="JavaScript">JavaScript & TypeScript</option>
+                    <option value="Python">Python & Lógica</option>
+                    <option value="React">React & Frontend</option>
+                    <option value="SQL">SQL & Banco de Dados</option>
+                    <option value="IA">Inteligência Artificial & Dados</option>
+                    <option value="Segurança">Cybersecurity & Redes</option>
+                    <option value="Cloud">Cloud, Docker & DevOps</option>
+                    <option value="SWOT">Análise SWOT & Gestão</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1.5">
+                    Quantidade de Perguntas:
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[3, 5, 10].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setGenCount(n)}
+                        className={`py-2.5 rounded-xl text-xs font-black border transition ${
+                          genCount === n
+                            ? 'bg-fuchsia-500 text-slate-950 border-fuchsia-400'
+                            : 'bg-slate-950 text-slate-300 border-slate-700 hover:border-slate-500'
+                        }`}
+                      >
+                        +{n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGenerateByTopic}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:brightness-110 text-white font-black text-xs sm:text-sm shadow-lg transition flex items-center justify-center gap-2"
+              >
+                <Wand2 className="w-4 h-4" />
+                Gerar {genCount} Pergunta(s) Agora
               </button>
             </div>
           )}

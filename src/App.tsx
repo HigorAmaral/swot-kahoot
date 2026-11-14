@@ -132,6 +132,7 @@ export function App() {
   const [stage, setStage] = useState<GameStage>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [disputeMode] = useState<DisputeMode>('direto');
+  const [gameMode, setGameMode] = useState<'turno' | 'todos'>('turno');
   const [questionDuration, setQuestionDuration] = useState<number>(30);
   const [pointsPerCorrect, setPointsPerCorrect] = useState<number>(1000);
 
@@ -650,8 +651,11 @@ export function App() {
   const handleAnswerSelected = (selectedIdx: number, timeLeft: number) => {
     setLastSelectedIndex(selectedIdx);
     const isCorrect = selectedIdx === currentQuestion.correctIndex;
-    const bonus = isCorrect ? Math.round((timeLeft / Math.max(questionDuration, 1)) * 200) : 0;
-    const pointsAwarded = isCorrect ? pointsPerCorrect + bonus : 0;
+    const speedBonus = isCorrect ? Math.round((timeLeft / Math.max(questionDuration, 1)) * 200) : 0;
+    const currentTeam = teams.find(t => t.id === answeringTeamId);
+    const nextStreak = isCorrect ? (currentTeam?.streak || 0) + 1 : 0;
+    const streakBonus = isCorrect && nextStreak >= 2 ? Math.min(400, (nextStreak - 1) * 100) : 0;
+    const pointsAwarded = isCorrect ? pointsPerCorrect + speedBonus + streakBonus : 0;
 
     const updatedTeams = teams.map(t => {
       if (t.id === answeringTeamId) {
@@ -661,11 +665,13 @@ export function App() {
             points: t.points + pointsAwarded,
             answersCorrect: t.answersCorrect + 1,
             candies: t.candies + 1,
+            streak: nextStreak,
           };
         } else {
           return {
             ...t,
             answersWrong: t.answersWrong + 1,
+            streak: 0,
           };
         }
       }
@@ -857,6 +863,8 @@ export function App() {
             onShuffleQuestions={handleShuffleQuestions}
             sessionId={sessionId}
             onChangeRoomPin={handleChangeRoomPin}
+            gameMode={gameMode}
+            onSetGameMode={setGameMode}
             onOpenActiveQuizAdmin={
               activeQuizInfo?.shareCode
                 ? () =>
@@ -883,9 +891,11 @@ export function App() {
             question={currentQuestion}
             questionIndex={currentQuestionIndex}
             totalQuestions={questions.length}
+            teams={teams}
             onBack={() => setStage('intro')}
-            onProceedToQuestion={() => {
-              setAnsweringTeamId(teams[currentQuestionIndex % teams.length].id);
+            onProceedToQuestion={(chosenTeamId?: number) => {
+              const fallbackId = teams[currentQuestionIndex % teams.length]?.id ?? teams[0]?.id ?? 1;
+              setAnsweringTeamId(chosenTeamId ?? fallbackId);
               setIsPassed(false);
               setStage('question_play');
             }}
@@ -901,6 +911,7 @@ export function App() {
             answeringTeam={answeringTeam}
             disputeWinnerTeam={disputeWinnerTeam}
             isPassed={isPassed}
+            gameMode={gameMode}
             onAnswerSelected={handleAnswerSelected}
             allTeams={teams}
             onSelectAnsweringTeam={(teamId) => {
@@ -917,6 +928,7 @@ export function App() {
               answeringTeam={answeringTeam}
               disputeWinnerTeam={disputeWinnerTeam}
               isPassed={isPassed}
+              gameMode={gameMode}
               onAwardBrinde={handleAwardBrinde}
               onContinue={() => setStage('scoreboard')}
               onReassignAnswer={handleReassignAnswer}
@@ -938,6 +950,8 @@ export function App() {
               teams={teams}
               questions={questions}
               roundLogs={roundLogs}
+              quizTitle={activeQuizInfo?.title || 'ArenaQuiz'}
+              sessionId={sessionId}
               onRestart={handleResetGame}
             />
           )}

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Question } from '../data/questions';
-import { Team } from '../types';
+import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
 import { CheckCircle2, XCircle, Award, Sparkles, ArrowRight, HelpCircle } from 'lucide-react';
 
@@ -10,6 +10,7 @@ interface Props {
   answeringTeam: Team;
   disputeWinnerTeam: Team;
   isPassed: boolean;
+  gameMode?: GamePlayMode;
   onAwardBrinde: (teamId: number, type: 'candy' | 'chocolate') => void;
   onContinue: () => void;
   onReassignAnswer: (newTeamId: number, isCorrect: boolean) => void;
@@ -22,6 +23,7 @@ export const VerdictView: React.FC<Props> = ({
   answeringTeam,
   disputeWinnerTeam,
   isPassed,
+  gameMode = 'turno',
   onAwardBrinde,
   onContinue,
   onReassignAnswer,
@@ -30,6 +32,7 @@ export const VerdictView: React.FC<Props> = ({
   const isCorrect = selectedIndex === question.correctIndex;
   const isTimeout = selectedIndex === -1;
   const [brindeAwarded, setBrindeAwarded] = useState<'candy' | 'chocolate' | null>(null);
+  const [awardedExtraIds, setAwardedExtraIds] = useState<number[]>([]);
   const hasPlayedRef = useRef(false);
 
   useEffect(() => {
@@ -173,7 +176,7 @@ export const VerdictView: React.FC<Props> = ({
       <div className="w-full flex flex-wrap items-center justify-between gap-4">
         {/* If team missed, allow Grupo de Comando to pass to another team in room */}
         {!isCorrect && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400 font-bold">Repassar para outra equipe da sala:</span>
             {allTeams.filter(t => t.id !== answeringTeam.id).map(other => (
               <button
@@ -184,6 +187,33 @@ export const VerdictView: React.FC<Props> = ({
                 Dar ponto p/ {other.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* In Todos Respondem mode, allow awarding points to other teams that also got it right */}
+        {isCorrect && gameMode === 'todos' && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-cyan-300 font-bold">Todos Respondem — também acertaram:</span>
+            {allTeams.filter(t => t.id !== answeringTeam.id).map(other => {
+              const alreadyAwarded = awardedExtraIds.includes(other.id);
+              return (
+                <button
+                  key={other.id}
+                  disabled={alreadyAwarded}
+                  onClick={() => {
+                    setAwardedExtraIds(prev => [...prev, other.id]);
+                    onReassignAnswer(other.id, true);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    alreadyAwarded
+                      ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300 cursor-default'
+                      : 'bg-slate-700 hover:bg-slate-600 text-white border-slate-500'
+                  }`}
+                >
+                  {alreadyAwarded ? `✓ ${other.name}` : `+ Ponto ${other.name}`}
+                </button>
+              );
+            })}
           </div>
         )}
 

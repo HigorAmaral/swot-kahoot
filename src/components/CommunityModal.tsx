@@ -16,7 +16,8 @@ import {
   RefreshCw,
   UploadCloud,
   EyeOff,
-  Users
+  Users,
+  Star
 } from 'lucide-react';
 
 interface Props {
@@ -30,6 +31,7 @@ interface Props {
 
 const CATEGORIES = [
   'Todos',
+  '⭐ Favoritos',
   'Programação',
   'Frontend & Web',
   'Backend & APIs',
@@ -60,6 +62,9 @@ export const CommunityModal: React.FC<Props> = ({
   onOpenCreator,
   onQuizCloned,
 }) => {
+  const favKey = `arenaquiz_favs_${currentUser.username}`;
+  const rateKey = `arenaquiz_ratings_${currentUser.username}`;
+
   const [quizzes, setQuizzes] = useState<SavedQuiz[]>([]);
   const [myQuizzes, setMyQuizzes] = useState<SavedQuiz[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,10 +77,51 @@ export const CommunityModal: React.FC<Props> = ({
   const [clonedCodes, setClonedCodes] = useState<Set<string>>(new Set());
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [favoriteCodes, setFavoriteCodes] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favKey);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const [userRatings, setUserRatings] = useState<Record<string, number>>(() => {
+    try {
+      const raw = localStorage.getItem(rateKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleFavorite = (shareCode: string) => {
+    setFavoriteCodes(prev => {
+      const next = new Set(prev);
+      if (next.has(shareCode)) next.delete(shareCode);
+      else next.add(shareCode);
+      try {
+        localStorage.setItem(favKey, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+    sound.playTone(720, 0.08, 'sine', 0.12);
+  };
+
+  const handleRateQuiz = (shareCode: string, stars: number) => {
+    setUserRatings(prev => {
+      const next = { ...prev, [shareCode]: stars };
+      try {
+        localStorage.setItem(rateKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    sound.playTone(620 + stars * 40, 0.08, 'triangle', 0.12);
+  };
 
   const loadCommunity = async (q = search, cat = selectedCategory) => {
     setLoading(true);
-    const list = await dbService.getCommunityQuizzes(q, cat);
+    const apiCat = cat === '⭐ Favoritos' ? 'Todos' : cat;
+    const list = await dbService.getCommunityQuizzes(q, apiCat);
     setQuizzes(list);
     setLoading(false);
   };
@@ -381,31 +427,47 @@ export const CommunityModal: React.FC<Props> = ({
             <div className="py-12 text-center text-sm text-slate-400">
               Carregando Kahoots da comunidade...
             </div>
-          ) : quizzes.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-[#111622] border border-slate-800 text-center space-y-3">
-              <Users className="w-10 h-10 text-cyan-400 mx-auto opacity-80" />
-              <div>
-                <h3 className="text-sm sm:text-base font-black text-white">
-                  Nenhum Kahoot público encontrado ainda
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                  Seja o primeiro a compartilhar um quiz com a comunidade! Clique em "Publicar Meu Quiz" acima.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPublishPanel(true)}
-                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black inline-flex items-center gap-1.5"
-              >
-                <UploadCloud className="w-4 h-4" /> Publicar Meu Quiz Agora
-              </button>
-            </div>
-          ) : (
+          ) : (() => {
+            const visibleQuizzes =
+              selectedCategory === '⭐ Favoritos'
+                ? quizzes.filter(q => favoriteCodes.has(q.shareCode))
+                : quizzes;
+            if (visibleQuizzes.length === 0) {
+              return (
+                <div className="p-8 rounded-2xl bg-[#111622] border border-slate-800 text-center space-y-3">
+                  <Users className="w-10 h-10 text-cyan-400 mx-auto opacity-80" />
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-white">
+                      {selectedCategory === '⭐ Favoritos'
+                        ? 'Você ainda não favoritou nenhum Kahoot'
+                        : 'Nenhum Kahoot público encontrado ainda'}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                      {selectedCategory === '⭐ Favoritos'
+                        ? 'Clique na estrela ⭐ de qualquer quiz para salvá-lo aqui.'
+                        : 'Seja o primeiro a compartilhar um quiz com a comunidade! Clique em "Publicar Meu Quiz" acima.'}
+                    </p>
+                  </div>
+                  {selectedCategory !== '⭐ Favoritos' && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPublishPanel(true)}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black inline-flex items-center gap-1.5"
+                    >
+                      <UploadCloud className="w-4 h-4" /> Publicar Meu Quiz Agora
+                    </button>
+                  )}
+                </div>
+              );
+            }
+            return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {quizzes.map(q => {
+              {visibleQuizzes.map(q => {
                 const isOwner = q.ownerUsername.toLowerCase() === currentUser.username.toLowerCase();
                 const isLiked = likedCodes.has(q.shareCode);
                 const isCloned = clonedCodes.has(q.shareCode);
+                const isFav = favoriteCodes.has(q.shareCode);
+                const myRating = userRatings[q.shareCode] || 0;
 
                 return (
                   <div
@@ -417,9 +479,23 @@ export const CommunityModal: React.FC<Props> = ({
                         <span className="px-2.5 py-0.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-black uppercase">
                           {q.category || 'Geral'}
                         </span>
-                        <span className="font-mono text-[11px] text-slate-400">
-                          #{q.shareCode}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleFavorite(q.shareCode)}
+                            className={`p-1 rounded-lg transition ${
+                              isFav
+                                ? 'text-amber-400 bg-amber-500/15'
+                                : 'text-slate-500 hover:text-amber-300'
+                            }`}
+                            title={isFav ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos'}
+                          >
+                            <Star className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                          </button>
+                          <span className="font-mono text-[11px] text-slate-400">
+                            #{q.shareCode}
+                          </span>
+                        </div>
                       </div>
 
                       <h3 className="font-black text-white text-sm sm:text-base leading-snug">
@@ -435,6 +511,30 @@ export const CommunityModal: React.FC<Props> = ({
                         <span className="text-[11px] font-bold text-emerald-400 shrink-0">
                           {q.questions.length} pergunta(s)
                         </span>
+                      </div>
+
+                      {/* 1-5 Star Rating */}
+                      <div className="flex items-center gap-1 pt-0.5">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => handleRateQuiz(q.shareCode, star)}
+                            className={`transition ${
+                              star <= myRating
+                                ? 'text-amber-400'
+                                : 'text-slate-600 hover:text-amber-300'
+                            }`}
+                            title={`Avaliar com ${star} estrela(s)`}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${star <= myRating ? 'fill-current' : ''}`} />
+                          </button>
+                        ))}
+                        {myRating > 0 && (
+                          <span className="text-[10px] text-amber-300 font-bold ml-1">
+                            ({myRating}/5)
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -515,7 +615,8 @@ export const CommunityModal: React.FC<Props> = ({
                 );
               })}
             </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Footer */}

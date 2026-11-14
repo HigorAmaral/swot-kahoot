@@ -1,4 +1,5 @@
 export type DisputeMode = 'peao' | 'buzzer' | 'alvo' | 'direto';
+export type GamePlayMode = 'turno' | 'todos';
 
 export { type Question } from './data/questions';
 
@@ -50,6 +51,7 @@ export interface Team {
   answersWrong: number;
   participants: Participant[];
   isWinner?: boolean;
+  streak?: number;
 }
 
 export interface RoundLog {

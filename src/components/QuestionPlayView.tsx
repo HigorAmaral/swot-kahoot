@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '../data/questions';
-import { Team } from '../types';
+import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
 import { FastForward, Sparkles, Clock } from 'lucide-react';
 
@@ -12,6 +12,7 @@ interface Props {
   answeringTeam: Team;
   disputeWinnerTeam: Team;
   isPassed: boolean;
+  gameMode?: GamePlayMode;
   onAnswerSelected: (selectedIndex: number, timeLeft: number) => void;
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
@@ -25,6 +26,7 @@ export const QuestionPlayView: React.FC<Props> = ({
   answeringTeam,
   disputeWinnerTeam,
   isPassed,
+  gameMode = 'turno',
   onAnswerSelected,
   allTeams,
   onSelectAnsweringTeam,
@@ -185,6 +187,16 @@ export const QuestionPlayView: React.FC<Props> = ({
           {isPassed && (
             <span className="text-[10px] text-amber-300 font-bold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/30">
               (Passada por {disputeWinnerTeam.name})
+            </span>
+          )}
+          {(answeringTeam.streak || 0) >= 2 && (
+            <span className="text-[10px] font-black text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded border border-orange-400/40 animate-pulse">
+              🔥 Combo x{answeringTeam.streak}
+            </span>
+          )}
+          {gameMode === 'todos' && (
+            <span className="text-[10px] font-black text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-400/40">
+              Todos Respondem
             </span>
           )}
         </div>

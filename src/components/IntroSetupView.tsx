@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Team, UserAccount, Question } from '../types';
+import { Team, UserAccount, Question, GamePlayMode } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import { showAlert } from '../utils/toast';
 import { showConfirm } from '../utils/confirm';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -19,6 +20,8 @@ interface Props {
   onShuffleQuestions?: () => void;
   sessionId?: string;
   onChangeRoomPin?: (pin?: string) => void;
+  gameMode?: GamePlayMode;
+  onSetGameMode?: (mode: GamePlayMode) => void;
   onOpenActiveQuizAdmin?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
@@ -50,6 +53,8 @@ export const IntroSetupView: React.FC<Props> = ({
   onShuffleQuestions,
   sessionId = 'sala-principal',
   onChangeRoomPin,
+  gameMode = 'turno',
+  onSetGameMode,
   onOpenActiveQuizAdmin,
   onAddParticipant,
   onRemoveParticipant,
@@ -63,6 +68,7 @@ export const IntroSetupView: React.FC<Props> = ({
   const [newGroupColorIdx, setNewGroupColorIdx] = useState(4);
   const [pinInput, setPinInput] = useState('');
   const [showPinJoin, setShowPinJoin] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [quizSummary, setQuizSummary] = useState<{
     playingCount: number;
     finishedCount: number;
@@ -154,6 +160,111 @@ export const IntroSetupView: React.FC<Props> = ({
               ? `Este Kahoot possui ${questions.length} pergunta(s) pronta(s). Escolha sua equipe abaixo e clique em Começar!`
               : 'Escolha sua equipe abaixo, entre com sua conta e dispute os pontos e brindes da rodada!'}
           </p>
+
+          {/* Live Room PIN Bar + QR Code + Game Mode */}
+          <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-xs">
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-slate-400 font-bold">PIN:</span>
+              <span className="font-black text-amber-300 tracking-wider">{sessionId}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/?sala=${encodeURIComponent(sessionId)}`;
+                  navigator.clipboard?.writeText(url).then(() => {
+                    showAlert(`Link da sala "${sessionId}" copiado!`, 'success');
+                  });
+                }}
+                className="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                title="Copiar link de convite da sala"
+              >
+                <Copy className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                className="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 transition"
+                title="Mostrar QR Code da sala"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+              </button>
+              {onChangeRoomPin && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onChangeRoomPin()}
+                    className="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition"
+                    title="Gerar novo PIN de sala exclusivo"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPinJoin(v => !v)}
+                    className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-cyan-300 transition"
+                  >
+                    {showPinJoin ? 'Fechar' : 'Entrar por PIN'}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {onSetGameMode && (
+              <div className="inline-flex items-center p-0.5 rounded-xl bg-slate-900/90 border border-slate-700 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => onSetGameMode('turno')}
+                  className={`px-2.5 py-1 rounded-lg transition ${
+                    gameMode === 'turno'
+                      ? 'bg-emerald-500 text-slate-950 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title="Um grupo por rodada"
+                >
+                  Por Turno
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onSetGameMode('todos')}
+                  className={`px-2.5 py-1 rounded-lg transition ${
+                    gameMode === 'todos'
+                      ? 'bg-cyan-500 text-slate-950 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title="Todos os grupos podem pontuar na mesma pergunta"
+                >
+                  Todos Respondem
+                </button>
+              </div>
+            )}
+
+            {showPinJoin && onChangeRoomPin && (
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  if (!pinInput.trim()) return;
+                  onChangeRoomPin(pinInput.trim());
+                  setPinInput('');
+                  setShowPinJoin(false);
+                }}
+                className="inline-flex items-center gap-1.5"
+              >
+                <input
+                  type="text"
+                  value={pinInput}
+                  onChange={e => setPinInput(e.target.value)}
+                  placeholder="Digite o PIN..."
+                  className="w-28 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-xs text-white focus:outline-none focus:border-cyan-400"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black transition"
+                >
+                  Ir
+                </button>
+              </form>
+            )}
+          </div>
 
           {activeQuizInfo && (
             <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-2">
@@ -517,6 +628,44 @@ export const IntroSetupView: React.FC<Props> = ({
           })}
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {showQrModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowQrModal(false)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl bg-[#0d111a] border border-cyan-500/40 p-6 text-center shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-cyan-400" />
+                Entrar via QR Code
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="inline-block p-4 rounded-2xl bg-white shadow-xl">
+              <QRCodeSVG
+                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/?sala=${encodeURIComponent(sessionId)}`}
+                size={200}
+                level="M"
+              />
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Aponte a câmera do celular para entrar na sala:</p>
+              <p className="text-lg font-black text-amber-300 tracking-widest mt-1">{sessionId}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

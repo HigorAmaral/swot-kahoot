@@ -72,6 +72,11 @@ export const ScoreboardView: React.FC<Props> = ({
                         <Flame className="w-3 h-3 fill-current text-red-600" /> Líder
                       </span>
                     )}
+                    {(team.streak || 0) >= 2 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-500/25 border border-orange-400/50 text-orange-300">
+                        🔥 Combo x{team.streak}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-0.5 font-medium">
                     <span>Acertos: <strong>{team.answersCorrect}</strong></span>

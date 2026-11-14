@@ -159,7 +159,36 @@ export const KahootCreatorModal: React.FC<Props> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${(quizTitle || 'fabricaquiz').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.json`;
+    a.download = `${(quizTitle || 'arenaquiz').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export Quiz CSV (Excel-compatible UTF-8 with BOM & semicolon separator)
+  const handleExportCsv = () => {
+    if (questionsList.length === 0) return;
+    const escapeCell = (value: string) => `"${(value || '').replace(/"/g, '""')}"`;
+    const letters = ['A', 'B', 'C', 'D'];
+    const header = ['Pergunta', 'Opção A', 'Opção B', 'Opção C', 'Opção D', 'Resposta Correta', 'Categoria', 'Explicação'].join(';');
+    const rows = questionsList.map(q => {
+      const opts = q.options || [];
+      return [
+        escapeCell(q.question),
+        escapeCell(opts[0]?.text || ''),
+        escapeCell(opts[1]?.text || ''),
+        escapeCell(opts[2]?.text || ''),
+        escapeCell(opts[3]?.text || ''),
+        letters[q.correctIndex] || 'A',
+        escapeCell(q.category || 'Geral'),
+        escapeCell(q.explanation || ''),
+      ].join(';');
+    });
+    const csvContent = '\uFEFF' + [header, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(quizTitle || 'arenaquiz').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -438,46 +467,54 @@ export const KahootCreatorModal: React.FC<Props> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-900/90 px-4 sm:px-6 gap-2 pt-2 overflow-x-auto">
+        <div className="grid grid-cols-2 sm:flex border-b border-slate-800 bg-slate-900/90 p-2 sm:px-6 sm:pt-2 sm:pb-0 gap-1.5 sm:gap-2">
           <button
+            type="button"
             onClick={() => setActiveTab('manual')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-2 ${
               activeTab === 'manual'
-                ? 'border-emerald-400 text-emerald-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/15 sm:bg-transparent border border-emerald-500/40 sm:border-0 sm:border-emerald-400 text-emerald-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Plus className="w-4 h-4" /> 1. Criar na Mão (Manual)
+            <Plus className="w-4 h-4 shrink-0" />
+            <span className="truncate">1. Manual</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('spreadsheet')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-2 ${
               activeTab === 'spreadsheet'
-                ? 'border-emerald-400 text-emerald-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/15 sm:bg-transparent border border-emerald-500/40 sm:border-0 sm:border-emerald-400 text-emerald-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <FileSpreadsheet className="w-4 h-4" /> 2. Planilhas (Excel / CSV)
+            <FileSpreadsheet className="w-4 h-4 shrink-0" />
+            <span className="truncate">2. Planilha / CSV</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('file_text')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-2 ${
               activeTab === 'file_text'
-                ? 'border-emerald-400 text-emerald-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/15 sm:bg-transparent border border-emerald-500/40 sm:border-0 sm:border-emerald-400 text-emerald-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Upload className="w-4 h-4" /> 3. Upload Arquivo (PDF / TXT)
+            <Upload className="w-4 h-4 shrink-0" />
+            <span className="truncate">3. Ler PDF / TXT</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('paste')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-2 ${
               activeTab === 'paste'
-                ? 'border-amber-400 text-amber-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-amber-500/15 sm:bg-transparent border border-amber-500/40 sm:border-0 sm:border-amber-400 text-amber-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <FileText className="w-4 h-4" /> 4. Colar Texto / IA
+            <FileText className="w-4 h-4 shrink-0" />
+            <span className="truncate">4. Colar Texto / IA</span>
           </button>
         </div>
 
@@ -658,21 +695,32 @@ export const KahootCreatorModal: React.FC<Props> = ({
           {/* TAB 2: PLANILHAS (EXCEL / CSV) */}
           {activeTab === 'spreadsheet' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="bg-emerald-950/30 border border-emerald-500/40 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="bg-emerald-950/30 border border-emerald-500/40 p-4 rounded-2xl space-y-3">
                 <div>
                   <h4 className="font-extrabold text-emerald-300 text-sm flex items-center gap-2">
-                    <FileSpreadsheet className="w-5 h-5" /> Importar Perguntas de Planilha (Excel / CSV)
+                    <FileSpreadsheet className="w-5 h-5 shrink-0" /> Planilhas (Excel / CSV)
                   </h4>
                   <p className="text-xs text-slate-300 mt-1">
-                    Cole as linhas da planilha abaixo separadas por vírgula ou ponto-e-vírgula, ou faça upload de um arquivo `.csv`.
+                    Importe colando linhas separadas por ponto-e-vírgula/vírgula, ou exporte suas perguntas atuais para Excel.
                   </p>
                 </div>
-                <button
-                  onClick={handleDownloadTemplate}
-                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow"
-                >
-                  <Download className="w-3.5 h-3.5" /> Baixar Modelo CSV
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-2 shadow"
+                  >
+                    <Download className="w-4 h-4 shrink-0" /> Baixar Modelo CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExportCsv}
+                    disabled={questionsList.length === 0}
+                    className="w-full px-4 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 disabled:opacity-40 text-cyan-300 border border-cyan-400/40 text-xs font-bold transition flex items-center justify-center gap-2 shadow"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 shrink-0" /> Exportar Quiz (.csv)
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -680,7 +728,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
                   Cole os dados da planilha aqui:
                 </label>
                 <textarea
-                  rows={6}
+                  rows={5}
                   value={csvText}
                   onChange={e => setCsvText(e.target.value)}
                   placeholder="Pergunta;Opção A;Opção B;Opção C;Opção D;Resposta(A/B/C/D);Categoria;Explicação&#10;Qual o foco da SWOT?;Finanças;Ambiente Interno e Externo;Marketing;Impostos;B;SWOT;Diagnóstico estratégico..."
@@ -688,16 +736,17 @@ export const KahootCreatorModal: React.FC<Props> = ({
                 />
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-[11px] text-slate-400">
-                  Formato: <strong>Pergunta ; Opção A ; Opção B ; Opção C ; Opção D ; Resposta (A, B, C ou D)</strong>
+                  Formato: <strong>Pergunta ; A ; B ; C ; D ; Resposta (A-D)</strong>
                 </span>
 
                 <button
+                  type="button"
                   onClick={handleProcessCSV}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-lg transition flex items-center gap-1.5"
+                  className="w-full sm:w-auto justify-center px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-2"
                 >
-                  <FileSpreadsheet className="w-4 h-4" /> Processar e Importar Planilha
+                  <FileSpreadsheet className="w-4 h-4 shrink-0" /> Processar e Importar Planilha
                 </button>
               </div>
             </div>
@@ -705,7 +754,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
 
           {/* TAB 3: UPLOAD ARQUIVO (PDF / TXT) */}
           {activeTab === 'file_text' && (
-            <div className="space-y-4 animate-fade-in text-center p-6 border-2 border-dashed border-slate-700 rounded-2xl bg-[#111622]">
+            <div className="space-y-4 animate-fade-in text-center p-5 sm:p-7 border-2 border-dashed border-slate-700 rounded-2xl bg-[#111622]">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -714,22 +763,25 @@ export const KahootCreatorModal: React.FC<Props> = ({
                 className="hidden"
               />
 
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 mb-2">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
                 <Upload className="w-7 h-7" />
               </div>
 
-              <h4 className="text-base font-extrabold text-white">
-                Envie seu arquivo de perguntas (.pdf, .txt, .csv, .md)
-              </h4>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
-                O sistema lê o arquivo e identifica automaticamente perguntas numeradas com opções A), B), C), D) e gabarito.
-              </p>
+              <div>
+                <h4 className="text-sm sm:text-base font-extrabold text-white">
+                  Importar Arquivo (.pdf, .txt, .csv, .md)
+                </h4>
+                <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
+                  O sistema lê o arquivo e identifica perguntas numeradas com opções A), B), C), D) e gabarito.
+                </p>
+              </div>
 
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3 px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition active:scale-95 inline-flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition active:scale-95 inline-flex items-center justify-center gap-2 shadow-lg"
               >
-                <Upload className="w-4 h-4" /> Selecionar Arquivo do Computador
+                <Upload className="w-4 h-4 shrink-0" /> Escolher Arquivo do Aparelho
               </button>
             </div>
           )}
@@ -739,7 +791,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
             <div className="space-y-4 animate-fade-in">
               <div className="bg-amber-950/30 border border-amber-500/40 p-4 rounded-2xl">
                 <h4 className="font-extrabold text-amber-300 text-sm flex items-center gap-2">
-                  <FileText className="w-5 h-5" /> Colar Questões em Texto (ChatGPT, Word, Provas)
+                  <FileText className="w-5 h-5 shrink-0" /> Colar Questões em Texto (ChatGPT, Word, Provas)
                 </h4>
                 <p className="text-xs text-slate-300 mt-1">
                   Cole uma lista de questões com número, alternativas A), B), C), D) e a linha "Resposta: X".
@@ -747,54 +799,64 @@ export const KahootCreatorModal: React.FC<Props> = ({
               </div>
 
               <textarea
-                rows={8}
+                rows={6}
                 value={pastedText}
                 onChange={e => setPastedText(e.target.value)}
                 placeholder="1. O que representa uma Força na análise SWOT?&#10;A) Uma crise externa&#10;B) Um concorrente novo&#10;C) Um recurso ou capacidade interna positiva&#10;D) Uma nova lei tributária&#10;Resposta: C&#10;&#10;2. Qual função administrativa define as metas da TI?&#10;A) Planejamento&#10;B) Organização&#10;C) Controle&#10;D) Direção&#10;Resposta: A"
                 className="w-full bg-slate-950 border border-slate-700 font-mono rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-amber-400"
               />
 
-              <div className="flex justify-end">
-                <button
-                  onClick={handleProcessPastedText}
-                  className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs shadow-lg transition flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-4 h-4" /> Processar Texto e Criar Perguntas
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleProcessPastedText}
+                className="w-full sm:w-auto sm:ml-auto justify-center px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4 shrink-0" /> Processar Texto e Criar Perguntas
+              </button>
             </div>
           )}
 
           {/* CURRENT QUESTIONS LIST & MANAGEMENT */}
           <div className="pt-4 border-t border-slate-800">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="font-black text-white text-base flex items-center gap-2">
-                <Layers className="w-4 h-4 text-purple-400" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+              <h3 className="font-black text-white text-sm sm:text-base flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-400 shrink-0" />
                 Perguntas Atuais do Quiz ({questionsList.length})
               </h3>
-              <div className="flex flex-wrap items-center gap-2">
-                {questionsList.length > 0 && (
-                  <>
-                    <button
-                      onClick={handleExportJson}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold flex items-center gap-1 transition"
-                      title="Baixar perguntas em JSON"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Exportar JSON
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm('Limpar todas as perguntas da lista para começar do zero?')) {
-                          setQuestionsList([]);
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 text-xs font-bold transition"
-                    >
-                      Limpar Lista
-                    </button>
-                  </>
-                )}
-              </div>
+              {questionsList.length > 0 && (
+                <div className="grid grid-cols-3 sm:flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleExportCsv}
+                    className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                    title="Baixar perguntas em planilha CSV (Excel)"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
+                    <span>CSV</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExportJson}
+                    className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                    title="Baixar perguntas em JSON"
+                  >
+                    <Download className="w-3.5 h-3.5 shrink-0" />
+                    <span>JSON</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Limpar todas as perguntas da lista para começar do zero?')) {
+                        setQuestionsList([]);
+                      }
+                    }}
+                    className="px-2.5 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 text-xs font-bold flex items-center justify-center gap-1 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Limpar</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2.5 sm:max-h-64 sm:overflow-y-auto sm:pr-1">

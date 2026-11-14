@@ -142,6 +142,7 @@ export function App() {
   const [disputeWinnerId, setDisputeWinnerId] = useState<number>(1);
   const [answeringTeamId, setAnsweringTeamId] = useState<number>(1);
   const [isPassed, setIsPassed] = useState<boolean>(false);
+  const [isTiebreaker, setIsTiebreaker] = useState<boolean>(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number>(0);
 
   // Round logs & Database status
@@ -713,17 +714,32 @@ export function App() {
   };
 
   // Answer selected in question_play
-  const handleAnswerSelected = (selectedIdx: number, timeLeft: number) => {
+  const handleAnswerSelected = (
+    selectedIdx: number,
+    timeLeft: number,
+    powerUps?: { usedFiftyFifty?: boolean; doublePoints?: boolean; shield?: boolean }
+  ) => {
     setLastSelectedIndex(selectedIdx);
     const isCorrect = selectedIdx === currentQuestion.correctIndex;
+    const isFinalDouble = !isTiebreaker && questions.length > 1 && currentQuestionIndex === questions.length - 1;
+    const multiplier = (isFinalDouble ? 2 : 1) * (powerUps?.doublePoints ? 2 : 1);
     const speedBonus = isCorrect ? Math.round((timeLeft / Math.max(questionDuration, 1)) * 200) : 0;
     const currentTeam = teams.find(t => t.id === answeringTeamId);
-    const nextStreak = isCorrect ? (currentTeam?.streak || 0) + 1 : 0;
+    const nextStreak = isCorrect
+      ? (currentTeam?.streak || 0) + 1
+      : powerUps?.shield
+      ? currentTeam?.streak || 0
+      : 0;
     const streakBonus = isCorrect && nextStreak >= 2 ? Math.min(400, (nextStreak - 1) * 100) : 0;
-    const pointsAwarded = isCorrect ? pointsPerCorrect + speedBonus + streakBonus : 0;
+    const pointsAwarded = isCorrect ? (pointsPerCorrect + speedBonus + streakBonus) * multiplier : 0;
 
     const updatedTeams = teams.map(t => {
       if (t.id === answeringTeamId) {
+        const nextPowerUps = {
+          fiftyFifty: Boolean(t.powerUpsUsed?.fiftyFifty || powerUps?.usedFiftyFifty),
+          doublePoints: Boolean(t.powerUpsUsed?.doublePoints || powerUps?.doublePoints),
+          shield: Boolean(t.powerUpsUsed?.shield || powerUps?.shield),
+        };
         if (isCorrect) {
           return {
             ...t,
@@ -731,12 +747,14 @@ export function App() {
             answersCorrect: t.answersCorrect + 1,
             candies: t.candies + 1,
             streak: nextStreak,
+            powerUpsUsed: nextPowerUps,
           };
         } else {
           return {
             ...t,
             answersWrong: t.answersWrong + 1,
-            streak: 0,
+            streak: nextStreak,
+            powerUpsUsed: nextPowerUps,
           };
         }
       }
@@ -824,14 +842,47 @@ export function App() {
     }
   };
 
-  // Next Question or Podium
+  // Next Question or Podium (with Sudden Death Tiebreaker if tied for 1st)
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setStage('question_intro');
-    } else {
-      setStage('podium');
+      return;
     }
+
+    const sortedByPts = [...teams].sort((a, b) => b.points - a.points);
+    const hasTieForFirst =
+      !isTiebreaker &&
+      sortedByPts.length >= 2 &&
+      sortedByPts[0].points > 0 &&
+      sortedByPts[0].points === sortedByPts[1].points;
+
+    if (hasTieForFirst) {
+      const tiebreakerQuestion: Question = {
+        id: Date.now(),
+        category: 'Desempate • Morte Súbita',
+        theme: 'CONTROLE',
+        question: 'Em arquitetura de software e sistemas web, qual protocolo garante comunicação criptografada de ponta a ponta entre navegador e servidor?',
+        options: [
+          { text: 'HTTP/1.1 sem TLS', symbol: 'triangle', color: 'bg-kahoot-red' },
+          { text: 'HTTPS (TLS/SSL)', symbol: 'diamond', color: 'bg-kahoot-blue' },
+          { text: 'FTP em texto puro', symbol: 'circle', color: 'bg-kahoot-yellow' },
+          { text: 'Telnet porta 23', symbol: 'square', color: 'bg-kahoot-green' },
+        ],
+        correctIndex: 1,
+        caseRelation: 'Rodada de desempate automática',
+        explanation: 'HTTPS utiliza TLS/SSL para criptografar os dados trafegados entre cliente e servidor.',
+      };
+      setQuestions(prev => [...prev, tiebreakerQuestion]);
+      setCurrentQuestionIndex(prev => prev + 1);
+      setIsTiebreaker(true);
+      showAlert('Empate no 1º lugar! Rodada Morte Súbita ativada!', 'warning');
+      setStage('question_intro');
+      return;
+    }
+
+    setIsTiebreaker(false);
+    setStage('podium');
   };
 
   // Reset Game
@@ -840,6 +891,7 @@ export function App() {
     setTeams(initialTeams);
     setRoundLogs([]);
     setCurrentQuestionIndex(0);
+    setIsTiebreaker(false);
     setStage('intro');
     mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -959,6 +1011,7 @@ export function App() {
             questionIndex={currentQuestionIndex}
             totalQuestions={questions.length}
             teams={teams}
+            isTiebreaker={isTiebreaker}
             onBack={() => setStage('intro')}
             onProceedToQuestion={(chosenTeamId?: number) => {
               const fallbackId = teams[currentQuestionIndex % teams.length]?.id ?? teams[0]?.id ?? 1;
@@ -979,6 +1032,7 @@ export function App() {
             disputeWinnerTeam={disputeWinnerTeam}
             isPassed={isPassed}
             gameMode={gameMode}
+            isTiebreaker={isTiebreaker}
             onAnswerSelected={handleAnswerSelected}
             allTeams={teams}
             onSelectAnsweringTeam={(teamId) => {

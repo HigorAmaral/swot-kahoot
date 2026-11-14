@@ -27,7 +27,8 @@ export const HostHeader: React.FC<Props> = ({
 }) => {
   const [isMuted, setIsMuted] = useState(sound.getMuted());
   const [isMusicOn, setIsMusicOn] = useState(() => sound.getMusicEnabled());
-  const [musicTrack, setMusicTrack] = useState<1 | 2>(() => sound.getMusicTrack());
+  const [musicTrack, setMusicTrack] = useState<1 | 2 | 3>(() => sound.getMusicTrack());
+  const [musicVolume, setMusicVolume] = useState<number>(() => sound.getMusicVolume());
   const { canInstall, promptInstall } = usePwaInstall();
 
   const handleToggleSound = () => {
@@ -43,6 +44,11 @@ export const HostHeader: React.FC<Props> = ({
   const handleSwitchTrack = () => {
     const nextTrack = sound.toggleMusicTrack();
     setMusicTrack(nextTrack);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const vol = sound.setMusicVolume(parseFloat(e.target.value));
+    setMusicVolume(vol);
   };
 
   const handleToggleFullscreen = () => {
@@ -145,13 +151,25 @@ export const HostHeader: React.FC<Props> = ({
               <Music className="w-4 h-4" />
             </button>
             {isMusicOn && !isMuted && (
-              <button
-                onClick={handleSwitchTrack}
-                className="px-2 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-[11px] font-black text-emerald-300 transition"
-                title={`Trocar música (Atual: Faixa ${musicTrack} — ${musicTrack === 1 ? 'Lo-Fi Groove' : 'Arcade Synth'})`}
-              >
-                ♪{musicTrack}
-              </button>
+              <>
+                <button
+                  onClick={handleSwitchTrack}
+                  className="px-2 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-[11px] font-black text-emerald-300 transition"
+                  title={`Trocar música (Atual: Faixa ${musicTrack} — ${musicTrack === 1 ? 'Lo-Fi Groove' : musicTrack === 2 ? 'Arcade Synth' : 'Suspense'})`}
+                >
+                  ♪{musicTrack}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={musicVolume}
+                  onChange={handleVolumeChange}
+                  className="hidden md:block w-14 accent-emerald-400 cursor-pointer"
+                  title={`Volume da música: ${Math.round(musicVolume * 100)}%`}
+                />
+              </>
             )}
           </div>
 

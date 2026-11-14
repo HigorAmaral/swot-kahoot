@@ -61,6 +61,8 @@ export const KahootCreatorModal: React.FC<Props> = ({
   const [manualOptD, setManualOptD] = useState('');
   const [manualCorrectIndex, setManualCorrectIndex] = useState<number>(0);
   const [manualExplanation, setManualExplanation] = useState('');
+  const [manualCodeSnippet, setManualCodeSnippet] = useState('');
+  const [manualImageUrl, setManualImageUrl] = useState('');
 
   // Paste / File State
   const [pastedText, setPastedText] = useState('');
@@ -92,6 +94,8 @@ export const KahootCreatorModal: React.FC<Props> = ({
       correctIndex: manualCorrectIndex,
       caseRelation: 'Criada manualmente pelo condutor do Quiz.',
       explanation: manualExplanation.trim() || 'Resposta correta confirmada pelo criador do quiz.',
+      ...(manualCodeSnippet.trim() ? { codeSnippet: manualCodeSnippet.trim() } : {}),
+      ...(manualImageUrl.trim() ? { imageUrl: manualImageUrl.trim() } : {}),
     };
 
     setQuestionsList(prev => [...prev, newQ]);
@@ -104,6 +108,8 @@ export const KahootCreatorModal: React.FC<Props> = ({
     setManualOptC('');
     setManualOptD('');
     setManualExplanation('');
+    setManualCodeSnippet('');
+    setManualImageUrl('');
     setImportFeedback("Pergunta adicionada com sucesso!");
     setTimeout(() => setImportFeedback(null), 3000);
   };
@@ -790,6 +796,34 @@ export const KahootCreatorModal: React.FC<Props> = ({
                       </div>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Optional Code Snippet & Image URL */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">
+                    Trecho de Código (Opcional — para perguntas Tech):
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={manualCodeSnippet}
+                    onChange={e => setManualCodeSnippet(e.target.value)}
+                    placeholder="Ex: const x = [1, 2, 3].map(n => n * 2);"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">
+                    URL da Imagem / Diagrama (Opcional):
+                  </label>
+                  <input
+                    type="url"
+                    value={manualImageUrl}
+                    onChange={e => setManualImageUrl(e.target.value)}
+                    placeholder="https://exemplo.com/diagrama.png"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
                 </div>
               </div>
 

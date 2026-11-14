@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
-import { buildAnswerReview } from '../utils/quizReport';
-import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp, Printer } from 'lucide-react';
+import { buildAnswerReview, buildQuizCsvReport, downloadCsvFile } from '../utils/quizReport';
+import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp, Printer, Download } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -242,6 +242,24 @@ export const PodiumView: React.FC<Props> = ({
         >
           <Printer className="w-5 h-5" />
           <span>Certificado / Relatório PDF</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const csv = buildQuizCsvReport({
+              quizTitle,
+              shareCode: sessionId,
+              teams,
+              roundLogs,
+              runs: [],
+              isActiveInArena: true,
+            });
+            downloadCsvFile(`relatorio_${sessionId}_${Date.now()}.csv`, csv);
+          }}
+          className="px-6 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-base shadow-lg transition flex items-center gap-2"
+        >
+          <Download className="w-5 h-5" />
+          <span>Baixar Planilha (CSV)</span>
         </button>
         <button
           onClick={onRestart}

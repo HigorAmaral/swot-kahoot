@@ -2,7 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
-import { FastForward, Sparkles, Clock } from 'lucide-react';
+import { FastForward, Sparkles, Clock, Zap, Shield } from 'lucide-react';
+
+interface PowerUpsUsedInRound {
+  usedFiftyFifty?: boolean;
+  doublePoints?: boolean;
+  shield?: boolean;
+}
 
 interface Props {
   question: Question;
@@ -13,7 +19,8 @@ interface Props {
   disputeWinnerTeam: Team;
   isPassed: boolean;
   gameMode?: GamePlayMode;
-  onAnswerSelected: (selectedIndex: number, timeLeft: number) => void;
+  isTiebreaker?: boolean;
+  onAnswerSelected: (selectedIndex: number, timeLeft: number, powerUps?: PowerUpsUsedInRound) => void;
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
 }
@@ -27,6 +34,7 @@ export const QuestionPlayView: React.FC<Props> = ({
   disputeWinnerTeam,
   isPassed,
   gameMode = 'turno',
+  isTiebreaker = false,
   onAnswerSelected,
   allTeams,
   onSelectAnsweringTeam,
@@ -35,13 +43,20 @@ export const QuestionPlayView: React.FC<Props> = ({
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [eliminatedIndices, setEliminatedIndices] = useState<number[]>([]);
   const [usedFiftyFifty, setUsedFiftyFifty] = useState(false);
+  const [usedDoublePoints, setUsedDoublePoints] = useState(false);
+  const [usedShield, setUsedShield] = useState(false);
   const [usedExtraTime, setUsedExtraTime] = useState(false);
+
+  const teamPowerUps = answeringTeam.powerUpsUsed || {};
+  const isFinalDouble = !isTiebreaker && totalQuestions > 1 && questionIndex === totalQuestions - 1;
 
   useEffect(() => {
     setTimeLeft(questionDuration || 30);
     setSelectedOption(null);
     setEliminatedIndices([]);
     setUsedFiftyFifty(false);
+    setUsedDoublePoints(false);
+    setUsedShield(false);
     setUsedExtraTime(false);
   }, [question.id, questionDuration]);
 
@@ -51,20 +66,35 @@ export const QuestionPlayView: React.FC<Props> = ({
     sound.playTone(550, 0.15, 'sine', 0.2);
     // Short delay for visual selection feedback before handing to verdict
     setTimeout(() => {
-      onAnswerSelected(idx, timeLeft);
+      onAnswerSelected(idx, timeLeft, {
+        usedFiftyFifty,
+        doublePoints: usedDoublePoints,
+        shield: usedShield,
+      });
     }, 600);
-  }, [selectedOption, eliminatedIndices, onAnswerSelected, timeLeft]);
+  }, [selectedOption, eliminatedIndices, onAnswerSelected, timeLeft, usedFiftyFifty, usedDoublePoints, usedShield]);
 
   const handleFiftyFifty = () => {
-    if (usedFiftyFifty || selectedOption !== null) return;
+    if (teamPowerUps.fiftyFifty || usedFiftyFifty || selectedOption !== null) return;
     const wrongIndices = question.options
       .map((_, i) => i)
       .filter(i => i !== question.correctIndex);
-    // Shuffle and pick 2 wrong options to eliminate
     const shuffled = [...wrongIndices].sort(() => Math.random() - 0.5).slice(0, 2);
     setEliminatedIndices(shuffled);
     setUsedFiftyFifty(true);
     sound.playTone(620, 0.12, 'triangle', 0.18);
+  };
+
+  const handleDoublePoints = () => {
+    if (teamPowerUps.doublePoints || usedDoublePoints || selectedOption !== null) return;
+    setUsedDoublePoints(true);
+    sound.playCandyChime();
+  };
+
+  const handleShield = () => {
+    if (teamPowerUps.shield || usedShield || selectedOption !== null) return;
+    setUsedShield(true);
+    sound.playTone(520, 0.14, 'sine', 0.2);
   };
 
   const handleExtraTime = () => {
@@ -201,20 +231,50 @@ export const QuestionPlayView: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Controls: Lifelines, Timer Pause & Skip/Reveal */}
+        {/* Controls: Power-Ups & Reveal */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <button
             onClick={handleFiftyFifty}
-            disabled={usedFiftyFifty || selectedOption !== null}
+            disabled={teamPowerUps.fiftyFifty || usedFiftyFifty || selectedOption !== null}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-black transition ${
-              usedFiftyFifty
+              teamPowerUps.fiftyFifty || usedFiftyFifty
                 ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
                 : 'bg-purple-600/25 hover:bg-purple-600/40 border-purple-400/50 text-purple-200'
             }`}
-            title="Eliminar 2 alternativas incorretas (50:50)"
+            title="Power-Up (1x por equipe): Eliminar 2 alternativas incorretas (50:50)"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>50:50</span>
+          </button>
+          <button
+            onClick={handleDoublePoints}
+            disabled={teamPowerUps.doublePoints || usedDoublePoints || selectedOption !== null}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-black transition ${
+              usedDoublePoints
+                ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-lg'
+                : teamPowerUps.doublePoints
+                ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
+                : 'bg-amber-500/20 hover:bg-amber-500/35 border-amber-400/50 text-amber-200'
+            }`}
+            title="Power-Up (1x por equipe): Dobrar pontos desta pergunta (2x)"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span>{usedDoublePoints ? '2x ATIVO' : '2x'}</span>
+          </button>
+          <button
+            onClick={handleShield}
+            disabled={teamPowerUps.shield || usedShield || selectedOption !== null}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-black transition ${
+              usedShield
+                ? 'bg-cyan-500 text-slate-950 border-cyan-300 shadow-lg'
+                : teamPowerUps.shield
+                ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
+                : 'bg-cyan-500/20 hover:bg-cyan-500/35 border-cyan-400/50 text-cyan-200'
+            }`}
+            title="Power-Up (1x por equipe): Escudo protege o combo se errar"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>{usedShield ? 'ESCUDO' : 'Escudo'}</span>
           </button>
           <button
             onClick={handleExtraTime}
@@ -230,7 +290,7 @@ export const QuestionPlayView: React.FC<Props> = ({
             <span>+10s</span>
           </button>
           <button
-            onClick={() => onAnswerSelected(-1, 0)}
+            onClick={() => onAnswerSelected(-1, 0, { usedFiftyFifty, doublePoints: usedDoublePoints, shield: usedShield })}
             disabled={selectedOption !== null}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-xs font-bold text-cyan-300 transition"
             title="Encerrar tempo e revelar resposta correta"
@@ -254,9 +314,33 @@ export const QuestionPlayView: React.FC<Props> = ({
           {timeLeft}
         </div>
 
+        {(isFinalDouble || isTiebreaker) && (
+          <div className={`mt-3 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
+            isTiebreaker
+              ? 'bg-rose-500/20 border-rose-400 text-rose-200 animate-pulse'
+              : 'bg-amber-500/20 border-amber-400 text-amber-200 animate-pulse'
+          }`}>
+            {isTiebreaker ? '⚡ Morte Súbita — Desempate!' : '🔥 Pergunta Final — Pontos em Dobro (2x)!'}
+          </div>
+        )}
+
         <h2 className="text-base sm:text-xl md:text-3xl font-black text-white leading-snug tracking-tight max-w-4xl mt-3 sm:mt-2">
           {question.question}
         </h2>
+
+        {question.imageUrl && (
+          <img
+            src={question.imageUrl}
+            alt="Imagem da pergunta"
+            className="mt-4 max-h-52 rounded-2xl border border-slate-700 object-contain shadow-lg"
+          />
+        )}
+
+        {question.codeSnippet && (
+          <pre className="mt-4 w-full max-w-2xl text-left p-3.5 rounded-2xl bg-slate-950/95 border border-cyan-500/30 text-xs sm:text-sm font-mono text-emerald-300 overflow-x-auto shadow-inner">
+            <code>{question.codeSnippet}</code>
+          </pre>
+        )}
 
         <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-slate-400">
           <span className="px-2 py-0.5 rounded-md bg-slate-900/70 border border-slate-700/80 text-amber-300">

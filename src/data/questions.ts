@@ -12,6 +12,8 @@ export interface Question {
   caseRelation: string;
   explanation: string;
   swotQuadrant?: 'Interno - Positivo' | 'Interno - Negativo' | 'Externo - Positivo' | 'Externo - Negativo';
+  codeSnippet?: string;
+  imageUrl?: string;
 }
 
 export const questionsData: Question[] = [

@@ -52,6 +52,11 @@ export interface Team {
   participants: Participant[];
   isWinner?: boolean;
   streak?: number;
+  powerUpsUsed?: {
+    fiftyFifty?: boolean;
+    doublePoints?: boolean;
+    shield?: boolean;
+  };
 }
 
 export interface RoundLog {

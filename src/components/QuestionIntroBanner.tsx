@@ -9,6 +9,7 @@ interface Props {
   questionIndex: number;
   totalQuestions: number;
   teams?: Team[];
+  isTiebreaker?: boolean;
   onProceedToQuestion: (chosenTeamId?: number) => void;
   onBack: () => void;
 }
@@ -18,12 +19,14 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   questionIndex,
   totalQuestions,
   teams = [],
+  isTiebreaker = false,
   onProceedToQuestion,
   onBack,
 }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spunTeam, setSpunTeam] = useState<Team | null>(null);
   const [spunParticipant, setSpunParticipant] = useState<string | null>(null);
+  const isFinalDouble = !isTiebreaker && totalQuestions > 1 && questionIndex === totalQuestions - 1;
 
   const handleSpinRoulette = () => {
     if (isSpinning || teams.length === 0) return;
@@ -54,9 +57,16 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in text-center">
       {/* Question Counter Pill */}
-      <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-xs sm:text-sm uppercase tracking-wider mb-4 sm:mb-6 shadow-xl">
-        <Sparkles className="w-4 h-4 fill-current text-cyan-300" />
-        Pergunta #{questionIndex + 1} de {totalQuestions}
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-4 sm:mb-6">
+        <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-xl">
+          <Sparkles className="w-4 h-4 fill-current text-cyan-300" />
+          {isTiebreaker ? '⚡ Rodada Morte Súbita' : `Pergunta #${questionIndex + 1} de ${totalQuestions}`}
+        </div>
+        {isFinalDouble && (
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/25 border border-amber-400 text-amber-200 font-black text-xs sm:text-sm uppercase tracking-wider animate-pulse">
+            🔥 Pontos em Dobro (2x)!
+          </div>
+        )}
       </div>
 
       {/* Category Box */}

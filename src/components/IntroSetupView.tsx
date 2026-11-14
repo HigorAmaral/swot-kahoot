@@ -126,15 +126,35 @@ export const IntroSetupView: React.FC<Props> = ({
     }
 
     const targetTeam = teams.find(t => t.id === teamId) || activeTeam;
+    if (participationMode === 'individual' && targetTeam.participants.length === 0) {
+      onUpdateTeamName(targetTeam.id, currentUser.displayName);
+    }
     onAddParticipant(teamId, currentUser.displayName, currentUser.avatar);
-    sound.playTone(650, 0.15, 'sine', 0.2);
-    const msg = `${currentUser.avatar} ${currentUser.displayName} entrou no ${targetTeam.name}!`;
+    sound.playPlayerJoined();
+    const msg =
+      participationMode === 'individual'
+        ? `${currentUser.avatar} ${currentUser.displayName} entrou na disputa individual!`
+        : `${currentUser.avatar} ${currentUser.displayName} entrou no ${targetTeam.name}!`;
     setLastJoinedMessage(msg);
     showAlert(msg, 'success');
 
     setTimeout(() => {
       setLastJoinedMessage(null);
     }, 3500);
+  };
+
+  const handleJoinIndividual = () => {
+    if (userCurrentTeam) {
+      showAlert(`Você já está na sala como ${userCurrentTeam.name}!`, 'info');
+      return;
+    }
+    const emptySlot = teams.find(t => t.participants.length === 0);
+    if (emptySlot) {
+      setSelectedTeamId(emptySlot.id);
+      handleJoinTeam(emptySlot.id);
+    } else {
+      handleJoinTeam(selectedTeamId);
+    }
   };
 
   const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
@@ -418,17 +438,20 @@ export const IntroSetupView: React.FC<Props> = ({
                 Participando como: <span className="text-emerald-400">{currentUser.displayName}</span>
               </h3>
               <p className="text-xs text-slate-400">
-                Selecione uma equipe abaixo para entrar com 1 clique ({totalParticipants} na sala)
+                {participationMode === 'individual'
+                  ? `Modo Individual ativo — clique para entrar automaticamente (${totalParticipants} na sala)`
+                  : `Selecione uma equipe abaixo para entrar com 1 clique (${totalParticipants} na sala)`}
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => handleJoinTeam(selectedTeamId)}
+            onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
             className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
           >
-            <UserPlus className="w-4 h-4" /> Entrar no {activeTeam.name}
+            <UserPlus className="w-4 h-4" />
+            {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
           </button>
         </div>
 

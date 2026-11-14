@@ -17,7 +17,8 @@ import {
   UploadCloud,
   EyeOff,
   Users,
-  Star
+  Star,
+  Trophy
 } from 'lucide-react';
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
 
 const CATEGORIES = [
   'Todos',
+  '🏆 Hall da Fama',
   '⭐ Favoritos',
   'Programação',
   'Frontend & Web',
@@ -120,7 +122,7 @@ export const CommunityModal: React.FC<Props> = ({
 
   const loadCommunity = async (q = search, cat = selectedCategory) => {
     setLoading(true);
-    const apiCat = cat === '⭐ Favoritos' ? 'Todos' : cat;
+    const apiCat = cat === '⭐ Favoritos' || cat === '🏆 Hall da Fama' ? 'Todos' : cat;
     const list = await dbService.getCommunityQuizzes(q, apiCat);
     setQuizzes(list);
     setLoading(false);
@@ -428,6 +430,64 @@ export const CommunityModal: React.FC<Props> = ({
               Carregando Kahoots da comunidade...
             </div>
           ) : (() => {
+            if (selectedCategory === '🏆 Hall da Fama') {
+              const rankedQuizzes = [...quizzes]
+                .sort((a, b) => ((b.playsCount || 0) + (b.likesCount || 0) * 2) - ((a.playsCount || 0) + (a.likesCount || 0) * 2))
+                .slice(0, 10);
+              return (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-cyan-500/15 border border-amber-400/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Trophy className="w-7 h-7 text-amber-400 shrink-0" />
+                      <div>
+                        <h3 className="text-sm sm:text-base font-black text-white">
+                          Hall da Fama — Top Quizzes da Comunidade
+                        </h3>
+                        <p className="text-xs text-slate-300">
+                          Os quizzes mais jogados e curtidos pelos participantes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5">
+                    {rankedQuizzes.map((q, idx) => (
+                      <div
+                        key={q.shareCode}
+                        className="p-3.5 rounded-2xl bg-[#111622] border border-slate-800 hover:border-amber-400/40 transition flex flex-wrap items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+                            idx === 0
+                              ? 'bg-amber-400 text-slate-950'
+                              : idx === 1
+                              ? 'bg-slate-300 text-slate-950'
+                              : idx === 2
+                              ? 'bg-amber-700 text-amber-100'
+                              : 'bg-slate-800 text-slate-300'
+                          }`}>
+                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                          </span>
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-black text-white truncate">{q.title}</h4>
+                            <p className="text-[11px] text-slate-400 truncate">
+                              por <span className="text-emerald-300 font-bold">{q.ownerName}</span> • {q.category || 'Geral'} • {q.playsCount || 0} partidas • ❤️ {q.likesCount || 0}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handlePlayQuiz(q)}
+                          className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition shrink-0"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" /> Jogar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
             const visibleQuizzes =
               selectedCategory === '⭐ Favoritos'
                 ? quizzes.filter(q => favoriteCodes.has(q.shareCode))

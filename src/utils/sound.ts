@@ -6,7 +6,8 @@ class SoundManager {
   private musicInterval: number | null = null;
   private isMusicPlaying: boolean = false;
   private musicGain: GainNode | null = null;
-  private musicTrack: 1 | 2 = 1;
+  private musicTrack: 1 | 2 | 3 = 1;
+  private musicVolume: number = 0.32;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -18,6 +19,15 @@ class SoundManager {
         const savedTrack = localStorage.getItem('arenaquiz_music_track');
         if (savedTrack === '2') {
           this.musicTrack = 2;
+        } else if (savedTrack === '3') {
+          this.musicTrack = 3;
+        }
+        const savedVol = localStorage.getItem('arenaquiz_music_volume');
+        if (savedVol !== null) {
+          const parsed = parseFloat(savedVol);
+          if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+            this.musicVolume = parsed;
+          }
         }
       } catch {}
     }
@@ -33,7 +43,7 @@ class SoundManager {
     }
     if (this.ctx && !this.musicGain) {
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.setValueAtTime(0.32, this.ctx.currentTime);
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
       this.musicGain.connect(this.ctx.destination);
     }
   }
@@ -249,24 +259,43 @@ class SoundManager {
     });
   }
 
+  // Sound: Novo Jogador Entrou
+  public playPlayerJoined() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+    this.playTone(587.33, 0.12, 'sine', 0.16);
+    setTimeout(() => this.playTone(880, 0.18, 'sine', 0.18), 80);
+  }
+
   // Sound: Countdown Tick
   public playTick(urgent = false) {
     if (this.isMuted) return;
     this.playTone(urgent ? 880 : 440, 0.05, 'square', urgent ? 0.2 : 0.08);
   }
 
-  // Pleasant upbeat background music loop (Track 1: Lo-Fi Groove, Track 2: Arcade Synthwave)
+  // Pleasant upbeat background music loop (Track 1: Lo-Fi Groove, Track 2: Arcade Synthwave, Track 3: Suspense)
   public startLobbyMusic() {
     if (this.isMuted || !this.isMusicEnabled || this.isMusicPlaying) return;
     this.isMusicPlaying = true;
     this.initCtx();
 
-    const isTrack2 = this.musicTrack === 2;
-    const stepMs = isTrack2 ? 210 : 260;
+    const track = this.musicTrack;
+    const isTrack2 = track === 2;
+    const isTrack3 = track === 3;
+    const stepMs = isTrack3 ? 185 : isTrack2 ? 210 : 260;
 
     // Track 1: Cmaj7 -> Am7 -> Fmaj7 -> G6
     // Track 2: Em -> C -> G -> D (energetic arcade)
-    const bassPattern = isTrack2
+    // Track 3: Am -> F -> Dm -> E7 (suspenseful tension)
+    const bassPattern = isTrack3
+      ? [
+          110.00, 0, 110.00, 164.81, // A2
+          87.31,  0, 87.31,  130.81, // F2
+          146.83, 0, 146.83, 220.00, // D3
+          164.81, 0, 164.81, 246.94, // E3
+        ]
+      : isTrack2
       ? [
           164.81, 164.81, 246.94, 0, // E3
           130.81, 130.81, 196.00, 0, // C3
@@ -280,7 +309,14 @@ class SoundManager {
           98.00,  0, 146.83, 0, // G2, D3
         ];
 
-    const melodyPattern = isTrack2
+    const melodyPattern = isTrack3
+      ? [
+          440.00, 523.25, 493.88, 523.25, // A4 C5 B4 C5
+          349.23, 440.00, 415.30, 440.00, // F4 A4 G#4 A4
+          587.33, 659.25, 587.33, 523.25, // D5 E5 D5 C5
+          493.88, 659.25, 622.25, 659.25, // B4 E5 D#5 E5
+        ]
+      : isTrack2
       ? [
           659.25, 783.99, 987.77, 783.99, // E5 G5 B5 G5
           523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
@@ -294,7 +330,9 @@ class SoundManager {
           392.00, 493.88, 587.33, 493.88, // G4 B4 D5 B4
         ];
 
-    const padRoots = isTrack2
+    const padRoots = isTrack3
+      ? [220.00, 174.61, 293.66, 329.63] // A3, F3, D4, E4
+      : isTrack2
       ? [329.63, 261.63, 392.00, 293.66] // E4, C4, G4, D4
       : [261.63, 220.00, 174.61, 196.00]; // C4, A3, F3, G3
 
@@ -312,10 +350,10 @@ class SoundManager {
       const mel = melodyPattern[idx];
 
       if (bass > 0) {
-        this.playMusicNote(bass, isTrack2 ? 0.18 : 0.24, 'triangle', isTrack2 ? 0.065 : 0.08);
+        this.playMusicNote(bass, isTrack3 ? 0.16 : isTrack2 ? 0.18 : 0.24, 'triangle', isTrack2 || isTrack3 ? 0.065 : 0.08);
       }
       if (mel > 0) {
-        this.playMusicNote(mel, isTrack2 ? 0.16 : 0.2, isTrack2 ? 'triangle' : 'sine', isTrack2 ? 0.045 : 0.055);
+        this.playMusicNote(mel, isTrack3 ? 0.14 : isTrack2 ? 0.16 : 0.2, isTrack2 || isTrack3 ? 'triangle' : 'sine', isTrack2 || isTrack3 ? 0.045 : 0.055);
       }
       if (idx % 4 === 0) {
         const root = padRoots[Math.floor(idx / 4)];
@@ -326,12 +364,12 @@ class SoundManager {
     }, stepMs);
   }
 
-  public getMusicTrack(): 1 | 2 {
+  public getMusicTrack(): 1 | 2 | 3 {
     return this.musicTrack;
   }
 
-  public toggleMusicTrack(): 1 | 2 {
-    this.musicTrack = this.musicTrack === 1 ? 2 : 1;
+  public toggleMusicTrack(): 1 | 2 | 3 {
+    this.musicTrack = this.musicTrack === 1 ? 2 : this.musicTrack === 2 ? 3 : 1;
     try {
       localStorage.setItem('arenaquiz_music_track', String(this.musicTrack));
     } catch {}
@@ -340,6 +378,22 @@ class SoundManager {
       this.startLobbyMusic();
     }
     return this.musicTrack;
+  }
+
+  public getMusicVolume(): number {
+    return this.musicVolume;
+  }
+
+  public setMusicVolume(volume: number): number {
+    const clamped = Math.max(0, Math.min(1, volume));
+    this.musicVolume = clamped;
+    try {
+      localStorage.setItem('arenaquiz_music_volume', String(clamped));
+    } catch {}
+    if (this.ctx && this.musicGain) {
+      this.musicGain.gain.setValueAtTime(clamped, this.ctx.currentTime);
+    }
+    return clamped;
   }
 
   public stopMusic() {

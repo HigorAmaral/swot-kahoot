@@ -168,19 +168,45 @@ class SoundManager {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
 
-    const chords = [
-      { f: 523.25, d: 0.15, delay: 0 },    // C5
-      { f: 659.25, d: 0.15, delay: 120 },  // E5
-      { f: 783.99, d: 0.18, delay: 240 },  // G5
-      { f: 1046.50, d: 0.45, delay: 380 }, // C6
+    const now = this.ctx.currentTime;
+    const notes = [
+      { f: 523.25, d: 0.14, offset: 0 },    // C5
+      { f: 659.25, d: 0.14, offset: 0.11 }, // E5
+      { f: 783.99, d: 0.16, offset: 0.22 }, // G5
+      { f: 1046.50, d: 0.42, offset: 0.34 }, // C6
     ];
 
-    chords.forEach(({ f, d, delay }) => {
-      setTimeout(() => {
-        this.playTone(f, d, 'triangle', 0.25);
-        this.playTone(f * 1.5, d, 'sine', 0.1);
-      }, delay);
+    notes.forEach(({ f, d, offset }) => {
+      if (!this.ctx) return;
+      try {
+        const start = now + offset;
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(f, start);
+
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(f * 1.5, start);
+
+        env.gain.setValueAtTime(0.0001, start);
+        env.gain.linearRampToValueAtTime(0.22, start + 0.015);
+        env.gain.exponentialRampToValueAtTime(0.0001, start + d);
+
+        osc1.connect(env);
+        osc2.connect(env);
+        env.connect(this.ctx.destination);
+
+        osc1.start(start);
+        osc2.start(start);
+        osc1.stop(start + d + 0.02);
+        osc2.stop(start + d + 0.02);
+      } catch {}
     });
   }
 

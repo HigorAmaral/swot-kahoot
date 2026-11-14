@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '../data/questions';
-import { Team, UserAccount } from '../types';
+import { Team } from '../types';
 import { sound } from '../utils/sound';
-import { Pause, Play, FastForward, Users, CheckCircle2, Sparkles, Clock } from 'lucide-react';
+import { FastForward, Sparkles, Clock } from 'lucide-react';
 
 interface Props {
   question: Question;
@@ -15,8 +15,6 @@ interface Props {
   onAnswerSelected: (selectedIndex: number, timeLeft: number) => void;
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
-  currentUser?: UserAccount;
-  onJoinTeam?: (teamId: number) => void;
 }
 
 export const QuestionPlayView: React.FC<Props> = ({
@@ -30,11 +28,8 @@ export const QuestionPlayView: React.FC<Props> = ({
   onAnswerSelected,
   allTeams,
   onSelectAnsweringTeam,
-  currentUser,
-  onJoinTeam,
 }) => {
   const [timeLeft, setTimeLeft] = useState(questionDuration || 30);
-  const [isPaused, setIsPaused] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [eliminatedIndices, setEliminatedIndices] = useState<number[]>([]);
   const [usedFiftyFifty, setUsedFiftyFifty] = useState(false);
@@ -43,7 +38,6 @@ export const QuestionPlayView: React.FC<Props> = ({
   useEffect(() => {
     setTimeLeft(questionDuration || 30);
     setSelectedOption(null);
-    setIsPaused(false);
     setEliminatedIndices([]);
     setUsedFiftyFifty(false);
     setUsedExtraTime(false);
@@ -78,7 +72,7 @@ export const QuestionPlayView: React.FC<Props> = ({
     sound.playCandyChime();
   };
 
-  // Keyboard shortcuts: 1-4 or A-D to answer, Space to pause
+  // Keyboard shortcuts: 1-4 or A-D to answer
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -91,9 +85,6 @@ export const QuestionPlayView: React.FC<Props> = ({
           e.preventDefault();
           handleSelect(idx);
         }
-      } else if (e.code === 'Space') {
-        e.preventDefault();
-        setIsPaused(p => !p);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -102,7 +93,7 @@ export const QuestionPlayView: React.FC<Props> = ({
 
   // Timer countdown
   useEffect(() => {
-    if (isPaused || selectedOption !== null) return;
+    if (selectedOption !== null) return;
 
     if (timeLeft <= 0) {
       // Time is up! Select -1 (timeout)
@@ -123,7 +114,7 @@ export const QuestionPlayView: React.FC<Props> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isPaused, selectedOption, onAnswerSelected]);
+  }, [timeLeft, selectedOption, onAnswerSelected]);
 
   const progressPercent = Math.round(((questionIndex + 1) / Math.max(totalQuestions, 1)) * 100);
   const maxDuration = Math.max(questionDuration || 30, timeLeft);
@@ -225,14 +216,6 @@ export const QuestionPlayView: React.FC<Props> = ({
           >
             <Clock className="w-3.5 h-3.5" />
             <span>+10s</span>
-          </button>
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200 transition"
-            title={isPaused ? "Retomar Tempo (Espaço)" : "Pausar Tempo (Espaço)"}
-          >
-            {isPaused ? <Play className="w-4 h-4 text-emerald-400" /> : <Pause className="w-4 h-4 text-amber-400" />}
-            <span>{isPaused ? "Retomar" : "Pausar"}</span>
           </button>
           <button
             onClick={() => onAnswerSelected(-1, 0)}
@@ -346,36 +329,6 @@ export const QuestionPlayView: React.FC<Props> = ({
         })}
       </div>
 
-      {/* Entrar em um Grupo durante o Quiz */}
-      {allTeams && currentUser && onJoinTeam && (
-        <div className="w-full glass-card rounded-2xl p-3 mt-2 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
-            <Users className="w-4 h-4" />
-            Entrar em um grupo ({currentUser.avatar} {currentUser.displayName}):
-          </span>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {allTeams.map(t => {
-              const isMember = t.participants.some(
-                p => p.name.toLowerCase() === currentUser.displayName.toLowerCase()
-              );
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => onJoinTeam(t.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1 ${
-                    isMember
-                      ? `${t.bgClass} text-white ring-2 ring-white shadow`
-                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700'
-                  }`}
-                >
-                  {isMember && <CheckCircle2 className="w-3 h-3" />}
-                  <span>{t.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

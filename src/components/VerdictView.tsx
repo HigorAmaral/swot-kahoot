@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Question } from '../data/questions';
 import { Team } from '../types';
 import { sound } from '../utils/sound';
@@ -30,8 +30,12 @@ export const VerdictView: React.FC<Props> = ({
   const isCorrect = selectedIndex === question.correctIndex;
   const isTimeout = selectedIndex === -1;
   const [brindeAwarded, setBrindeAwarded] = useState<'candy' | 'chocolate' | null>(null);
+  const hasPlayedRef = useRef(false);
 
   useEffect(() => {
+    if (hasPlayedRef.current) return;
+    hasPlayedRef.current = true;
+
     if (isCorrect) {
       sound.playCorrect();
       // Auto award candy on correct

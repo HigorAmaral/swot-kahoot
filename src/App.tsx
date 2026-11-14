@@ -883,9 +883,6 @@ export function App() {
             question={currentQuestion}
             questionIndex={currentQuestionIndex}
             totalQuestions={questions.length}
-            teams={teams}
-            currentUser={currentUser}
-            onJoinTeam={handleJoinCurrentUserToTeam}
             onBack={() => setStage('intro')}
             onProceedToQuestion={() => {
               setAnsweringTeamId(teams[currentQuestionIndex % teams.length].id);
@@ -909,8 +906,6 @@ export function App() {
             onSelectAnsweringTeam={(teamId) => {
               setAnsweringTeamId(teamId);
             }}
-            currentUser={currentUser}
-            onJoinTeam={handleJoinCurrentUserToTeam}
           />
         )}
 

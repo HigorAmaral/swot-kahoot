@@ -291,10 +291,10 @@ export const RightKahootsSidebar: React.FC<Props> = ({
         {sidebarContent}
       </aside>
 
-      {/* Mobile Floating Toggle Button */}
+      {/* Tablet Floating Toggle Button (phones use MobileBottomNav) */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-gradient-to-b from-emerald-500 to-cyan-500 text-slate-950 font-black text-xs px-2 py-3 rounded-l-2xl shadow-xl flex flex-col items-center gap-1"
+        className="hidden sm:flex lg:hidden fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-gradient-to-b from-emerald-500 to-cyan-500 text-slate-950 font-black text-xs px-2 py-3 rounded-l-2xl shadow-xl flex-col items-center gap-1"
         title="Abrir Kahoots Feitos"
       >
         <ChevronLeft className="w-4 h-4" />

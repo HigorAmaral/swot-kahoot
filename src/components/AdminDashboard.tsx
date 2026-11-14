@@ -25,7 +25,8 @@ import {
   EyeOff,
   FolderOpen,
   Navigation,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Music
 } from 'lucide-react';
 
 interface Props {
@@ -92,6 +93,7 @@ export const AdminDashboard: React.FC<Props> = ({
   const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
   const [editingTeamName, setEditingTeamName] = useState('');
   const [isMuted, setIsMuted] = useState(sound.getMuted());
+  const [isMusicOn, setIsMusicOn] = useState(sound.getMusicEnabled());
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
 
@@ -137,10 +139,14 @@ export const AdminDashboard: React.FC<Props> = ({
     setIsMuted(sound.toggleMute());
   };
 
+  const handleToggleMusicAdmin = () => {
+    setIsMusicOn(sound.toggleMusic());
+  };
+
   const handleCopyRankingSummary = () => {
     const sorted = [...teams].sort((a, b) => b.points - a.points);
     const lines = [
-      '🏆 *PLACAR FABRICAQUIZ*',
+      '🏆 *PLACAR ARENAQUIZ*',
       ...sorted.map((t, i) => {
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🔹';
         const members = t.participants.map(p => p.name).join(', ') || 'Sem alunos';
@@ -206,61 +212,64 @@ export const AdminDashboard: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 animate-fade-in text-white select-none">
-      <div className="relative w-full max-w-6xl max-h-[92vh] bg-[#0d111a] border border-slate-800 rounded-2xl shadow-xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 animate-fade-in text-white select-none">
+      <div className="relative w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[92vh] bg-[#0d111a] border-0 sm:border sm:border-slate-800 rounded-none sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
         {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-[#090b10] gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-amber-400">
+        <div className="flex items-center justify-between px-4 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3 sm:p-5 border-b border-slate-800 bg-[#090b10] gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-amber-400 shrink-0">
               <ShieldAlert className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-black text-white">
-                  Painel do Administrador
+                <h2 className="text-base sm:text-xl font-black text-white truncate">
+                  Painel ADM
                 </h2>
-                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-amber-400">
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 shrink-0">
                   Admin
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 hidden sm:block">
                 Gerencie equipes, declare o vencedor, ajuste pontos e controle o banco de dados.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Create Kahoot Quick Button */}
             {onOpenCreatorModal && (
               <button
+                type="button"
                 onClick={() => {
                   onClose();
                   onOpenCreatorModal();
                 }}
-                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition flex items-center gap-1.5"
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition flex items-center gap-1.5"
+                title="Criar Perguntas"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Criar Perguntas</span>
               </button>
             )}
 
             {/* DB Status Badge */}
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs ${
+            <div className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs ${
               isDbConnected
                 ? 'bg-emerald-950/40 border-emerald-500/30'
                 : 'bg-slate-800 border-slate-700'
             }`}>
-              <Database className={`w-3.5 h-3.5 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
-              <span className="text-slate-300 hidden sm:inline">Banco:</span>
-              <span className={`font-black flex items-center gap-1.5 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <Database className={`w-3.5 h-3.5 shrink-0 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
+              <span className="text-slate-300 hidden md:inline">Banco:</span>
+              <span className={`font-black flex items-center gap-1 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
                 <span className={`w-2 h-2 rounded-full ${isDbConnected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                {isDbConnected ? 'ON' : 'OFF (Local)'}
+                {isDbConnected ? 'ON' : 'OFF'}
               </span>
             </div>
 
             {/* Logout Button */}
             {onLogout && (
               <button
+                type="button"
                 onClick={onLogout}
                 className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700 text-xs font-bold transition"
                 title="Bloquear Painel / Sair"
@@ -270,56 +279,65 @@ export const AdminDashboard: React.FC<Props> = ({
             )}
 
             <button
+              type="button"
               onClick={onClose}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
               title="Fechar Painel"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-800 bg-slate-900/90 px-4 sm:px-6 gap-2 pt-2 overflow-x-auto">
+        <div className="grid grid-cols-2 sm:flex border-b border-slate-800 bg-slate-900/90 p-2 sm:px-6 sm:pt-2 sm:pb-0 gap-1.5 sm:gap-2 shrink-0">
           <button
+            type="button"
             onClick={() => setActiveTab('winner_scores')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
               activeTab === 'winner_scores'
-                ? 'border-amber-400 text-amber-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-amber-500/15 sm:bg-transparent border border-amber-500/40 sm:border-0 sm:border-amber-400 text-amber-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Trophy className="w-4 h-4" /> 1. Declarar Vencedor & Pontos
+            <Trophy className="w-4 h-4 shrink-0" />
+            <span className="truncate">1. Placar & Vencedor</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('participants')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
               activeTab === 'participants'
-                ? 'border-emerald-400 text-emerald-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/15 sm:bg-transparent border border-emerald-500/40 sm:border-0 sm:border-emerald-400 text-emerald-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Users className="w-4 h-4" /> 2. Alunos nos Grupos ({teams.reduce((acc, t) => acc + t.participants.length, 0)})
+            <Users className="w-4 h-4 shrink-0" />
+            <span className="truncate">2. Alunos ({totalParticipants})</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('quiz_control')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
               activeTab === 'quiz_control'
-                ? 'border-emerald-400 text-emerald-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/15 sm:bg-transparent border border-emerald-500/40 sm:border-0 sm:border-emerald-400 text-emerald-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-4 h-4" /> 3. Rodadas & Mecânicas
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span className="truncate">3. Rodadas & Som</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('logs')}
-            className={`pb-3 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
               activeTab === 'logs'
-                ? 'border-emerald-400 text-emerald-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/15 sm:bg-transparent border border-emerald-500/40 sm:border-0 sm:border-emerald-400 text-emerald-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Database className="w-4 h-4" /> 4. Histórico da Rodada ({roundLogs.length})
+            <Database className="w-4 h-4 shrink-0" />
+            <span className="truncate">4. Histórico ({roundLogs.length})</span>
           </button>
         </div>
 
@@ -651,19 +669,20 @@ export const AdminDashboard: React.FC<Props> = ({
                           value={newParticipantNames[team.id] || ''}
                           onChange={e => setNewParticipantNames({ ...newParticipantNames, [team.id]: e.target.value })}
                           onKeyDown={e => e.key === 'Enter' && handleAddUser(team.id)}
-                          placeholder="Nome (ou vários: Ana, João, Maria)..."
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-400"
+                          placeholder="Nome (ou vários: Ana, João)..."
+                          className="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400"
                         />
                         <button
+                          type="button"
                           onClick={() => handleAddUser(team.id)}
-                          className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition flex items-center gap-1"
+                          className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition flex items-center gap-1 shrink-0"
                         >
                           <Plus className="w-3.5 h-3.5" /> Adicionar
                         </button>
                       </div>
 
                       {/* List of members */}
-                      <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                         {team.participants.length === 0 ? (
                           <div className="text-xs text-slate-500 italic p-2 text-center bg-slate-900/40 rounded-lg">
                             Nenhum aluno adicionado a esta equipe ainda.
@@ -672,20 +691,20 @@ export const AdminDashboard: React.FC<Props> = ({
                           team.participants.map(p => (
                             <div
                               key={p.id}
-                              className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs"
+                              className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs"
                             >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-base">{p.avatar}</span>
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <span className="text-base shrink-0">{p.avatar}</span>
                                 <span className="font-bold text-white truncate">{p.name}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
+                              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                                 {onMoveParticipant && (
-                                  <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-lg px-1.5 py-0.5">
-                                    <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
+                                  <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-lg px-1.5 py-1">
+                                    <ArrowRightLeft className="w-3 h-3 text-cyan-400 shrink-0" />
                                     <select
                                       value={team.id}
                                       onChange={e => onMoveParticipant(team.id, Number(e.target.value), p.id)}
-                                      className="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer"
+                                      className="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer max-w-[115px] sm:max-w-none"
                                       title="Mover para outra equipe"
                                     >
                                       {teams.map(dest => (
@@ -697,8 +716,9 @@ export const AdminDashboard: React.FC<Props> = ({
                                   </div>
                                 )}
                                 <button
+                                  type="button"
                                   onClick={() => onRemoveParticipant(team.id, p.id, p.name)}
-                                  className="p-1 rounded text-rose-400 hover:text-rose-300 hover:bg-rose-950 transition"
+                                  className="p-1.5 rounded text-rose-400 hover:text-rose-300 hover:bg-rose-950 transition"
                                   title="Remover aluno"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -760,6 +780,19 @@ export const AdminDashboard: React.FC<Props> = ({
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     <button
+                      type="button"
+                      onClick={handleToggleMusicAdmin}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition ${
+                        isMusicOn && !isMuted
+                          ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300'
+                          : 'bg-slate-900 border-slate-700 text-slate-400'
+                      }`}
+                    >
+                      <Music className="w-3.5 h-3.5" />
+                      {isMusicOn ? 'Música: Ligada' : 'Música: Desligada'}
+                    </button>
+                    <button
+                      type="button"
                       onClick={handleToggleSoundAdmin}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition ${
                         isMuted
@@ -772,6 +805,7 @@ export const AdminDashboard: React.FC<Props> = ({
                     </button>
                     {onOpenMyQuizzesModal && (
                       <button
+                        type="button"
                         onClick={() => { onClose(); onOpenMyQuizzesModal(); }}
                         className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-xs font-bold flex items-center gap-1.5 transition"
                       >
@@ -780,6 +814,7 @@ export const AdminDashboard: React.FC<Props> = ({
                     )}
                     {onRestoreDefaultQuestions && (
                       <button
+                        type="button"
                         onClick={() => {
                           if (confirm('Restaurar as perguntas padrão do ArenaQuiz?')) {
                             onRestoreDefaultQuestions();
@@ -885,19 +920,20 @@ export const AdminDashboard: React.FC<Props> = ({
               </div>
 
               {/* Reset Quiz Button */}
-              <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-500/40 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="font-black text-rose-300 text-sm">Zerar e Reiniciar Toda a Atividade</h4>
                   <p className="text-xs text-slate-400">Limpa pontuações, brindes e registros da sessão atual.</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => {
                     if (confirm("Deseja realmente zerar o jogo?")) {
                       onResetGame();
                       onClose();
                     }
                   }}
-                  className="px-4 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white transition flex items-center gap-1.5"
+                  className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white transition flex items-center gap-1.5 shrink-0"
                 >
                   <RotateCcw className="w-4 h-4" /> Resetar Jogo
                 </button>
@@ -944,16 +980,16 @@ export const AdminDashboard: React.FC<Props> = ({
                   {roundLogs.map((log, i) => (
                     <div
                       key={i}
-                      className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between gap-3 text-xs"
+                      className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black ${
+                      <div className="flex items-start sm:items-center gap-3 min-w-0">
+                        <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black shrink-0 ${
                           log.isCorrect ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
                         }`}>
                           {log.isCorrect ? '✓' : '✗'}
                         </span>
-                        <div>
-                          <div className="font-bold text-white text-sm">
+                        <div className="min-w-0">
+                          <div className="font-bold text-white text-sm break-words">
                             Pergunta #{log.questionId}: {log.questionTitle}
                           </div>
                           <div className="text-slate-400">
@@ -962,7 +998,7 @@ export const AdminDashboard: React.FC<Props> = ({
                         </div>
                       </div>
 
-                      <div className="text-right">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center shrink-0 pl-9 sm:pl-0">
                         <div className="font-bold text-emerald-400">
                           {log.pointsAwarded > 0 ? `+${log.pointsAwarded} pts` : '0 pts'}
                         </div>
@@ -979,13 +1015,14 @@ export const AdminDashboard: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400">
+        <div className="px-4 pt-3 pb-[max(0.875rem,env(safe-area-inset-bottom))] sm:p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-3 shrink-0">
+          <span className="text-xs text-slate-400 hidden sm:inline">
             Painel exclusivo do Grupo de Comando e Professor.
           </span>
           <button
+            type="button"
             onClick={onClose}
-            className="px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 font-black text-xs text-slate-950 transition"
+            className="w-full sm:w-auto px-6 py-2.5 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 font-black text-xs text-slate-950 transition"
           >
             Concluir e Voltar ao Quiz
           </button>

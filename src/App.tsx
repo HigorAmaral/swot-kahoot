@@ -160,6 +160,19 @@ export function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileKahootsOpen, setIsMobileKahootsOpen] = useState(false);
 
+  // Unlock Web Audio and start pleasant background music on first user gesture
+  useEffect(() => {
+    const handleFirstGesture = () => {
+      sound.unlockAndStartMusic();
+    };
+    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
+    window.addEventListener('keydown', handleFirstGesture, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+  }, []);
+
   const currentQuestion = questions[currentQuestionIndex] || questions[0];
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
   const disputeWinnerTeam = teams.find(t => t.id === disputeWinnerId) || teams[0];

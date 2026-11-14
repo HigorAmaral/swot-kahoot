@@ -2,8 +2,21 @@
 class SoundManager {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
+  private isMusicEnabled: boolean = true;
   private musicInterval: number | null = null;
   private isMusicPlaying: boolean = false;
+  private musicGain: GainNode | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedMusic = localStorage.getItem('arenaquiz_bg_music');
+        if (savedMusic === 'false') {
+          this.isMusicEnabled = false;
+        }
+      } catch {}
+    }
+  }
 
   private initCtx() {
     if (!this.ctx && typeof window !== 'undefined') {
@@ -11,7 +24,12 @@ class SoundManager {
       this.ctx = new AudioCtx();
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
+    }
+    if (this.ctx && !this.musicGain) {
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.setValueAtTime(0.32, this.ctx.currentTime);
+      this.musicGain.connect(this.ctx.destination);
     }
   }
 
@@ -19,12 +37,39 @@ class SoundManager {
     this.isMuted = !this.isMuted;
     if (this.isMuted) {
       this.stopMusic();
+    } else if (this.isMusicEnabled) {
+      this.startLobbyMusic();
     }
     return this.isMuted;
   }
 
   public getMuted(): boolean {
     return this.isMuted;
+  }
+
+  public getMusicEnabled(): boolean {
+    return this.isMusicEnabled;
+  }
+
+  public toggleMusic(): boolean {
+    this.isMusicEnabled = !this.isMusicEnabled;
+    try {
+      localStorage.setItem('arenaquiz_bg_music', String(this.isMusicEnabled));
+    } catch {}
+
+    if (this.isMusicEnabled && !this.isMuted) {
+      this.startLobbyMusic();
+    } else {
+      this.stopMusic();
+    }
+    return this.isMusicEnabled;
+  }
+
+  public unlockAndStartMusic() {
+    this.initCtx();
+    if (this.isMusicEnabled && !this.isMuted && !this.isMusicPlaying) {
+      this.startLobbyMusic();
+    }
   }
 
   // Play a simple frequency tone
@@ -51,6 +96,31 @@ class SoundManager {
     } catch {
       // AudioContext might be blocked before first user gesture
     }
+  }
+
+  // Soft enveloped tone routed through musicGain for pleasant background music
+  private playMusicNote(freq: number, duration: number, type: OscillatorType, peakGain: number) {
+    if (this.isMuted || !this.isMusicEnabled || !this.ctx || !this.musicGain) return;
+    if (this.ctx.state === 'suspended') return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const env = this.ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+
+      env.gain.setValueAtTime(0.0001, now);
+      env.gain.linearRampToValueAtTime(peakGain, now + 0.02);
+      env.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(env);
+      env.connect(this.musicGain);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch {}
   }
 
   // Sound: Buzzer / Button Click
@@ -154,26 +224,53 @@ class SoundManager {
     this.playTone(urgent ? 880 : 440, 0.05, 'square', urgent ? 0.2 : 0.08);
   }
 
-  // Background Kahoot Tension/Countdown Music loop
+  // Pleasant upbeat background music loop (warm game-show / lo-fi groove)
   public startLobbyMusic() {
-    if (this.isMuted || this.isMusicPlaying) return;
+    if (this.isMuted || !this.isMusicEnabled || this.isMusicPlaying) return;
     this.isMusicPlaying = true;
     this.initCtx();
 
-    const bpm = 128;
-    const beatInterval = (60 / bpm) * 1000;
-    const bassline = [130.81, 130.81, 155.56, 174.61, 130.81, 196.00, 174.61, 155.56]; // C minor groove
+    const stepMs = 260; // ~115 BPM eighth-note groove
+    // 16-step progression: Cmaj7 -> Am7 -> Fmaj7 -> G6
+    const bassPattern = [
+      130.81, 0, 196.00, 0, // C3, G3
+      110.00, 0, 164.81, 0, // A2, E3
+      87.31,  0, 130.81, 0, // F2, C3
+      98.00,  0, 146.83, 0, // G2, D3
+    ];
+    const melodyPattern = [
+      523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
+      440.00, 523.25, 659.25, 523.25, // A4 C5 E5 C5
+      349.23, 440.00, 523.25, 659.25, // F4 A4 C5 E5
+      392.00, 493.88, 587.33, 493.88, // G4 B4 D5 B4
+    ];
+    const padRoots = [261.63, 220.00, 174.61, 196.00]; // C4, A3, F3, G3
     let step = 0;
 
     this.musicInterval = window.setInterval(() => {
-      if (this.isMuted) return;
-      const note = bassline[step % bassline.length];
-      this.playTone(note, 0.15, 'sawtooth', 0.04);
-      if (step % 2 === 0) {
-        this.playTone(note * 2, 0.1, 'sine', 0.03);
+      if (this.isMuted || !this.isMusicEnabled) return;
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+        return;
       }
+
+      const idx = step % 16;
+      const bass = bassPattern[idx];
+      const mel = melodyPattern[idx];
+
+      if (bass > 0) {
+        this.playMusicNote(bass, 0.24, 'triangle', 0.08);
+      }
+      if (mel > 0) {
+        this.playMusicNote(mel, 0.2, 'sine', 0.055);
+      }
+      if (idx % 4 === 0) {
+        const root = padRoots[Math.floor(idx / 4)];
+        this.playMusicNote(root, 0.85, 'sine', 0.035);
+      }
+
       step++;
-    }, beatInterval / 2);
+    }, stepMs);
   }
 
   public stopMusic() {

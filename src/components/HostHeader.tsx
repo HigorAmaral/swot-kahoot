@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserAccount } from '../types';
 import { sound } from '../utils/sound';
-import { Volume2, VolumeX, Maximize2, ShieldAlert, Sparkles, Share2, LogOut, Download } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, ShieldAlert, Sparkles, Share2, LogOut, Download, Music } from 'lucide-react';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 
 interface Props {
@@ -24,11 +24,17 @@ export const HostHeader: React.FC<Props> = ({
   isAdmin,
 }) => {
   const [isMuted, setIsMuted] = useState(sound.getMuted());
+  const [isMusicOn, setIsMusicOn] = useState(sound.getMusicEnabled());
   const { canInstall, promptInstall } = usePwaInstall();
 
   const handleToggleSound = () => {
     const muted = sound.toggleMute();
     setIsMuted(muted);
+  };
+
+  const handleToggleMusic = () => {
+    const enabled = sound.toggleMusic();
+    setIsMusicOn(enabled);
   };
 
   const handleToggleFullscreen = () => {
@@ -106,6 +112,19 @@ export const HostHeader: React.FC<Props> = ({
               <span className="sm:hidden">App</span>
             </button>
           )}
+
+          {/* Background Music Toggle */}
+          <button
+            onClick={handleToggleMusic}
+            className={`p-2 rounded-xl transition border ${
+              isMusicOn && !isMuted
+                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/40 text-emerald-300'
+                : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-500'
+            }`}
+            title={isMusicOn ? 'Desligar Música de Fundo' : 'Ligar Música de Fundo'}
+          >
+            <Music className="w-4 h-4" />
+          </button>
 
           {/* Sound Toggle */}
           <button

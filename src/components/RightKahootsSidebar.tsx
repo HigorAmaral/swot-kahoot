@@ -28,6 +28,8 @@ interface Props {
   onOpenCreator: () => void;
   onOpenShareModal: () => void;
   onOpenQuizAdmin?: (quiz: SavedQuiz) => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
 export const RightKahootsSidebar: React.FC<Props> = ({
@@ -38,12 +40,19 @@ export const RightKahootsSidebar: React.FC<Props> = ({
   onOpenCreator,
   onOpenShareModal,
   onOpenQuizAdmin,
+  mobileOpen: controlledMobileOpen,
+  onMobileOpenChange,
 }) => {
   const [tab, setTab] = useState<'mine' | 'received'>('mine');
   const [myQuizzes, setMyQuizzes] = useState<SavedQuiz[]>([]);
   const [receivedQuizzes, setReceivedQuizzes] = useState<SavedQuiz[]>([]);
   const [loading, setLoading] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const mobileOpen = controlledMobileOpen ?? internalMobileOpen;
+  const setMobileOpen = (open: boolean) => {
+    setInternalMobileOpen(open);
+    onMobileOpenChange?.(open);
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 

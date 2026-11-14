@@ -883,6 +883,8 @@ export function App() {
           onOpenCreator={() => setIsCreatorModalOpen(true)}
           onOpenShareModal={() => setIsMyQuizzesModalOpen(true)}
           onOpenQuizAdmin={setManagingQuiz}
+          mobileOpen={isMobileKahootsOpen}
+          onMobileOpenChange={setIsMobileKahootsOpen}
         />
       </div>
 

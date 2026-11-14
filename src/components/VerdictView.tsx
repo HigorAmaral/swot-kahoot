@@ -3,6 +3,7 @@ import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
 import { CheckCircle2, XCircle, Award, Sparkles, ArrowRight, HelpCircle } from 'lucide-react';
+import { MascotDetail } from './ArenaMascot';
 
 interface Props {
   question: Question;
@@ -77,7 +78,12 @@ export const VerdictView: React.FC<Props> = ({
           ? 'bg-gradient-to-b from-emerald-950/85 to-slate-950/95 border-emerald-400/80 ring-4 ring-emerald-500/20'
           : 'bg-gradient-to-b from-rose-950/85 to-slate-950/95 border-rose-500/80 ring-4 ring-rose-500/20'
       }`}>
-        <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
+          <MascotDetail
+            variant="face"
+            size="md"
+            mood={isCorrect ? 'happy' : 'error'}
+          />
           {isCorrect ? (
             <CheckCircle2 className="w-9 h-9 sm:w-12 sm:h-12 text-emerald-400 animate-bounce shrink-0" />
           ) : (
@@ -86,6 +92,7 @@ export const VerdictView: React.FC<Props> = ({
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">
             {isCorrect ? 'RESPOSTA CORRETA! 🎉' : isTimeout ? 'TEMPO ESGOTADO! ⏰' : 'RESPOSTA INCORRETA! ❌'}
           </h2>
+          {isCorrect && <MascotDetail variant="paw" size="sm" label="Mandou bem!" className="hidden sm:inline-flex" />}
         </div>
 
         <p className="text-base sm:text-lg md:text-xl font-bold text-slate-200 mt-1">

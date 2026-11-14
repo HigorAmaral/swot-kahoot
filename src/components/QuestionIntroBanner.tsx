@@ -3,6 +3,7 @@ import { Question } from '../data/questions';
 import { Team, DisputeMode } from '../types';
 import { sound } from '../utils/sound';
 import { Sparkles, ArrowRight, ArrowLeft, Layers, Dices, Gamepad2 } from 'lucide-react';
+import { MascotDetail } from './ArenaMascot';
 
 interface Props {
   question: Question;
@@ -99,6 +100,16 @@ export const QuestionIntroBanner: React.FC<Props> = ({
             {disputeBadgeLabel}
           </div>
         )}
+      </div>
+
+      {/* Mascot Peeking Over Category Box */}
+      <div className="-mb-3 z-20">
+        <MascotDetail
+          variant="peeking"
+          size="lg"
+          mood={spunTeam ? 'happy' : 'idle'}
+          label={spunTeam ? `Vai lá, ${spunTeam.name}! 🦊` : 'Preparem os dedos!'}
+        />
       </div>
 
       {/* Category Box */}

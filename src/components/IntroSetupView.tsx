@@ -6,6 +6,7 @@ import { showAlert } from '../utils/toast';
 import { showConfirm } from '../utils/confirm';
 import { QRCodeSVG } from 'qrcode.react';
 import { Play, Users, User, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode, Sliders, BookOpen, HelpCircle, Smartphone, Gamepad2 } from 'lucide-react';
+import { MascotDetail } from './ArenaMascot';
 
 interface Props {
   teams: Team[];
@@ -409,11 +410,14 @@ export const IntroSetupView: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Main CTA Launch Pad */}
-        <div className="relative z-10 flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-stretch gap-3 w-full lg:w-[320px] xl:w-[340px] shrink-0 lg:bg-slate-950/60 lg:p-4 lg:rounded-2xl lg:border lg:border-slate-800/90">
+        {/* Main CTA Launch Pad with Peeking Mascot */}
+        <div className="relative z-10 flex flex-col items-center lg:items-stretch gap-2.5 w-full lg:w-[320px] xl:w-[340px] shrink-0 lg:bg-slate-950/60 lg:p-4 lg:rounded-2xl lg:border lg:border-slate-800/90">
+          <div className="flex items-center justify-center -mb-3 z-10">
+            <MascotDetail variant="peeking" size="md" mood="happy" label="Tudo pronto? Bora!" />
+          </div>
           <button
             onClick={onStartGame}
-            className="px-7 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2.5"
+            className="w-full px-7 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2.5"
           >
             <Play className="w-5 h-5 fill-current" />
             COMEÇAR O QUIZ
@@ -521,14 +525,18 @@ export const IntroSetupView: React.FC<Props> = ({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
-          >
-            <UserPlus className="w-4 h-4" />
-            {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
-          </button>
+          <div className="flex items-center gap-2">
+            <MascotDetail variant="paw" size="sm" className="hidden sm:inline-flex" />
+            <button
+              type="button"
+              onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
+            >
+              <UserPlus className="w-4 h-4" />
+              {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
+            </button>
+            <MascotDetail variant="tail" size="sm" className="hidden md:inline-flex" />
+          </div>
         </div>
 
         {/* Success Alert */}

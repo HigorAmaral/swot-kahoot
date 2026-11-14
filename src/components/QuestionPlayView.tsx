@@ -3,6 +3,7 @@ import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
 import { FastForward, Sparkles, Clock, Zap, Shield, Smartphone } from 'lucide-react';
+import { MascotDetail } from './ArenaMascot';
 
 interface PowerUpsUsedInRound {
   usedFiftyFifty?: boolean;
@@ -355,6 +356,17 @@ export const QuestionPlayView: React.FC<Props> = ({
 
       {/* Central Question Box */}
       <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-7 md:p-9 lg:p-10 shadow-2xl text-center mt-4 mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[140px] sm:min-h-[180px] lg:min-h-[210px]">
+        {/* Animated Mascot Reaction on Corner of Question Box */}
+        <div className="hidden sm:flex items-center gap-1 absolute -top-6 right-5 z-20">
+          <MascotDetail
+            variant="face"
+            size="sm"
+            mood={selectedOption !== null ? 'happy' : timeLeft <= 8 ? 'shocked' : 'idle'}
+            label={selectedOption !== null ? 'Boa!' : timeLeft <= 8 ? 'Corre! ⏰' : undefined}
+          />
+          <MascotDetail variant="tail" size="sm" />
+        </div>
+
         {/* Floating Timer Circle */}
         <div className={`absolute -top-5 sm:-top-7 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-15 sm:h-15 lg:w-16 lg:h-16 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl lg:text-2xl shadow-2xl transition-all z-10 ${
           timeLeft <= 5

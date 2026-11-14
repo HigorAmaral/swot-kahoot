@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Team } from '../types';
 import { Trophy, ArrowRight, Flame, Award } from 'lucide-react';
+import { MascotDetail } from './ArenaMascot';
 
 interface Props {
   teams: Team[];
@@ -35,7 +36,7 @@ export const ScoreboardView: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-5xl mx-auto p-2.5 sm:p-4 lg:p-6 animate-fade-in">
-      <div className="text-center mb-6 sm:mb-8">
+      <div className="text-center mb-4 sm:mb-6 flex flex-col items-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-2.5 shadow-lg">
           <Trophy className="w-4 h-4 text-yellow-400" />
           Placar Geral da Sala • Rodada {questionNumber} de {totalQuestions}
@@ -43,6 +44,14 @@ export const ScoreboardView: React.FC<Props> = ({
         <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
           Classificação das Equipes
         </h2>
+        <div className="mt-2 -mb-3 z-20">
+          <MascotDetail
+            variant="peeking"
+            size="md"
+            mood="happy"
+            label={sorted[0] ? `${sorted[0].name} na liderança! 🔥` : 'Disputa acirrada!'}
+          />
+        </div>
       </div>
 
       {/* Leaderboard Stack */}

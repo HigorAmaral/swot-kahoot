@@ -322,3 +322,269 @@ export const ArenaMascot: React.FC<Props> = ({
     </div>
   );
 };
+
+export interface MascotDetailProps {
+  variant: 'face' | 'paw' | 'tail' | 'peeking' | 'full';
+  mood?: 'idle' | 'happy' | 'shocked' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+  label?: string;
+  className?: string;
+}
+
+export const MascotDetail: React.FC<MascotDetailProps> = ({
+  variant,
+  mood = 'idle',
+  size = 'md',
+  label,
+  className = '',
+}) => {
+  const [clicked, setClicked] = useState(false);
+
+  const triggerBounce = () => {
+    sound.playCandyChime();
+    setClicked(true);
+    window.setTimeout(() => setClicked(false), 500);
+  };
+
+  if (variant === 'paw') {
+    const dim = size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-14 h-14' : 'w-10 h-10';
+    return (
+      <div
+        onClick={triggerBounce}
+        title="Patinha do Kiko!"
+        className={`inline-flex items-center gap-1.5 cursor-pointer select-none ${
+          clicked ? 'scale-125' : ''
+        } transition-transform ${className}`}
+      >
+        <svg viewBox="0 0 80 80" className={`${dim} animate-mascot-paw overflow-visible drop-shadow-md`}>
+          {/* Forearm / Wrist */}
+          <path
+            d="M 24 74 L 28 42 C 28 30, 52 30, 52 42 L 56 74 Z"
+            fill="#f97316"
+            stroke="#7c2d12"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
+          {/* Main Paw Pad */}
+          <circle cx="40" cy="36" r="18" fill="#ea580c" stroke="#7c2d12" strokeWidth="3.5" />
+          {/* 3 Cute Toe Beans */}
+          <circle cx="29" cy="24" r="4.5" fill="#fde68a" />
+          <circle cx="40" cy="20" r="5" fill="#fde68a" />
+          <circle cx="51" cy="24" r="4.5" fill="#fde68a" />
+          {/* Central Palm Bean */}
+          <ellipse cx="40" cy="37" rx="8" ry="6.5" fill="#fde68a" />
+        </svg>
+        {label && (
+          <span className="text-[11px] font-black text-amber-300 bg-slate-900/90 border border-amber-400/40 px-2 py-0.5 rounded-lg">
+            {label}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (variant === 'tail') {
+    const dim = size === 'sm' ? 'w-10 h-10' : size === 'lg' ? 'w-16 h-16' : 'w-12 h-12';
+    return (
+      <div
+        onClick={triggerBounce}
+        title="Rabo do Kiko abanando!"
+        className={`inline-flex items-center cursor-pointer select-none ${
+          clicked ? 'scale-125' : ''
+        } transition-transform ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className={`${dim} overflow-visible drop-shadow-md`}>
+          <g className="animate-mascot-tail" style={{ transformOrigin: '75px 80px' }}>
+            <path
+              d="M 78 82 C 30 80, 12 40, 38 18 C 56 6, 80 30, 84 62 Z"
+              fill="#ea580c"
+              stroke="#7c2d12"
+              strokeWidth="4"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 38 18 C 22 30, 26 50, 46 52 C 54 36, 52 24, 38 18 Z"
+              fill="#fff7ed"
+            />
+          </g>
+        </svg>
+      </div>
+    );
+  }
+
+  if (variant === 'peeking') {
+    const dim = size === 'sm' ? 'w-20 h-14' : size === 'lg' ? 'w-32 h-22' : 'w-24 h-16';
+    return (
+      <div
+        onClick={triggerBounce}
+        title="Kiko espiando a rodada!"
+        className={`inline-flex flex-col items-center cursor-pointer select-none ${
+          clicked ? '-translate-y-2 scale-105' : ''
+        } transition-transform ${className}`}
+      >
+        {label && (
+          <span className="mb-1 px-2.5 py-0.5 rounded-full bg-[#182032] border border-amber-400/60 text-[10px] font-black text-amber-200 shadow">
+            {label}
+          </span>
+        )}
+        <svg viewBox="0 0 180 115" className={`${dim} animate-mascot-peek overflow-visible drop-shadow-lg`}>
+          {/* Left Ear */}
+          <g className="animate-mascot-ear" style={{ transformOrigin: '52px 46px' }}>
+            <polygon points="38,58 26,8 72,34" fill="#ea580c" stroke="#7c2d12" strokeWidth="3.5" strokeLinejoin="round" />
+            <polygon points="42,52 34,18 66,36" fill="#fde68a" />
+          </g>
+          {/* Right Ear */}
+          <polygon points="142,58 154,8 108,34" fill="#ea580c" stroke="#7c2d12" strokeWidth="3.5" strokeLinejoin="round" />
+          <polygon points="138,52 146,18 114,36" fill="#fde68a" />
+
+          {/* Head Dome */}
+          <path
+            d="M 36 88 C 32 42, 62 26, 90 26 C 118 26, 148 42, 144 88 Z"
+            fill="#f97316"
+            stroke="#7c2d12"
+            strokeWidth="3.5"
+          />
+          {/* Cream Muzzle Top */}
+          <path d="M 42 88 C 56 76, 74 82, 90 82 C 106 82, 124 76, 138 88 Z" fill="#fff7ed" />
+
+          {/* Eyes */}
+          <g className="animate-mascot-blink">
+            {mood === 'happy' || clicked ? (
+              <>
+                <path d="M 58 68 Q 68 56 78 68" fill="none" stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
+                <path d="M 102 68 Q 112 56 122 68" fill="none" stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
+              </>
+            ) : (
+              <>
+                <circle cx="68" cy="66" r="10.5" fill="#fff" stroke="#0f172a" strokeWidth="3" />
+                <circle cx="68" cy="66" r="5.5" fill="#0f172a" />
+                <circle cx="66" cy="63" r="2.2" fill="#fff" />
+                <circle cx="112" cy="66" r="10.5" fill="#fff" stroke="#0f172a" strokeWidth="3" />
+                <circle cx="112" cy="66" r="5.5" fill="#0f172a" />
+                <circle cx="110" cy="63" r="2.2" fill="#fff" />
+              </>
+            )}
+          </g>
+
+          {/* Nose */}
+          <polygon points="85,78 95,78 90,85" fill="#0f172a" />
+
+          {/* Two Paws Resting on the Border */}
+          <ellipse cx="46" cy="94" rx="14" ry="9" fill="#ea580c" stroke="#7c2d12" strokeWidth="3.5" />
+          <circle cx="41" cy="92" r="2.5" fill="#fde68a" />
+          <circle cx="46" cy="90" r="2.5" fill="#fde68a" />
+          <circle cx="51" cy="92" r="2.5" fill="#fde68a" />
+
+          <ellipse cx="134" cy="94" rx="14" ry="9" fill="#ea580c" stroke="#7c2d12" strokeWidth="3.5" />
+          <circle cx="129" cy="92" r="2.5" fill="#fde68a" />
+          <circle cx="134" cy="90" r="2.5" fill="#fde68a" />
+          <circle cx="139" cy="92" r="2.5" fill="#fde68a" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (variant === 'full') {
+    return (
+      <div className={className}>
+        <ArenaMascot
+          mood={mood === 'happy' ? 'happy' : mood === 'error' ? 'error' : 'idle'}
+          speechText={label}
+          compact
+        />
+      </div>
+    );
+  }
+
+  // Default: variant === 'face' (Animated Head Badge with Ears, Blinking Eyes & Expressions)
+  const faceDim =
+    size === 'sm' ? 'w-9 h-9 sm:w-11 sm:h-11' : size === 'lg' ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-12 h-12 sm:w-14 sm:h-14';
+
+  return (
+    <div
+      onClick={triggerBounce}
+      title="Kiko • Mascote ArenaQuiz (Clique!)"
+      className={`inline-flex items-center gap-2 cursor-pointer select-none ${
+        clicked ? 'scale-110 -translate-y-1' : 'hover:scale-105'
+      } transition-transform ${className}`}
+    >
+      <svg viewBox="0 0 140 135" className={`${faceDim} overflow-visible drop-shadow-md`}>
+        {/* Left Ear (Twitching) */}
+        <g className="animate-mascot-ear" style={{ transformOrigin: '42px 42px' }}>
+          <polygon points="24,52 14,8 56,30" fill="#ea580c" stroke="#7c2d12" strokeWidth="4" strokeLinejoin="round" />
+          <polygon points="28,46 20,18 50,32" fill="#fde68a" />
+        </g>
+        {/* Right Ear */}
+        <polygon points="116,52 126,8 84,30" fill="#ea580c" stroke="#7c2d12" strokeWidth="4" strokeLinejoin="round" />
+        <polygon points="112,46 120,18 90,32" fill="#fde68a" />
+
+        {/* Head Base */}
+        <path
+          d="M 22 74 C 18 40, 46 24, 70 24 C 94 24, 122 40, 118 74 C 126 90, 110 116, 70 116 C 30 116, 14 90, 22 74 Z"
+          fill="#f97316"
+          stroke="#7c2d12"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+        {/* Cream Cheeks */}
+        <path
+          d="M 24 82 C 36 72, 54 80, 70 80 C 86 80, 104 72, 116 82 C 118 104, 96 116, 70 116 C 44 116, 22 104, 24 82 Z"
+          fill="#fff7ed"
+        />
+
+        {/* Blush */}
+        <ellipse cx="38" cy="90" rx="7" ry="4" fill="#fb7185" opacity="0.55" />
+        <ellipse cx="102" cy="90" rx="7" ry="4" fill="#fb7185" opacity="0.55" />
+
+        {/* Eyes */}
+        <g className="animate-mascot-blink">
+          {mood === 'happy' || clicked ? (
+            <>
+              <path d="M 40 66 Q 50 54 60 66" fill="none" stroke="#0f172a" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 80 66 Q 90 54 100 66" fill="none" stroke="#0f172a" strokeWidth="4.5" strokeLinecap="round" />
+            </>
+          ) : mood === 'error' ? (
+            <>
+              <path d="M 42 58 L 56 72 M 56 58 L 42 72" stroke="#e11d48" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 84 58 L 98 72 M 98 58 L 84 72" stroke="#e11d48" strokeWidth="4.5" strokeLinecap="round" />
+            </>
+          ) : mood === 'shocked' ? (
+            <>
+              <circle cx="50" cy="64" r="11" fill="#fff" stroke="#0f172a" strokeWidth="3.5" />
+              <circle cx="50" cy="64" r="3.5" fill="#0f172a" />
+              <circle cx="90" cy="64" r="11" fill="#fff" stroke="#0f172a" strokeWidth="3.5" />
+              <circle cx="90" cy="64" r="3.5" fill="#0f172a" />
+            </>
+          ) : (
+            <>
+              <circle cx="50" cy="64" r="10" fill="#fff" stroke="#0f172a" strokeWidth="3.5" />
+              <circle cx="50" cy="64" r="5.5" fill="#0f172a" />
+              <circle cx="48" cy="61" r="2.2" fill="#fff" />
+              <circle cx="90" cy="64" r="10" fill="#fff" stroke="#0f172a" strokeWidth="3.5" />
+              <circle cx="90" cy="64" r="5.5" fill="#0f172a" />
+              <circle cx="88" cy="61" r="2.2" fill="#fff" />
+            </>
+          )}
+        </g>
+
+        {/* Nose & Mouth */}
+        <polygon points="65,78 75,78 70,85" fill="#0f172a" />
+        {mood === 'happy' || clicked ? (
+          <path d="M 58 90 Q 70 104 82 90 Z" fill="#e11d48" stroke="#7c2d12" strokeWidth="2.5" />
+        ) : mood === 'shocked' ? (
+          <circle cx="70" cy="95" r="5" fill="#e11d48" stroke="#7c2d12" strokeWidth="2.5" />
+        ) : mood === 'error' ? (
+          <path d="M 60 98 Q 70 90 80 98" fill="none" stroke="#7c2d12" strokeWidth="3" strokeLinecap="round" />
+        ) : (
+          <path d="M 60 91 Q 65 96 70 91 Q 75 96 80 91" fill="none" stroke="#7c2d12" strokeWidth="3" strokeLinecap="round" />
+        )}
+      </svg>
+      {label && (
+        <span className="text-xs font-extrabold text-amber-200 bg-[#182032] border border-amber-400/50 px-2.5 py-1 rounded-xl shadow">
+          {label}
+        </span>
+      )}
+    </div>
+  );
+};
+

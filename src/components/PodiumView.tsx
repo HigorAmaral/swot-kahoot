@@ -4,6 +4,7 @@ import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
 import { buildAnswerReview, buildQuizCsvReport, downloadCsvFile } from '../utils/quizReport';
 import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp, Printer, Download } from 'lucide-react';
+import { MascotDetail } from './ArenaMascot';
 
 interface Props {
   teams: Team[];
@@ -120,7 +121,13 @@ export const PodiumView: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-6xl mx-auto p-3 sm:p-5 lg:p-6 animate-fade-in text-center">
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-4 sm:mb-6 flex flex-col items-center">
+        <MascotDetail
+          variant="full"
+          mood="happy"
+          label={first ? `Parabéns, ${first.name}! Campeões da Arena! 🏆🦊` : 'Fim do show! Parabéns a todos!'}
+          className="mb-2"
+        />
         <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider mb-3 shadow-lg animate-bounce">
           <Trophy className="w-4 h-4 sm:w-5 sm:h-5 fill-current" /> Fim do Quiz! Grande Campeã Definida!
         </div>

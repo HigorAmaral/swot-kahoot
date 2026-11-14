@@ -326,6 +326,33 @@
     transform-origin: 85px 65px;
     animation: mascotEarTwitch 5s ease-in-out infinite;
   }
+
+  @keyframes mascotPawTap {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-5px) rotate(-10deg);
+    }
+  }
+
+  @keyframes mascotPeekBob {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .animate-mascot-paw {
+    transform-origin: center bottom;
+    animation: mascotPawTap 1.4s ease-in-out infinite;
+  }
+
+  .animate-mascot-peek {
+    animation: mascotPeekBob 2.8s ease-in-out infinite;
+  }
 }
 
 /* Custom Scrollbar */

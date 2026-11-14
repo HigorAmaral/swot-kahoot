@@ -3,6 +3,7 @@ import { UserAccount } from '../types';
 import { sound } from '../utils/sound';
 import { Volume2, VolumeX, Maximize2, ShieldAlert, Sparkles, Share2, LogOut, Download, Music, Globe } from 'lucide-react';
 import { usePwaInstall } from '../hooks/usePwaInstall';
+import { MascotDetail } from './ArenaMascot';
 
 interface Props {
   onOpenAdminModal: () => void;
@@ -62,11 +63,9 @@ export const HostHeader: React.FC<Props> = ({
   return (
     <header className="w-full bg-[#090d16]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)] px-3 sm:px-6 lg:px-8 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 sm:py-3 sticky top-0 z-40 shrink-0">
       <div className="w-full max-w-[1680px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        {/* Logo / Title */}
-        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-cyan-500 flex items-center justify-center font-black text-base sm:text-lg text-slate-950 tracking-tighter shrink-0 shadow-lg shadow-emerald-500/25 ring-1 ring-white/25">
-            AQ
-          </div>
+        {/* Logo / Title with Animated Mascot Face */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <MascotDetail variant="face" size="sm" className="shrink-0" />
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <span className="font-black text-base sm:text-xl lg:text-2xl text-white tracking-tight truncate">

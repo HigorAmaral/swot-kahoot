@@ -55,7 +55,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in text-center">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-5xl mx-auto p-2.5 sm:p-4 lg:p-6 animate-fade-in text-center">
       {/* Question Counter Pill */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-4 sm:mb-6">
         <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-xl">
@@ -70,18 +70,35 @@ export const QuestionIntroBanner: React.FC<Props> = ({
       </div>
 
       {/* Category Box */}
-      <div className="w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl mb-5 sm:mb-6 flex flex-col items-center">
-        <span className="text-xs font-black uppercase text-cyan-400 tracking-widest mb-2 flex items-center gap-1.5">
+      <div className="relative overflow-hidden w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-6 sm:p-9 md:p-12 lg:p-14 shadow-2xl mb-5 sm:mb-6 flex flex-col items-center">
+        <div className="pointer-events-none hidden lg:block absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 rounded-full bg-cyan-500/10 blur-3xl" />
+        <span className="relative z-10 text-xs font-black uppercase text-cyan-400 tracking-widest mb-2.5 flex items-center gap-1.5">
           <Layers className="w-4 h-4" /> Tema da Rodada
         </span>
 
-        <h2 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight mb-3 sm:mb-4">
+        <h2 className="relative z-10 text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight mb-3 sm:mb-4 text-glow">
           {question.category}
         </h2>
 
         {question.swotQuadrant && (
-          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-400/50 text-emerald-300 font-bold text-xs sm:text-sm">
+          <div className="relative z-10 inline-block px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-400/50 text-emerald-300 font-bold text-xs sm:text-sm">
             {question.swotQuadrant}
+          </div>
+        )}
+
+        {/* Desktop Teams Quick Status Strip */}
+        {teams.length > 0 && (
+          <div className="relative z-10 hidden sm:flex flex-wrap items-center justify-center gap-2.5 mt-6 pt-5 border-t border-slate-800/80 w-full">
+            {teams.map(t => (
+              <div
+                key={t.id}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs"
+              >
+                <span className={`w-2.5 h-2.5 rounded-full ${t.bgClass}`} />
+                <span className="font-bold text-slate-200">{t.name}</span>
+                <span className="font-mono font-black text-emerald-400">{t.points} pts</span>
+              </div>
+            ))}
           </div>
         )}
       </div>

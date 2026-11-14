@@ -60,69 +60,85 @@ export const HostHeader: React.FC<Props> = ({
   };
 
   return (
-    <header className="w-full bg-[#0d111a]/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 sm:py-3 sticky top-0 z-40 shrink-0">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+    <header className="w-full bg-[#090d16]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)] px-3 sm:px-6 lg:px-8 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 sm:py-3 sticky top-0 z-40 shrink-0">
+      <div className="w-full max-w-[1680px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
         {/* Logo / Title */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-base sm:text-lg text-slate-950 tracking-tighter shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-cyan-500 flex items-center justify-center font-black text-base sm:text-lg text-slate-950 tracking-tighter shrink-0 shadow-lg shadow-emerald-500/25 ring-1 ring-white/25">
             AQ
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-base sm:text-xl text-white tracking-tight truncate">
-                Arena<span className="text-emerald-400">Quiz</span>
+            <div className="flex items-center gap-2.5">
+              <span className="font-black text-base sm:text-xl lg:text-2xl text-white tracking-tight truncate">
+                Arena<span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Quiz</span>
+              </span>
+              <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Arena Interativa
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 hidden sm:block">
-              Quiz em Tempo Real • Equipes & Premiação
+            <p className="text-[11px] text-slate-400 hidden sm:block font-medium">
+              Quiz Competitivo em Tempo Real • Equipes, Power-Ups & Premiação
             </p>
           </div>
         </div>
 
         {/* Utility Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Create Kahoot Button (Desktop / Tablet — mobile uses MobileBottomNav) */}
-          <button
-            onClick={onOpenCreatorModal}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition active:scale-95"
-            title="Criar novo quiz com PDF, Planilha Excel/CSV, Texto ou na mão"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Criar Quiz</span>
-          </button>
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Desktop Navigation Pill Group */}
+          <div className="hidden sm:flex items-center gap-1.5 lg:gap-2 lg:bg-slate-900/70 lg:border lg:border-slate-800/90 lg:p-1 lg:rounded-2xl">
+            {/* Create Kahoot Button */}
+            <button
+              onClick={onOpenCreatorModal}
+              className="flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:brightness-110 text-slate-950 text-xs font-black transition shadow-md shadow-emerald-500/20 active:scale-95"
+              title="Criar novo quiz com PDF, Planilha Excel/CSV, Texto ou na mão"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Criar Quiz</span>
+            </button>
 
-          {/* Community Button */}
+            {/* Community Button (Desktop) */}
+            <button
+              onClick={onOpenCommunityModal}
+              className="flex items-center gap-1.5 px-3 lg:px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-xs font-black transition active:scale-95"
+              title="Explorar e compartilhar Kahoots na Comunidade"
+            >
+              <Globe className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden md:inline">Comunidade</span>
+            </button>
+
+            {/* My Quizzes / Share Button */}
+            <button
+              onClick={onOpenMyQuizzesModal}
+              className="flex items-center gap-1.5 px-3 lg:px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/80 text-slate-200 text-xs font-bold transition"
+              title="Meus Kahoots salvos e enviar para outras pessoas"
+            >
+              <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden md:inline">Meus Kahoots / Enviar</span>
+              <span className="md:hidden">Enviar</span>
+            </button>
+
+            {/* Admin Dashboard Button */}
+            {isAdmin && (
+              <button
+                onClick={onOpenAdminModal}
+                className="flex items-center gap-1.5 px-3 lg:px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-amber-300 text-xs font-black transition shadow-sm"
+                title="Abrir Painel do Administrador (Exclusivo ADM)"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                <span>Painel ADM</span>
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Community Button */}
           <button
             onClick={onOpenCommunityModal}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/50 text-cyan-300 text-xs font-black transition active:scale-95"
+            className="sm:hidden flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/50 text-cyan-300 text-xs font-black transition active:scale-95"
             title="Explorar e compartilhar Kahoots na Comunidade"
           >
             <Globe className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden md:inline">Comunidade</span>
           </button>
-
-          {/* My Quizzes / Share Button (Desktop / Tablet) */}
-          <button
-            onClick={onOpenMyQuizzesModal}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition"
-            title="Meus Kahoots salvos e enviar para outras pessoas"
-          >
-            <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden md:inline">Meus Kahoots / Enviar</span>
-            <span className="md:hidden">Enviar</span>
-          </button>
-
-          {/* Admin Dashboard Button (Desktop / Tablet) */}
-          {isAdmin && (
-            <button
-              onClick={onOpenAdminModal}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-300 text-xs font-black transition shadow-sm"
-              title="Abrir Painel do Administrador (Exclusivo ADM)"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-              <span>Painel ADM</span>
-            </button>
-          )}
 
           {/* PWA Install Button */}
           {canInstall && (
@@ -137,8 +153,8 @@ export const HostHeader: React.FC<Props> = ({
             </button>
           )}
 
-          {/* Background Music Toggle + Track Switcher */}
-          <div className="flex items-center gap-1">
+          {/* Unified Audio & Music Studio Pill */}
+          <div className="flex items-center gap-1 lg:bg-slate-900/80 lg:border lg:border-slate-800 lg:p-1 lg:rounded-2xl">
             <button
               onClick={handleToggleMusic}
               className={`p-2 rounded-xl transition border ${
@@ -154,10 +170,13 @@ export const HostHeader: React.FC<Props> = ({
               <>
                 <button
                   onClick={handleSwitchTrack}
-                  className="px-2 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-[11px] font-black text-emerald-300 transition"
+                  className="px-2 lg:px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-[11px] font-black text-emerald-300 transition flex items-center gap-1"
                   title={`Trocar música (Atual: Faixa ${musicTrack} — ${musicTrack === 1 ? 'Lo-Fi Groove' : musicTrack === 2 ? 'Arcade Synth' : 'Suspense'})`}
                 >
-                  ♪{musicTrack}
+                  <span>♪{musicTrack}</span>
+                  <span className="hidden 2xl:inline text-[10px] text-slate-400 font-bold">
+                    {musicTrack === 1 ? 'Lo-Fi' : musicTrack === 2 ? 'Arcade' : 'Suspense'}
+                  </span>
                 </button>
                 <input
                   type="range"
@@ -166,30 +185,30 @@ export const HostHeader: React.FC<Props> = ({
                   step={0.05}
                   value={musicVolume}
                   onChange={handleVolumeChange}
-                  className="hidden md:block w-14 accent-emerald-400 cursor-pointer"
+                  className="hidden md:block w-14 lg:w-16 accent-emerald-400 cursor-pointer mx-1"
                   title={`Volume da música: ${Math.round(musicVolume * 100)}%`}
                 />
               </>
             )}
-          </div>
 
-          {/* Sound Toggle */}
-          <button
-            onClick={handleToggleSound}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800"
-            title={isMuted ? 'Ativar Efeitos Sonoros' : 'Mutar Som'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
-          </button>
+            {/* Sound Toggle */}
+            <button
+              onClick={handleToggleSound}
+              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800"
+              title={isMuted ? 'Ativar Efeitos Sonoros' : 'Mutar Som'}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+            </button>
+          </div>
 
           {/* Logged-in User (Click to Customize) & Logout */}
           <div className="flex items-center gap-1.5 sm:pl-2 sm:border-l sm:border-slate-800">
             <button
               onClick={onOpenProfileModal}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-400 text-xs font-bold text-slate-200 transition active:scale-95 max-w-[125px] sm:max-w-none"
+              className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-400 text-xs font-bold text-slate-200 transition active:scale-95 max-w-[125px] sm:max-w-none shadow-sm"
               title="Clique para personalizar sua conta (nome, avatar, senha)"
             >
-              <span className="text-sm shrink-0">{currentUser.avatar}</span>
+              <span className="text-base shrink-0">{currentUser.avatar}</span>
               <span className="hidden sm:inline truncate">{currentUser.displayName}</span>
               <span className="sm:hidden truncate">@{currentUser.username}</span>
             </button>
@@ -205,7 +224,7 @@ export const HostHeader: React.FC<Props> = ({
           {/* Fullscreen */}
           <button
             onClick={handleToggleFullscreen}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 hidden sm:block"
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-emerald-300 transition border border-slate-800 hidden sm:block"
             title="Tela Cheia"
           >
             <Maximize2 className="w-4 h-4" />

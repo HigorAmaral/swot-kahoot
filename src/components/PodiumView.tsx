@@ -104,7 +104,7 @@ export const PodiumView: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in text-center">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-6xl mx-auto p-3 sm:p-5 lg:p-6 animate-fade-in text-center">
       <div className="mb-6 sm:mb-8">
         <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider mb-3 shadow-lg animate-bounce">
           <Trophy className="w-4 h-4 sm:w-5 sm:h-5 fill-current" /> Fim do Quiz! Grande Campeã Definida!
@@ -118,20 +118,20 @@ export const PodiumView: React.FC<Props> = ({
       </div>
 
       {/* 3D-style Podium Blocks */}
-      <div className="flex items-end justify-center gap-2 sm:gap-4 w-full max-w-3xl mb-10 h-72">
+      <div className="flex items-end justify-center gap-3 sm:gap-5 w-full max-w-4xl mb-10 h-76">
         {/* 2nd Place */}
         {second && (
           <div className="flex-1 flex flex-col items-center animate-fade-in" style={{ animationDelay: '200ms' }}>
-            <div className="mb-2 text-center">
-              <span className="text-2xl">🥈</span>
-              <div className="font-black text-white text-sm md:text-base truncate max-w-[120px]">
+            <div className="mb-2.5 text-center">
+              <span className="text-2xl sm:text-3xl">🥈</span>
+              <div className="font-black text-white text-sm md:text-base lg:text-lg truncate max-w-[140px] lg:max-w-[180px]">
                 {second.name}
               </div>
-              <div className="text-xs text-slate-300 font-bold">{second.points} pts</div>
+              <div className="text-xs sm:text-sm text-slate-300 font-bold">{second.points} pts</div>
               <div className="text-[11px] text-pink-300">🍬 {second.candies} | 🍫 {second.chocolates}</div>
             </div>
-            <div className="w-full bg-slate-600 border-t-4 border-slate-300 rounded-t-2xl h-40 flex items-center justify-center shadow-2xl">
-              <span className="text-4xl font-black text-slate-300">2</span>
+            <div className="w-full bg-gradient-to-b from-slate-500 to-slate-700 border-t-4 border-slate-200 rounded-t-3xl h-40 flex items-center justify-center shadow-2xl">
+              <span className="text-4xl lg:text-5xl font-black text-slate-200">2</span>
             </div>
           </div>
         )}
@@ -139,22 +139,22 @@ export const PodiumView: React.FC<Props> = ({
         {/* 1st Place */}
         {first && (
           <div className="flex-1 flex flex-col items-center scale-105 z-10 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            <div className="mb-2 text-center">
-              <div className="w-14 h-14 mx-auto rounded-full bg-yellow-400 border-2 border-white flex items-center justify-center text-slate-950 shadow-xl animate-bounce">
+            <div className="mb-2.5 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-yellow-400 border-2 border-white flex items-center justify-center text-slate-950 shadow-xl shadow-yellow-400/30 animate-bounce">
                 <Trophy className="w-8 h-8 fill-current" />
               </div>
-              <div className="font-black text-yellow-400 text-base md:text-lg truncate max-w-[150px] mt-1">
+              <div className="font-black text-yellow-400 text-base md:text-lg lg:text-xl truncate max-w-[160px] lg:max-w-[210px] mt-1.5">
                 {first.name}
               </div>
-              <div className="text-sm text-white font-extrabold">{first.points} pts</div>
+              <div className="text-sm sm:text-base text-white font-extrabold">{first.points} pts</div>
               <div className="text-xs text-yellow-200 font-bold">🍬 {first.candies} balas • 🍫 {first.chocolates} choc</div>
               {first.participants.length > 0 && (
-                <div className="text-[11px] font-bold text-amber-200 truncate max-w-[140px] mt-0.5">
+                <div className="text-[11px] font-bold text-amber-200 truncate max-w-[160px] lg:max-w-[200px] mt-0.5">
                   🏆 {first.participants.map(p => p.name).join(', ')}
                 </div>
               )}
             </div>
-            <div className="w-full bg-gradient-to-b from-yellow-500 to-amber-600 border-t-4 border-yellow-300 rounded-t-2xl h-56 flex flex-col items-center justify-center shadow-2xl">
+            <div className="w-full bg-gradient-to-b from-yellow-400 via-yellow-500 to-amber-600 border-t-4 border-yellow-200 rounded-t-3xl h-56 flex flex-col items-center justify-center shadow-2xl shadow-yellow-500/20">
               <span className="text-6xl font-black text-slate-950">1</span>
               <span className="text-xs font-black uppercase text-slate-950 tracking-wider">Campeã</span>
             </div>
@@ -164,16 +164,16 @@ export const PodiumView: React.FC<Props> = ({
         {/* 3rd Place */}
         {third && (
           <div className="flex-1 flex flex-col items-center animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <div className="mb-2 text-center">
-              <span className="text-2xl">🥉</span>
-              <div className="font-black text-white text-sm md:text-base truncate max-w-[120px]">
+            <div className="mb-2.5 text-center">
+              <span className="text-2xl sm:text-3xl">🥉</span>
+              <div className="font-black text-white text-sm md:text-base lg:text-lg truncate max-w-[140px] lg:max-w-[180px]">
                 {third.name}
               </div>
-              <div className="text-xs text-slate-300 font-bold">{third.points} pts</div>
+              <div className="text-xs sm:text-sm text-slate-300 font-bold">{third.points} pts</div>
               <div className="text-[11px] text-pink-300">🍬 {third.candies} | 🍫 {third.chocolates}</div>
             </div>
-            <div className="w-full bg-amber-800 border-t-4 border-amber-600 rounded-t-2xl h-32 flex items-center justify-center shadow-2xl">
-              <span className="text-3xl font-black text-amber-200">3</span>
+            <div className="w-full bg-gradient-to-b from-amber-700 to-amber-900 border-t-4 border-amber-500 rounded-t-3xl h-32 flex items-center justify-center shadow-2xl">
+              <span className="text-3xl lg:text-4xl font-black text-amber-200">3</span>
             </div>
           </div>
         )}
@@ -181,42 +181,42 @@ export const PodiumView: React.FC<Props> = ({
         {/* 4th Place (Honorary) */}
         {fourth && (
           <div className="hidden sm:flex flex-1 flex-col items-center opacity-85">
-            <div className="mb-2 text-center">
+            <div className="mb-2.5 text-center">
               <span className="text-xl">🎖️</span>
-              <div className="font-bold text-slate-300 text-xs truncate max-w-[100px]">
+              <div className="font-bold text-slate-300 text-xs lg:text-sm truncate max-w-[120px] lg:max-w-[150px]">
                 {fourth.name}
               </div>
               <div className="text-xs text-slate-400 font-semibold">{fourth.points} pts</div>
               <div className="text-[10px] text-pink-300">🍬 {fourth.candies}</div>
             </div>
-            <div className="w-full bg-slate-800 border-t-2 border-slate-700 rounded-t-xl h-24 flex items-center justify-center">
-              <span className="text-2xl font-bold text-slate-500">4</span>
+            <div className="w-full bg-slate-800/90 border-t-2 border-slate-600 rounded-t-2xl h-24 flex items-center justify-center">
+              <span className="text-2xl font-bold text-slate-400">4</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Prize Totals Box */}
-      <div className="w-full max-w-xl bg-slate-800/90 border border-slate-700 rounded-2xl p-4 mb-6 flex items-center justify-around shadow-xl">
+      <div className="w-full max-w-2xl glass-card rounded-3xl p-4 sm:p-5 mb-6 flex items-center justify-around shadow-xl">
         <div className="text-center">
           <div className="text-2xl">🍬</div>
-          <div className="text-xl font-black text-white">
+          <div className="text-xl sm:text-2xl font-black text-white">
             {teams.reduce((acc, t) => acc + t.candies, 0)}
           </div>
           <div className="text-xs text-slate-400 font-bold">Total Balas Entregues</div>
         </div>
-        <div className="h-8 w-px bg-slate-700" />
+        <div className="h-10 w-px bg-slate-800" />
         <div className="text-center">
           <div className="text-2xl">🍫</div>
-          <div className="text-xl font-black text-white">
+          <div className="text-xl sm:text-2xl font-black text-white">
             {teams.reduce((acc, t) => acc + t.chocolates, 0)}
           </div>
           <div className="text-xs text-slate-400 font-bold">Total Chocolates</div>
         </div>
-        <div className="h-8 w-px bg-slate-700" />
+        <div className="h-10 w-px bg-slate-800" />
         <div className="text-center">
           <div className="text-2xl">🎯</div>
-          <div className="text-xl font-black text-white">
+          <div className="text-xl sm:text-2xl font-black text-white">
             {questions.length > 0 ? `${questions.length} / ${questions.length}` : '10 / 10'}
           </div>
           <div className="text-xs text-slate-400 font-bold">Perguntas Concluídas</div>
@@ -224,11 +224,11 @@ export const PodiumView: React.FC<Props> = ({
       </div>
 
       {/* Presentation Completion Note & Actions */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         {questions.length > 0 && (
           <button
             onClick={() => setShowReview(prev => !prev)}
-            className="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base shadow-lg transition flex items-center gap-2"
+            className="px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm sm:text-base shadow-lg transition flex items-center gap-2"
           >
             <BookOpen className="w-5 h-5" />
             <span>{showReview ? 'Ocultar Gabarito' : 'Ver Gabarito das Perguntas'}</span>
@@ -238,7 +238,7 @@ export const PodiumView: React.FC<Props> = ({
         <button
           type="button"
           onClick={handlePrintCertificate}
-          className="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-base shadow-lg transition flex items-center gap-2"
+          className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm sm:text-base shadow-lg transition flex items-center gap-2"
         >
           <Printer className="w-5 h-5" />
           <span>Certificado / Relatório PDF</span>
@@ -256,14 +256,14 @@ export const PodiumView: React.FC<Props> = ({
             });
             downloadCsvFile(`relatorio_${sessionId}_${Date.now()}.csv`, csv);
           }}
-          className="px-6 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-base shadow-lg transition flex items-center gap-2"
+          className="px-6 py-3.5 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm sm:text-base shadow-lg transition flex items-center gap-2"
         >
           <Download className="w-5 h-5" />
           <span>Baixar Planilha (CSV)</span>
         </button>
         <button
           onClick={onRestart}
-          className="px-8 py-3.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-base shadow-lg transition flex items-center gap-2"
+          className="px-7 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm sm:text-base shadow-lg transition flex items-center gap-2"
         >
           <RotateCcw className="w-5 h-5" />
           Reiniciar Quiz da Dinâmica
@@ -272,7 +272,7 @@ export const PodiumView: React.FC<Props> = ({
 
       {/* Post-Quiz Answer Review (only visible after completing the quiz) */}
       {showReview && reviewItems.length > 0 && (
-        <div className="w-full max-w-4xl mt-8 text-left space-y-3 animate-fade-in">
+        <div className="w-full max-w-6xl mt-8 text-left space-y-3 animate-fade-in">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-base sm:text-lg font-black text-white">
               Gabarito Oficial ({reviewItems.length} pergunta{reviewItems.length === 1 ? '' : 's'})
@@ -281,7 +281,7 @@ export const PodiumView: React.FC<Props> = ({
               Liberado após a conclusão do quiz
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5">
             {reviewItems.map(({ index, question, log, answeringTeamName }) => (
               <div
                 key={question.id || index}

@@ -160,37 +160,50 @@ export const IntroSetupView: React.FC<Props> = ({
   const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-6xl mx-auto p-2 sm:p-4 lg:p-5 animate-fade-in">
+    <div className="flex flex-col items-center justify-center w-full max-w-7xl mx-auto p-2 sm:p-4 lg:p-6 xl:p-8 animate-fade-in">
       {/* Top Hero Banner */}
-      <div className="w-full glass-card rounded-2xl p-4 sm:p-6 lg:p-8 mb-5 sm:mb-6 border border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
-        <div className="text-center lg:text-left">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-bold text-[11px] uppercase tracking-wider mb-3">
-            <Layers className="w-3.5 h-3.5 text-emerald-400" />
-            {activeQuizInfo ? 'Kahoot Selecionado' : 'Arena de Perguntas'}
+      <div className="relative overflow-hidden w-full glass-card rounded-3xl p-4 sm:p-6 lg:p-8 mb-5 sm:mb-6 border border-slate-800/90 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
+        {/* Ambient Desktop Glows */}
+        <div className="pointer-events-none hidden lg:block absolute -top-28 -left-28 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="pointer-events-none hidden lg:block absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-cyan-500/10 blur-3xl" />
+
+        <div className="relative z-10 flex-1 text-center lg:text-left">
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-black text-[11px] uppercase tracking-wider">
+              <Layers className="w-3.5 h-3.5 text-emerald-400" />
+              {activeQuizInfo ? 'Kahoot Selecionado' : 'Arena de Perguntas'}
+            </div>
+            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-[11px] font-bold text-slate-300">
+              <span className="text-emerald-400 font-black">{questions.length}</span> perguntas
+              <span className="text-slate-600">•</span>
+              <span className="text-cyan-400 font-black">{teams.length}</span> grupos
+              <span className="text-slate-600">•</span>
+              <span className="text-amber-300 font-black">{totalParticipants}</span> na sala
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2.5">
             {activeQuizInfo ? (
               <span>{activeQuizInfo.title}</span>
             ) : (
               <>
-                Fabrica<span className="text-emerald-400">Quiz</span>
+                Arena<span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Quiz</span>
               </>
             )}
           </h1>
 
-          <p className="text-slate-300 text-sm sm:text-base max-w-xl font-medium">
+          <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-2xl font-medium leading-relaxed">
             {activeQuizInfo
               ? `Este Kahoot possui ${questions.length} pergunta(s) pronta(s). Escolha sua equipe abaixo e clique em Começar!`
-              : 'Escolha sua equipe abaixo, entre com sua conta e dispute os pontos e brindes da rodada!'}
+              : 'Escolha sua equipe abaixo, entre com sua conta e dispute os pontos, combos e brindes da rodada em tempo real!'}
           </p>
 
           {/* Live Room PIN Bar + QR Code + Game Mode */}
-          <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-xs">
+          <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-inner text-xs">
               <KeyRound className="w-3.5 h-3.5 text-amber-400" />
               <span className="text-slate-400 font-bold">PIN:</span>
-              <span className="font-black text-amber-300 tracking-wider">{sessionId}</span>
+              <span className="font-mono font-black text-amber-300 tracking-wider text-sm">{sessionId}</span>
               <button
                 type="button"
                 onClick={() => {
@@ -199,15 +212,15 @@ export const IntroSetupView: React.FC<Props> = ({
                     showAlert(`Link da sala "${sessionId}" copiado!`, 'success');
                   });
                 }}
-                className="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                className="p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white transition"
                 title="Copiar link de convite da sala"
               >
-                <Copy className="w-3 h-3" />
+                <Copy className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setShowQrModal(true)}
-                className="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 transition"
+                className="p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 transition"
                 title="Mostrar QR Code da sala"
               >
                 <QrCode className="w-3.5 h-3.5" />
@@ -217,15 +230,15 @@ export const IntroSetupView: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => onChangeRoomPin()}
-                    className="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition"
+                    className="p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition"
                     title="Gerar novo PIN de sala exclusivo"
                   >
-                    <RefreshCw className="w-3 h-3" />
+                    <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowPinJoin(v => !v)}
-                    className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-cyan-300 transition"
+                    className="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-[11px] font-bold text-cyan-300 transition"
                   >
                     {showPinJoin ? 'Fechar' : 'Entrar por PIN'}
                   </button>
@@ -234,13 +247,13 @@ export const IntroSetupView: React.FC<Props> = ({
             </div>
 
             {onSetGameMode && (
-              <div className="inline-flex items-center p-0.5 rounded-xl bg-slate-900/90 border border-slate-700 text-[11px] font-bold">
+              <div className="inline-flex items-center p-1 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => onSetGameMode('turno')}
-                  className={`px-2.5 py-1 rounded-lg transition ${
+                  className={`px-3 py-1.5 rounded-xl transition ${
                     gameMode === 'turno'
-                      ? 'bg-emerald-500 text-slate-950 font-black'
+                      ? 'bg-emerald-500 text-slate-950 font-black shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
                   title="Um grupo por rodada"
@@ -250,9 +263,9 @@ export const IntroSetupView: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => onSetGameMode('todos')}
-                  className={`px-2.5 py-1 rounded-lg transition ${
+                  className={`px-3 py-1.5 rounded-xl transition ${
                     gameMode === 'todos'
-                      ? 'bg-cyan-500 text-slate-950 font-black'
+                      ? 'bg-cyan-500 text-slate-950 font-black shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
                   title="Todos os grupos podem pontuar na mesma pergunta"
@@ -266,7 +279,7 @@ export const IntroSetupView: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onOpenRoomConfig}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-black transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-black transition"
                 title="Configurar equipes/individual, tempo e pontos da sala"
               >
                 <Sliders className="w-3.5 h-3.5" />
@@ -274,8 +287,20 @@ export const IntroSetupView: React.FC<Props> = ({
               </button>
             )}
 
+            {onShuffleQuestions && questions.length > 1 && (
+              <button
+                type="button"
+                onClick={onShuffleQuestions}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white text-xs font-bold transition"
+                title="Embaralhar ordem das perguntas e alternativas"
+              >
+                <Shuffle className="w-3.5 h-3.5 text-cyan-400" />
+                Embaralhar
+              </button>
+            )}
+
             {participationMode === 'individual' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-[11px] font-black">
+              <span className="inline-flex items-center gap-1 px-3 py-2 rounded-2xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-xs font-black">
                 <User className="w-3.5 h-3.5" />
                 Modo Individual
               </span>
@@ -310,7 +335,7 @@ export const IntroSetupView: React.FC<Props> = ({
           </div>
 
           {activeQuizInfo && (
-            <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+            <div className="mt-3.5 flex flex-wrap items-center justify-center lg:justify-start gap-2">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-200 text-xs font-bold">
                 <Layers className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{questions.length} pergunta(s)</span>
@@ -333,23 +358,23 @@ export const IntroSetupView: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Main CTA Buttons */}
-        <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-stretch gap-3 w-full lg:w-auto">
+        {/* Main CTA Launch Pad */}
+        <div className="relative z-10 flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-stretch gap-3 w-full lg:w-[320px] xl:w-[340px] shrink-0 lg:bg-slate-950/60 lg:p-4 lg:rounded-2xl lg:border lg:border-slate-800/90">
           <button
             onClick={onStartGame}
-            className="px-7 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base sm:text-lg shadow-lg active:scale-95 transition flex items-center justify-center gap-2"
+            className="px-7 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2.5"
           >
             <Play className="w-5 h-5 fill-current" />
             COMEÇAR O QUIZ
           </button>
 
-          <div className="hidden sm:flex flex-wrap items-center gap-2 justify-center">
+          <div className="hidden sm:grid grid-cols-2 gap-2 w-full">
             {onOpenCreatorModal && (
               <button
                 onClick={onOpenCreatorModal}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-emerald-500/30 text-emerald-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+                className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-emerald-300 font-extrabold text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-3.5 h-3.5" />
                 Criar Quiz
               </button>
             )}
@@ -357,10 +382,10 @@ export const IntroSetupView: React.FC<Props> = ({
             {onOpenMyQuizzesModal && (
               <button
                 onClick={onOpenMyQuizzesModal}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+                className="px-3.5 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-extrabold text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
-                <Share2 className="w-4 h-4" />
-                Enviar / Meus Quizzes
+                <Share2 className="w-3.5 h-3.5" />
+                Meus Quizzes
               </button>
             )}
           </div>
@@ -526,7 +551,7 @@ export const IntroSetupView: React.FC<Props> = ({
           </form>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
           {teams.map(team => {
             const isSelected = selectedTeamId === team.id;
             const isUserInTeam = team.participants.some(
@@ -537,32 +562,34 @@ export const IntroSetupView: React.FC<Props> = ({
               <div
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
-                className={`relative overflow-hidden p-4 rounded-2xl border-2 transition-colors duration-150 cursor-pointer select-none flex flex-col justify-between h-full ${
+                className={`group relative overflow-hidden p-4 lg:p-5 rounded-3xl border-2 transition-all duration-200 cursor-pointer select-none flex flex-col justify-between h-full ${
                   isSelected
-                    ? `${team.borderClass} bg-slate-900/95 shadow-lg`
-                    : 'border-slate-800 bg-slate-900/70 hover:bg-slate-800/80 hover:border-slate-700'
+                    ? `${team.borderClass} bg-gradient-to-b from-slate-900/95 to-[#0b101b] shadow-2xl lg:-translate-y-1`
+                    : 'border-slate-800/90 bg-slate-900/75 hover:bg-slate-900/95 hover:border-slate-700 lg:hover:-translate-y-1'
                 }`}
               >
                 {/* Top Colored Accent Strip */}
-                <div className={`absolute top-0 left-0 right-0 h-1.5 ${team.bgClass}`} />
+                <div className={`absolute top-0 left-0 right-0 h-2 ${team.bgClass}`} />
 
-                <div className="pt-1">
+                <div className="pt-1.5">
                   {/* Team Header (no overlapping absolute badges) */}
-                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${team.bgClass}`} />
-                      <span className="text-[11px] font-black uppercase text-slate-400 tracking-wide truncate">
-                        Grupo #{team.id}
+                      <span className={`w-6 h-6 rounded-lg shrink-0 ${team.bgClass} text-white font-black text-xs flex items-center justify-center shadow-sm`}>
+                        #{team.id}
+                      </span>
+                      <span className="text-[11px] font-black uppercase text-slate-300 tracking-wider truncate">
+                        Grupo {team.id}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       {isSelected && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-slate-950 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-slate-950 flex items-center gap-1 shadow-sm">
                           <CheckCircle2 className="w-3 h-3" /> Ativo
                         </span>
                       )}
-                      <span className="text-xs font-bold text-slate-200 bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700">
+                      <span className="text-xs font-bold text-slate-200 bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700">
                         👥 {team.participants.length}
                       </span>
                       {onRemoveTeam && teams.length > 2 && (
@@ -598,26 +625,31 @@ export const IntroSetupView: React.FC<Props> = ({
                     value={team.name}
                     onChange={e => onUpdateTeamName(team.id, e.target.value)}
                     onClick={e => e.stopPropagation()}
-                    className="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-3 py-2 text-sm font-extrabold text-white focus:outline-none focus:border-emerald-400 transition"
+                    className="w-full bg-slate-950/90 border border-slate-800 hover:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-extrabold text-white focus:outline-none focus:border-emerald-400 transition shadow-inner"
                     placeholder={`Nome da Equipe ${team.id}`}
                   />
 
                   {/* Participant Chips */}
-                  <div className="mt-3 min-h-[60px]">
-                    <div className="text-[11px] font-bold text-slate-400 mb-1.5">
-                      Integrantes:
+                  <div className="mt-3.5 min-h-[72px]">
+                    <div className="text-[11px] font-bold text-slate-400 mb-2 flex items-center justify-between">
+                      <span>Integrantes</span>
+                      {team.points > 0 && (
+                        <span className="text-[11px] font-black text-amber-300">{team.points} pts</span>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-0.5">
+                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-0.5">
                       {team.participants.length === 0 ? (
-                        <span className="text-[11px] text-slate-500 italic">Nenhum aluno inscrito ainda</span>
+                        <div className="w-full py-2.5 px-3 rounded-xl border border-dashed border-slate-800/90 bg-slate-950/40 text-center">
+                          <span className="text-[11px] text-slate-500 italic">Nenhum integrante ainda</span>
+                        </div>
                       ) : (
                         team.participants.map(p => (
                           <span
                             key={p.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800/90 border border-slate-700 text-xs font-bold text-white"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800/90 border border-slate-700/80 text-xs font-bold text-white shadow-sm"
                           >
                             <span>{p.avatar || '👨‍💻'}</span>
-                            <span className="max-w-[110px] truncate">{p.name || (p as any).user_name || 'Aluno'}</span>
+                            <span className="max-w-[115px] truncate">{p.name || (p as any).user_name || 'Aluno'}</span>
                             <button
                               type="button"
                               onClick={(e) => {
@@ -637,9 +669,9 @@ export const IntroSetupView: React.FC<Props> = ({
                 </div>
 
                 {/* Card footer direct join action */}
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+                <div className="mt-4 pt-3 border-t border-slate-800/80">
                   {isUserInTeam ? (
-                    <div className="w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-black flex items-center justify-center gap-1.5">
+                    <div className="w-full py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-black flex items-center justify-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Você está neste grupo
                     </div>
@@ -650,7 +682,7 @@ export const IntroSetupView: React.FC<Props> = ({
                         e.stopPropagation();
                         handleJoinTeam(team.id);
                       }}
-                      className="w-full py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                      className="w-full py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition"
                     >
                       Já está no {userCurrentTeam.name}
                     </button>
@@ -662,7 +694,7 @@ export const IntroSetupView: React.FC<Props> = ({
                         setSelectedTeamId(team.id);
                         handleJoinTeam(team.id);
                       }}
-                      className="w-full py-2 rounded-xl bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 border border-slate-700 hover:border-emerald-400 text-slate-200 text-xs font-black flex items-center justify-center gap-1.5 transition active:scale-95"
+                      className="w-full py-2.5 rounded-xl bg-slate-800/90 hover:bg-emerald-500 hover:text-slate-950 border border-slate-700 hover:border-emerald-400 text-slate-200 text-xs font-black flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       Entrar neste grupo

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
-import { LogIn, UserPlus, Lock, User, Mail, Sparkles, AlertCircle, Share2, ArrowRight, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { LogIn, UserPlus, Lock, User, Mail, Sparkles, AlertCircle, Share2, ArrowRight, KeyRound, CheckCircle2, ArrowLeft, Trophy, Zap, Users, FileSpreadsheet } from 'lucide-react';
 
 interface Props {
   onLoginSuccess: (user: UserAccount, remember?: boolean) => void;
@@ -137,10 +137,10 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
   };
 
   return (
-    <div className="min-h-screen w-full bg-grid-pattern flex flex-col items-center justify-center p-4 animate-fade-in">
+    <div className="min-h-screen w-full bg-grid-pattern flex flex-col items-center justify-center p-4 lg:p-8 animate-fade-in">
       {/* Pending shared quiz notification */}
       {pendingQuizCode && (
-        <div className="w-full max-w-md mb-4 p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-400/50 text-emerald-200 text-xs sm:text-sm font-bold flex items-center gap-2.5 shadow-lg">
+        <div className="w-full max-w-md lg:max-w-5xl mb-4 p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-400/50 text-emerald-200 text-xs sm:text-sm font-bold flex items-center gap-2.5 shadow-lg">
           <Share2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <span>
             Você recebeu um Kahoot compartilhado (<strong className="text-white">{pendingQuizCode}</strong>)! Entre ou crie sua conta para abrir e jogar.
@@ -148,15 +148,99 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
         </div>
       )}
 
-      <div className="w-full max-w-md glass-card rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative">
+      <div className="w-full max-w-md lg:max-w-6xl lg:grid lg:grid-cols-12 lg:gap-8 items-stretch">
+        {/* Desktop Showcase Left Panel */}
+        <div className="hidden lg:flex lg:col-span-7 glass-card rounded-3xl p-8 xl:p-10 border border-slate-800/90 flex-col justify-between relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-24 -left-24 w-80 h-80 rounded-full bg-emerald-500/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-cyan-500/15 blur-3xl" />
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-black uppercase tracking-wider mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              Plataforma Gamificada em Tempo Real
+            </div>
+
+            <h1 className="text-4xl xl:text-5xl font-black text-white tracking-tight leading-[1.12] mb-4">
+              Transforme sua sala ou treinamento em uma{' '}
+              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                Arena de Quiz
+              </span>
+            </h1>
+
+            <p className="text-slate-300 text-base xl:text-lg leading-relaxed max-w-xl mb-8">
+              Crie, importe e apresente quizzes interativos no estilo Kahoot com equipes ao vivo, power-ups estratégicos, trilha sonora sintetizada e relatórios completos.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/90 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">Equipes & PIN ao Vivo</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                    Entrada com 1 clique, QR Code de sala e modo Por Turno ou Todos Respondem.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/90 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">Importação Inteligente</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                    Crie quizzes via PDF, Excel/CSV, texto colado ou gerador automático de temas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/90 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">Power-Ups & Combos</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                    50:50, Pontos 2x, Escudo de combo, +10s e rodada Morte Súbita de desempate.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/90 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                  <Trophy className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">Pódio & Certificado PDF</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                    Gabarito comentado pós-jogo, exportação em planilha CSV e certificado oficial.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-8 pt-5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Pronto para projetor, PC e dispositivos móveis (PWA)</span>
+            </div>
+            <span className="font-bold text-slate-300">Desenvolvido por Higor Amaral</span>
+          </div>
+        </div>
+
+        {/* Auth Card Right Panel */}
+        <div className="w-full lg:col-span-5 glass-card rounded-3xl p-6 sm:p-8 border border-slate-800/90 shadow-2xl relative flex flex-col justify-center">
         {/* Logo Header */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-xl text-slate-950 mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-cyan-500 flex items-center justify-center font-black text-xl text-slate-950 mb-3 shadow-lg shadow-emerald-500/25">
             AQ
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Arena<span className="text-emerald-400">Quiz</span>
-          </h1>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Arena<span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Quiz</span>
+          </h2>
           <p className="text-xs text-slate-400 mt-1">
             Crie quizzes e compartilhe com sua turma
           </p>
@@ -481,6 +565,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
           <p className="text-[10px] text-slate-500">
             © {new Date().getFullYear()} ArenaQuiz • Todos os direitos reservados • Licença MIT
           </p>
+        </div>
         </div>
       </div>
     </div>

@@ -20,9 +20,9 @@ export const ScoreboardView: React.FC<Props> = ({
   const maxPoints = Math.max(...sorted.map(t => t.points), 1000);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in">
-      <div className="text-center mb-5 sm:mb-6">
-        <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-kahoot-purple/60 border border-purple-400 text-purple-200 text-xs sm:text-sm font-semibold mb-2">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-5xl mx-auto p-2.5 sm:p-4 lg:p-6 animate-fade-in">
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-2.5 shadow-lg">
           <Trophy className="w-4 h-4 text-yellow-400" />
           Placar Geral da Sala • Rodada {questionNumber} de {totalQuestions}
         </div>
@@ -32,7 +32,7 @@ export const ScoreboardView: React.FC<Props> = ({
       </div>
 
       {/* Leaderboard Stack */}
-      <div className="w-full flex flex-col gap-3.5 mb-8">
+      <div className="w-full flex flex-col gap-3.5 lg:gap-4 mb-8">
         {sorted.map((team, idx) => {
           const rank = idx + 1;
           const percentage = Math.max(15, (team.points / maxPoints) * 100);
@@ -40,7 +40,9 @@ export const ScoreboardView: React.FC<Props> = ({
           return (
             <div
               key={team.id}
-              className="relative overflow-hidden rounded-2xl bg-slate-800/90 border-2 border-slate-700 shadow-xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 transition-all hover:scale-[1.01]"
+              className={`relative overflow-hidden rounded-2xl lg:rounded-3xl bg-slate-900/90 border-2 shadow-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 transition-all hover:scale-[1.01] ${
+                rank === 1 ? 'border-yellow-400/60 shadow-yellow-500/10' : 'border-slate-800'
+              }`}
             >
               {/* Animated Progress Bar fill */}
               <div

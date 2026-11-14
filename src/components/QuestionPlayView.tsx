@@ -154,37 +154,37 @@ export const QuestionPlayView: React.FC<Props> = ({
   const speedBonusPreview = Math.min(500, Math.max(0, timeLeft * 15));
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-150px)] w-full max-w-6xl mx-auto p-2.5 sm:p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-150px)] w-full max-w-7xl mx-auto p-2.5 sm:p-4 lg:p-6 xl:p-8 animate-fade-in">
       {/* Progress Bar */}
       <div className="w-full mb-3">
-        <div className="flex items-center justify-between text-[11px] font-black text-slate-400 mb-1 px-1">
+        <div className="flex items-center justify-between text-[11px] sm:text-xs font-black text-slate-400 mb-1.5 px-1">
           <span>PERGUNTA {questionIndex + 1} DE {totalQuestions}</span>
           <span className="text-emerald-400">{progressPercent}% concluído</span>
         </div>
-        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div className="w-full h-2.5 bg-slate-900/90 border border-slate-800 rounded-full overflow-hidden p-0.5">
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
 
       {/* Top Bar: Category & Timer Controls */}
-      <div className="w-full flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="w-full flex flex-wrap items-center justify-between gap-3 mb-4 lg:bg-slate-900/60 lg:border lg:border-slate-800/80 lg:p-2.5 lg:rounded-2xl">
         {/* Category & Theme Badge */}
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-400/50 text-emerald-300">
+          <span className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 shadow-sm">
             {question.category}
           </span>
           {question.swotQuadrant && (
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-cyan-300 border border-cyan-500/40">
+            <span className="hidden sm:inline-block px-3 py-1 rounded-xl text-xs font-bold bg-slate-800/90 text-cyan-300 border border-cyan-500/40">
               {question.swotQuadrant}
             </span>
           )}
         </div>
 
         {/* Turn Indicator */}
-        <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-1.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 shadow-md">
+        <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-1.5 rounded-2xl bg-slate-950/90 border border-slate-700/80 shadow-md">
           <span className="text-xs text-slate-400 font-semibold">Vez:</span>
           {allTeams && onSelectAnsweringTeam ? (
             <div className="flex items-center gap-1">
@@ -192,7 +192,7 @@ export const QuestionPlayView: React.FC<Props> = ({
                 <button
                   key={t.id}
                   onClick={() => onSelectAnsweringTeam(t.id)}
-                  className={`px-2 py-0.5 rounded-lg text-xs font-black transition ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition ${
                     answeringTeam.id === t.id
                       ? `${t.bgClass} text-white ring-2 ring-white scale-105 shadow`
                       : 'bg-slate-900/80 text-slate-400 hover:text-white'
@@ -302,20 +302,20 @@ export const QuestionPlayView: React.FC<Props> = ({
       </div>
 
       {/* Central Question Box */}
-      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-6 md:p-8 shadow-2xl text-center mt-4 mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[160px]">
+      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-7 md:p-9 lg:p-10 shadow-2xl text-center mt-4 mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[140px] sm:min-h-[180px] lg:min-h-[210px]">
         {/* Floating Timer Circle */}
-        <div className={`absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl shadow-2xl transition-all z-10 ${
+        <div className={`absolute -top-5 sm:-top-7 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-15 sm:h-15 lg:w-16 lg:h-16 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl lg:text-2xl shadow-2xl transition-all z-10 ${
           timeLeft <= 5
             ? 'bg-red-600 border-red-300 text-white animate-bounce ring-4 ring-red-400/50'
             : timeLeft <= 10
             ? 'bg-amber-600 border-amber-300 text-white'
-            : 'bg-teal-900 border-cyan-400 text-cyan-100'
+            : 'bg-slate-950 border-cyan-400 text-cyan-100 shadow-cyan-500/20'
         }`}>
           {timeLeft}
         </div>
 
         {(isFinalDouble || isTiebreaker) && (
-          <div className={`mt-3 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
+          <div className={`mt-3 px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
             isTiebreaker
               ? 'bg-rose-500/20 border-rose-400 text-rose-200 animate-pulse'
               : 'bg-amber-500/20 border-amber-400 text-amber-200 animate-pulse'
@@ -324,33 +324,37 @@ export const QuestionPlayView: React.FC<Props> = ({
           </div>
         )}
 
-        <h2 className="text-base sm:text-xl md:text-3xl font-black text-white leading-snug tracking-tight max-w-4xl mt-3 sm:mt-2">
+        <h2 className="text-base sm:text-xl md:text-3xl lg:text-4xl font-black text-white leading-snug tracking-tight max-w-5xl mt-3 sm:mt-2 text-glow">
           {question.question}
         </h2>
 
-        {question.imageUrl && (
-          <img
-            src={question.imageUrl}
-            alt="Imagem da pergunta"
-            className="mt-4 max-h-52 rounded-2xl border border-slate-700 object-contain shadow-lg"
-          />
+        {(question.imageUrl || question.codeSnippet) && (
+          <div className="w-full max-w-4xl mt-4 flex flex-col lg:flex-row items-center justify-center gap-4">
+            {question.imageUrl && (
+              <img
+                src={question.imageUrl}
+                alt="Imagem da pergunta"
+                className="max-h-56 rounded-2xl border border-slate-700 object-contain shadow-xl bg-slate-950/60 p-1"
+              />
+            )}
+
+            {question.codeSnippet && (
+              <pre className="w-full max-w-2xl text-left p-4 rounded-2xl bg-slate-950/95 border border-cyan-500/30 text-xs sm:text-sm font-mono text-emerald-300 overflow-x-auto shadow-inner">
+                <code>{question.codeSnippet}</code>
+              </pre>
+            )}
+          </div>
         )}
 
-        {question.codeSnippet && (
-          <pre className="mt-4 w-full max-w-2xl text-left p-3.5 rounded-2xl bg-slate-950/95 border border-cyan-500/30 text-xs sm:text-sm font-mono text-emerald-300 overflow-x-auto shadow-inner">
-            <code>{question.codeSnippet}</code>
-          </pre>
-        )}
-
-        <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-slate-400">
-          <span className="px-2 py-0.5 rounded-md bg-slate-900/70 border border-slate-700/80 text-amber-300">
+        <div className="mt-4 flex items-center gap-2.5 text-[11px] sm:text-xs font-bold text-slate-400">
+          <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-700/80 text-amber-300">
             ⚡ Bônus de velocidade atual: +{speedBonusPreview} pts
           </span>
-          <span className="hidden md:inline text-slate-500">• Atalhos: teclas 1-4 ou A-D</span>
+          <span className="hidden md:inline text-slate-400">• Atalhos no PC: teclas <strong className="text-white">1-4</strong> ou <strong className="text-white">A-D</strong></span>
         </div>
 
         {/* Countdown Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-900/80 overflow-hidden rounded-b-3xl">
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-slate-900/90 overflow-hidden rounded-b-3xl">
           <div
             className={`h-full transition-all duration-1000 linear ${
               timeLeft <= 5
@@ -365,60 +369,61 @@ export const QuestionPlayView: React.FC<Props> = ({
       </div>
 
       {/* 4 Kahoot Answer Options (2x2 Grid) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 w-full mb-4">
         {question.options.map((opt, idx) => {
           const isSelected = selectedOption === idx;
           const isEliminated = eliminatedIndices.includes(idx);
+          const letter = ['A', 'B', 'C', 'D'][idx] || String(idx + 1);
 
           return (
             <button
               key={idx}
               disabled={selectedOption !== null || isEliminated}
               onClick={() => handleSelect(idx)}
-              className={`relative flex items-center gap-3 sm:gap-4 p-3.5 sm:p-5 md:p-6 rounded-2xl text-left font-bold text-sm sm:text-lg md:text-xl text-white shadow-xl transform transition-all active:scale-95 ${
+              className={`kahoot-option-card relative flex items-center gap-3.5 sm:gap-4 lg:gap-5 p-4 sm:p-5 md:p-6 lg:p-7 lg:min-h-[108px] rounded-2xl lg:rounded-3xl text-left font-bold text-sm sm:text-lg md:text-xl lg:text-2xl text-white transform transition-all active:scale-[0.98] ${
                 opt.color
               } ${
                 isEliminated
                   ? 'opacity-15 grayscale cursor-not-allowed scale-95'
                   : isSelected
-                  ? 'ring-4 sm:ring-8 ring-white scale-[1.02] sm:scale-105 brightness-125 z-10'
+                  ? 'ring-4 sm:ring-8 ring-white scale-[1.02] sm:scale-[1.03] brightness-125 z-10'
                   : selectedOption !== null
                   ? 'opacity-50'
                   : 'hover:brightness-110 hover:-translate-y-1'
               }`}
             >
               {/* Geometric Symbol (Triangle, Diamond, Circle, Square) */}
-              <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-black/25 flex items-center justify-center text-white shadow-inner">
+              <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-black/25 border border-white/15 flex items-center justify-center text-white shadow-inner">
                 {opt.symbol === 'triangle' && (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="12,3 22,21 2,21" />
                   </svg>
                 )}
                 {opt.symbol === 'diamond' && (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="12,2 22,12 12,22 2,12" />
                   </svg>
                 )}
                 {opt.symbol === 'circle' && (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="12" r="9" />
                   </svg>
                 )}
                 {opt.symbol === 'square' && (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                   </svg>
                 )}
               </div>
 
               {/* Option Text */}
-              <span className={`flex-1 font-extrabold leading-tight drop-shadow ${isEliminated ? 'line-through' : ''}`}>
+              <span className={`flex-1 font-extrabold leading-snug drop-shadow ${isEliminated ? 'line-through' : ''}`}>
                 {opt.text}
               </span>
 
               {/* Desktop Keycap Hint */}
-              <span className="hidden md:inline-flex items-center justify-center w-6 h-6 rounded-md bg-black/25 text-[11px] font-black text-white/80 border border-white/15 shrink-0">
-                {idx + 1}
+              <span className="hidden md:inline-flex items-center justify-center px-2.5 h-8 rounded-xl bg-black/30 text-xs font-black text-white/90 border border-white/20 shrink-0 shadow-inner">
+                {idx + 1} / {letter}
               </span>
             </button>
           );

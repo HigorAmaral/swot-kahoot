@@ -15,6 +15,7 @@ import {
   Inbox,
   X,
   ChevronLeft,
+  ChevronRight,
   Search,
   Link2,
   Check,
@@ -56,6 +57,7 @@ export const RightKahootsSidebar: React.FC<Props> = ({
   };
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
   const loadQuizzes = async () => {
     setLoading(true);
@@ -123,10 +125,17 @@ export const RightKahootsSidebar: React.FC<Props> = ({
           </button>
           <button
             onClick={onOpenCreator}
-            className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] flex items-center gap-1 transition"
+            className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] flex items-center gap-1 transition shadow-sm"
             title="Criar novo Kahoot"
           >
             <Plus className="w-3.5 h-3.5" /> Novo
+          </button>
+          <button
+            onClick={() => setDesktopCollapsed(true)}
+            className="hidden lg:flex p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
+            title="Recolher barra lateral para ampliar a tela no PC"
+          >
+            <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => setMobileOpen(false)}
@@ -302,10 +311,41 @@ export const RightKahootsSidebar: React.FC<Props> = ({
 
   return (
     <>
-      {/* Desktop Right Sidebar (flush with navbar) */}
-      <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 bg-[#0d111a] border-l border-slate-800 h-full">
-        {sidebarContent}
-      </aside>
+      {/* Desktop Right Sidebar (flush with navbar, collapsible on PC) */}
+      {desktopCollapsed ? (
+        <aside className="hidden lg:flex flex-col items-center justify-between py-4 w-14 shrink-0 bg-[#090d16]/90 backdrop-blur-xl border-l border-slate-800/80 h-full">
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={() => setDesktopCollapsed(false)}
+              className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-slate-950 hover:brightness-110 transition shadow-lg shadow-emerald-500/20"
+              title="Expandir painel de Kahoots"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onOpenCreator}
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-emerald-400 transition"
+              title="Criar novo Kahoot"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+          <button
+            onClick={() => setDesktopCollapsed(false)}
+            className="flex flex-col items-center gap-2 text-slate-400 hover:text-emerald-300 transition py-2"
+            title="Expandir Kahoots Feitos"
+          >
+            <span className="[writing-mode:vertical-rl] rotate-180 tracking-widest uppercase text-[11px] font-black">
+              Kahoots ({myQuizzes.length})
+            </span>
+          </button>
+          <div className="w-2 h-2 rounded-full bg-emerald-400/60" />
+        </aside>
+      ) : (
+        <aside className="hidden lg:flex flex-col w-72 xl:w-80 2xl:w-[340px] shrink-0 bg-[#090d16]/90 backdrop-blur-xl border-l border-slate-800/80 h-full shadow-[-10px_0_30px_rgba(0,0,0,0.3)]">
+          {sidebarContent}
+        </aside>
+      )}
 
       {/* Tablet Floating Toggle Button (phones use MobileBottomNav) */}
       <button

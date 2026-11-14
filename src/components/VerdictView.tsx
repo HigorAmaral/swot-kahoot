@@ -56,12 +56,12 @@ export const VerdictView: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-6xl mx-auto p-3 sm:p-5 lg:p-6 animate-fade-in">
       {/* Result Banner */}
-      <div className={`w-full p-4 sm:p-6 md:p-8 rounded-3xl border-4 text-center shadow-2xl mb-6 transform transition-all ${
+      <div className={`w-full p-5 sm:p-6 md:p-8 rounded-3xl border-2 text-center shadow-2xl mb-6 transform transition-all ${
         isCorrect
-          ? 'bg-emerald-950/70 border-emerald-400 ring-4 ring-emerald-500/30'
-          : 'bg-rose-950/70 border-rose-500 ring-4 ring-rose-500/30'
+          ? 'bg-gradient-to-b from-emerald-950/85 to-slate-950/95 border-emerald-400/80 ring-4 ring-emerald-500/20'
+          : 'bg-gradient-to-b from-rose-950/85 to-slate-950/95 border-rose-500/80 ring-4 ring-rose-500/20'
       }`}>
         <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-2">
           {isCorrect ? (

@@ -964,7 +964,7 @@ export function App() {
 
       {/* Main Body + Right Sidebar */}
       <div className="flex-1 min-h-0 flex w-full">
-        <main ref={mainRef} className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 pb-24 sm:p-4">
+        <main ref={mainRef} className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 pb-24 sm:p-4 sm:pb-6 lg:p-6">
           <div className="w-full my-auto flex flex-col items-center">
         {stage === 'intro' && (
           <IntroSetupView
@@ -1224,7 +1224,7 @@ export function App() {
       />
 
       {/* Footer (Desktop / Tablet) */}
-      <footer className="hidden sm:flex w-full text-center px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 items-center justify-center flex-wrap gap-x-3 gap-y-1 shrink-0">
+      <footer className="hidden sm:flex w-full text-center px-6 py-2.5 bg-[#090d16]/90 backdrop-blur-xl border-t border-slate-800/80 text-[11px] text-slate-400 items-center justify-center flex-wrap gap-x-3 gap-y-1 shrink-0">
         <span>
           Desenvolvido por{' '}
           <a

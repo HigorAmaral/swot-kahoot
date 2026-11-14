@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
-import { FastForward, Sparkles, Clock, Zap, Shield, Smartphone } from 'lucide-react';
+import { FastForward, Sparkles, Clock, Zap, Shield, Smartphone, Flame } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface PowerUpsUsedInRound {
@@ -262,8 +262,8 @@ export const QuestionPlayView: React.FC<Props> = ({
             </span>
           )}
           {(answeringTeam.streak || 0) >= 2 && (
-            <span className="text-[10px] font-black text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded border border-orange-400/40 animate-pulse">
-              🔥 Combo x{answeringTeam.streak}
+            <span className="inline-flex items-center gap-1 text-[10px] font-black text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded border border-orange-400/40 animate-pulse">
+              <Flame className="w-3 h-3" /> Combo x{answeringTeam.streak}
             </span>
           )}
           {gameMode === 'todos' && (
@@ -362,7 +362,7 @@ export const QuestionPlayView: React.FC<Props> = ({
             variant="peeking"
             size="sm"
             mood={selectedOption !== null ? 'happy' : timeLeft <= 8 ? 'shocked' : 'idle'}
-            label={selectedOption !== null ? 'Boa!' : timeLeft <= 8 ? 'Corre! ⏰' : undefined}
+            label={selectedOption !== null ? 'Boa!' : timeLeft <= 8 ? 'Corre!' : undefined}
           />
         </div>
 
@@ -378,12 +378,13 @@ export const QuestionPlayView: React.FC<Props> = ({
         </div>
 
         {(isFinalDouble || isTiebreaker) && (
-          <div className={`mt-3 px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
+          <div className={`mt-3 inline-flex items-center gap-1.5 px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
             isTiebreaker
               ? 'bg-rose-500/20 border-rose-400 text-rose-200 animate-pulse'
               : 'bg-amber-500/20 border-amber-400 text-amber-200 animate-pulse'
           }`}>
-            {isTiebreaker ? '⚡ Morte Súbita — Desempate!' : '🔥 Pergunta Final — Pontos em Dobro (2x)!'}
+            {isTiebreaker ? <Zap className="w-3.5 h-3.5" /> : <Flame className="w-3.5 h-3.5" />}
+            {isTiebreaker ? 'Morte Súbita — Desempate!' : 'Pergunta Final — Pontos em Dobro (2x)!'}
           </div>
         )}
 
@@ -410,8 +411,8 @@ export const QuestionPlayView: React.FC<Props> = ({
         )}
 
         <div className="mt-4 flex items-center gap-2.5 text-[11px] sm:text-xs font-bold text-slate-400">
-          <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-700/80 text-amber-300">
-            ⚡ Bônus de velocidade atual: +{speedBonusPreview} pts
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-700/80 text-amber-300">
+            <Zap className="w-3.5 h-3.5" /> Bônus de velocidade atual: +{speedBonusPreview} pts
           </span>
           <span className="hidden md:inline text-slate-400">• Atalhos no PC: teclas <strong className="text-white">1-4</strong> ou <strong className="text-white">A-D</strong></span>
         </div>

@@ -347,7 +347,7 @@ export const IntroSetupView: React.FC<Props> = ({
             {disputeMode && disputeMode !== 'direto' && (
               <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-purple-500/20 border border-purple-400/50 text-purple-200 text-xs font-black">
                 <Gamepad2 className="w-3.5 h-3.5 text-purple-300" />
-                Mini-Game: {disputeMode === 'peao' ? '🌀 Piões' : disputeMode === 'buzzer' ? '⚡ Buzzer' : '🎯 Alvo'}
+                Mini-Game: {disputeMode === 'peao' ? 'Arena de Piões' : disputeMode === 'buzzer' ? 'Buzzer' : 'Tiro ao Alvo'}
               </span>
             )}
 
@@ -644,8 +644,8 @@ export const IntroSetupView: React.FC<Props> = ({
                           <CheckCircle2 className="w-3 h-3" /> Ativo
                         </span>
                       )}
-                      <span className="text-xs font-bold text-slate-200 bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700">
-                        👥 {team.participants.length}
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-200 bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700">
+                        <Users className="w-3 h-3 text-cyan-400" /> {team.participants.length}
                       </span>
                       {onRemoveTeam && teams.length > 2 && (
                         <button

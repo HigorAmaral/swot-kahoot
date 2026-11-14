@@ -1,13 +1,18 @@
-// Web Audio API synthesizer for instant, zero-latency sound effects and Kahoot-style music
+// Audio manager with real human-composed MP3 background tracks and Web Audio API sound effects
+const MUSIC_TRACK_URLS: Record<1 | 2 | 3, string> = {
+  1: '/music/track1.mp3', // Lobby Time (Jazz Lounge)
+  2: '/music/track2.mp3', // Funkorama (Upbeat Funk Groove)
+  3: '/music/track3.mp3', // Bossa Antigua (Bossa Nova Lounge)
+};
+
 class SoundManager {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private isMusicEnabled: boolean = true;
-  private musicInterval: number | null = null;
   private isMusicPlaying: boolean = false;
-  private musicGain: GainNode | null = null;
+  private bgAudio: HTMLAudioElement | null = null;
   private musicTrack: 1 | 2 | 3 = 1;
-  private musicVolume: number = 0.32;
+  private musicVolume: number = 0.35;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -36,16 +41,29 @@ class SoundManager {
   private initCtx() {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx = new AudioCtx();
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
-    if (this.ctx && !this.musicGain) {
-      this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
-      this.musicGain.connect(this.ctx.destination);
+  }
+
+  private ensureBgAudio(): HTMLAudioElement | null {
+    if (typeof window === 'undefined' || typeof Audio === 'undefined') return null;
+    const targetSrc = MUSIC_TRACK_URLS[this.musicTrack];
+    if (!this.bgAudio) {
+      this.bgAudio = new Audio(targetSrc);
+      this.bgAudio.loop = true;
+      this.bgAudio.preload = 'auto';
+    } else if (!this.bgAudio.src.endsWith(targetSrc)) {
+      this.bgAudio.pause();
+      this.bgAudio.src = targetSrc;
+      this.bgAudio.loop = true;
     }
+    this.bgAudio.volume = this.isMuted ? 0 : this.musicVolume;
+    return this.bgAudio;
   }
 
   public toggleMute(): boolean {
@@ -87,7 +105,7 @@ class SoundManager {
     }
   }
 
-  // Play a simple frequency tone
+  // Play a simple frequency tone for UI sound effects
   public playTone(freq: number, duration: number, type: OscillatorType = 'sine', gainVal = 0.15) {
     if (this.isMuted) return;
     this.initCtx();
@@ -108,33 +126,6 @@ class SoundManager {
 
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
-    } catch {
-      // AudioContext might be blocked before first user gesture
-    }
-  }
-
-  // Soft enveloped tone routed through musicGain for pleasant background music
-  private playMusicNote(freq: number, duration: number, type: OscillatorType, peakGain: number) {
-    if (this.isMuted || !this.isMusicEnabled || !this.ctx || !this.musicGain) return;
-    if (this.ctx.state === 'suspended') return;
-
-    try {
-      const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const env = this.ctx.createGain();
-
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, now);
-
-      env.gain.setValueAtTime(0.0001, now);
-      env.gain.linearRampToValueAtTime(peakGain, now + 0.02);
-      env.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-      osc.connect(env);
-      env.connect(this.musicGain);
-
-      osc.start(now);
-      osc.stop(now + duration + 0.02);
     } catch {}
   }
 
@@ -274,94 +265,21 @@ class SoundManager {
     this.playTone(urgent ? 880 : 440, 0.05, 'square', urgent ? 0.2 : 0.08);
   }
 
-  // Pleasant upbeat background music loop (Track 1: Lo-Fi Groove, Track 2: Arcade Synthwave, Track 3: Suspense)
+  // Play real human-composed MP3 background music
   public startLobbyMusic() {
-    if (this.isMuted || !this.isMusicEnabled || this.isMusicPlaying) return;
-    this.isMusicPlaying = true;
-    this.initCtx();
+    if (this.isMuted || !this.isMusicEnabled) return;
+    const audio = this.ensureBgAudio();
+    if (!audio) return;
 
-    const track = this.musicTrack;
-    const isTrack2 = track === 2;
-    const isTrack3 = track === 3;
-    const stepMs = isTrack3 ? 185 : isTrack2 ? 210 : 260;
-
-    // Track 1: Cmaj7 -> Am7 -> Fmaj7 -> G6
-    // Track 2: Em -> C -> G -> D (energetic arcade)
-    // Track 3: Am -> F -> Dm -> E7 (suspenseful tension)
-    const bassPattern = isTrack3
-      ? [
-          110.00, 0, 110.00, 164.81, // A2
-          87.31,  0, 87.31,  130.81, // F2
-          146.83, 0, 146.83, 220.00, // D3
-          164.81, 0, 164.81, 246.94, // E3
-        ]
-      : isTrack2
-      ? [
-          164.81, 164.81, 246.94, 0, // E3
-          130.81, 130.81, 196.00, 0, // C3
-          196.00, 196.00, 293.66, 0, // G3
-          146.83, 146.83, 220.00, 0, // D3
-        ]
-      : [
-          130.81, 0, 196.00, 0, // C3, G3
-          110.00, 0, 164.81, 0, // A2, E3
-          87.31,  0, 130.81, 0, // F2, C3
-          98.00,  0, 146.83, 0, // G2, D3
-        ];
-
-    const melodyPattern = isTrack3
-      ? [
-          440.00, 523.25, 493.88, 523.25, // A4 C5 B4 C5
-          349.23, 440.00, 415.30, 440.00, // F4 A4 G#4 A4
-          587.33, 659.25, 587.33, 523.25, // D5 E5 D5 C5
-          493.88, 659.25, 622.25, 659.25, // B4 E5 D#5 E5
-        ]
-      : isTrack2
-      ? [
-          659.25, 783.99, 987.77, 783.99, // E5 G5 B5 G5
-          523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
-          587.33, 783.99, 987.77, 783.99, // D5 G5 B5 G5
-          587.33, 739.99, 880.00, 739.99, // D5 F#5 A5 F#5
-        ]
-      : [
-          523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
-          440.00, 523.25, 659.25, 523.25, // A4 C5 E5 C5
-          349.23, 440.00, 523.25, 659.25, // F4 A4 C5 E5
-          392.00, 493.88, 587.33, 493.88, // G4 B4 D5 B4
-        ];
-
-    const padRoots = isTrack3
-      ? [220.00, 174.61, 293.66, 329.63] // A3, F3, D4, E4
-      : isTrack2
-      ? [329.63, 261.63, 392.00, 293.66] // E4, C4, G4, D4
-      : [261.63, 220.00, 174.61, 196.00]; // C4, A3, F3, G3
-
-    let step = 0;
-
-    this.musicInterval = window.setInterval(() => {
-      if (this.isMuted || !this.isMusicEnabled) return;
-      if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume().catch(() => {});
-        return;
-      }
-
-      const idx = step % 16;
-      const bass = bassPattern[idx];
-      const mel = melodyPattern[idx];
-
-      if (bass > 0) {
-        this.playMusicNote(bass, isTrack3 ? 0.16 : isTrack2 ? 0.18 : 0.24, 'triangle', isTrack2 || isTrack3 ? 0.065 : 0.08);
-      }
-      if (mel > 0) {
-        this.playMusicNote(mel, isTrack3 ? 0.14 : isTrack2 ? 0.16 : 0.2, isTrack2 || isTrack3 ? 'triangle' : 'sine', isTrack2 || isTrack3 ? 0.045 : 0.055);
-      }
-      if (idx % 4 === 0) {
-        const root = padRoots[Math.floor(idx / 4)];
-        this.playMusicNote(root, 0.75, 'sine', 0.032);
-      }
-
-      step++;
-    }, stepMs);
+    audio.volume = this.musicVolume;
+    audio
+      .play()
+      .then(() => {
+        this.isMusicPlaying = true;
+      })
+      .catch(() => {
+        this.isMusicPlaying = false;
+      });
   }
 
   public getMusicTrack(): 1 | 2 | 3 {
@@ -373,8 +291,12 @@ class SoundManager {
     try {
       localStorage.setItem('arenaquiz_music_track', String(this.musicTrack));
     } catch {}
-    if (this.isMusicPlaying) {
-      this.stopMusic();
+    if (this.bgAudio) {
+      this.bgAudio.pause();
+      this.bgAudio.src = MUSIC_TRACK_URLS[this.musicTrack];
+      this.bgAudio.currentTime = 0;
+    }
+    if (this.isMusicEnabled && !this.isMuted) {
       this.startLobbyMusic();
     }
     return this.musicTrack;
@@ -390,16 +312,15 @@ class SoundManager {
     try {
       localStorage.setItem('arenaquiz_music_volume', String(clamped));
     } catch {}
-    if (this.ctx && this.musicGain) {
-      this.musicGain.gain.setValueAtTime(clamped, this.ctx.currentTime);
+    if (this.bgAudio) {
+      this.bgAudio.volume = this.isMuted ? 0 : clamped;
     }
     return clamped;
   }
 
   public stopMusic() {
-    if (this.musicInterval) {
-      clearInterval(this.musicInterval);
-      this.musicInterval = null;
+    if (this.bgAudio) {
+      this.bgAudio.pause();
     }
     this.isMusicPlaying = false;
   }

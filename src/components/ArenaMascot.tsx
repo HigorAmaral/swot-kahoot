@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { sound } from '../utils/sound';
 
 export type MascotMood = 'idle' | 'typing' | 'hiding' | 'peeking' | 'happy' | 'error';
 
@@ -12,11 +11,11 @@ interface Props {
 }
 
 const FUN_QUOTES = [
-  'Bora ver quem leva as balas e chocolates hoje! 🍬🍫',
-  'Dica de mestre: responda rápido pra ganhar bônus de velocidade! ⚡',
-  'Já escolheu o nome da sua equipe ou vai jogar no modo solo? 🎯',
-  'Cuidado com a pergunta final... ela vale pontos em dobro! 🔥',
-  'Psiu! Use o 50:50 quando a dúvida bater forte! 🦊',
+  'Bora ver quem leva os prêmios e o troféu hoje!',
+  'Dica de mestre: responda rápido pra ganhar bônus de velocidade!',
+  'Já escolheu o nome da sua equipe ou vai jogar no modo solo?',
+  'Cuidado com a pergunta final... ela vale pontos em dobro!',
+  'Psiu! Use o 50:50 quando a dúvida bater forte!',
 ];
 
 export const ArenaMascot: React.FC<Props> = ({
@@ -30,7 +29,6 @@ export const ArenaMascot: React.FC<Props> = ({
   const [isJumping, setIsJumping] = useState(false);
 
   const handleMascotClick = () => {
-    sound.playCandyChime();
     setIsJumping(true);
     setQuoteIdx(prev => (prev === null ? 0 : (prev + 1) % FUN_QUOTES.length));
     onInteract?.();
@@ -341,7 +339,6 @@ export const MascotDetail: React.FC<MascotDetailProps> = ({
   const [clicked, setClicked] = useState(false);
 
   const triggerBounce = () => {
-    sound.playCandyChime();
     setClicked(true);
     window.setTimeout(() => setClicked(false), 500);
   };

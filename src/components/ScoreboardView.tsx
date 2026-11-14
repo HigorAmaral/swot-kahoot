@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Team } from '../types';
-import { Trophy, ArrowRight, Flame, Award } from 'lucide-react';
+import { Trophy, ArrowRight, Flame, Award, Medal, Gift, Users } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface Props {
@@ -49,7 +49,7 @@ export const ScoreboardView: React.FC<Props> = ({
             variant="peeking"
             size="md"
             mood="happy"
-            label={sorted[0] ? `${sorted[0].name} na liderança! 🔥` : 'Disputa acirrada!'}
+            label={sorted[0] ? `${sorted[0].name} na liderança!` : 'Disputa acirrada!'}
           />
         </div>
       </div>
@@ -84,7 +84,7 @@ export const ScoreboardView: React.FC<Props> = ({
                     ? 'bg-amber-700 text-white'
                     : 'bg-slate-700 text-slate-300'
                 }`}>
-                  {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+                  {rank === 1 ? <Trophy className="w-5 h-5" /> : rank === 2 ? <Medal className="w-5 h-5" /> : rank === 3 ? <Award className="w-5 h-5" /> : rank}
                 </div>
 
                 <div>
@@ -99,20 +99,20 @@ export const ScoreboardView: React.FC<Props> = ({
                     )}
                     {(team.streak || 0) >= 2 && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-500/25 border border-orange-400/50 text-orange-300">
-                        🔥 Combo x{team.streak}
+                        <Flame className="w-3 h-3" /> Combo x{team.streak}
                       </span>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-0.5 font-medium">
                     <span>Acertos: <strong>{team.answersCorrect}</strong></span>
                     <span>•</span>
-                    <span className="text-pink-300">🍬 {team.candies} balas</span>
-                    <span className="text-amber-300">🍫 {team.chocolates} chocolates</span>
+                    <span className="inline-flex items-center gap-1 text-pink-300"><Gift className="w-3 h-3" /> {team.candies} balas</span>
+                    <span className="inline-flex items-center gap-1 text-amber-300"><Award className="w-3 h-3" /> {team.chocolates} chocolates</span>
                     {team.participants.length > 0 && (
                       <>
                         <span>•</span>
-                        <span className="text-slate-300 truncate max-w-[200px]">
-                          👥 {team.participants.map(p => p.name).join(', ')}
+                        <span className="inline-flex items-center gap-1 text-slate-300 truncate max-w-[200px]">
+                          <Users className="w-3 h-3 shrink-0" /> {team.participants.map(p => p.name).join(', ')}
                         </span>
                       </>
                     )}
@@ -137,7 +137,7 @@ export const ScoreboardView: React.FC<Props> = ({
         className="w-full sm:w-auto justify-center px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-base sm:text-xl shadow-2xl flex items-center gap-3 transform transition active:scale-95"
       >
         <span>
-          {questionNumber < totalQuestions ? `Ir para a Pergunta #${questionNumber + 1}` : 'Ver o Pódio Final! 🏆'}
+          {questionNumber < totalQuestions ? `Ir para a Pergunta #${questionNumber + 1}` : 'Ver o Pódio Final!'}
         </span>
         <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
       </button>

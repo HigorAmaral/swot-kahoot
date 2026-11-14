@@ -252,9 +252,9 @@ export const RoomConfigModal: React.FC<Props> = ({
             <div className="grid grid-cols-2 gap-2">
               {([
                 { id: 'direto', label: 'Direto (Sem Mini-Game)', desc: 'Vai direto para a pergunta' },
-                { id: 'peao', label: '🌀 Arena de Piões', desc: 'Pião que girar por mais tempo vence' },
-                { id: 'buzzer', label: '⚡ Buzzer (Teclas 1-4)', desc: 'Passa ou repassa por reflexo' },
-                { id: 'alvo', label: '🎯 Tiro ao Alvo', desc: 'Quem acertar mais perto do centro' },
+                { id: 'peao', label: 'Arena de Piões', desc: 'Pião que girar por mais tempo vence' },
+                { id: 'buzzer', label: 'Buzzer (Teclas 1-4)', desc: 'Passa ou repassa por reflexo' },
+                { id: 'alvo', label: 'Tiro ao Alvo', desc: 'Quem acertar mais perto do centro' },
               ] as const).map(opt => (
                 <button
                   key={opt.id}

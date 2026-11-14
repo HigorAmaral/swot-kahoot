@@ -170,11 +170,12 @@ export const HostHeader: React.FC<Props> = ({
                 <button
                   onClick={handleSwitchTrack}
                   className="px-2 lg:px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-[11px] font-black text-emerald-300 transition flex items-center gap-1"
-                  title={`Trocar música (Atual: Faixa ${musicTrack} — ${musicTrack === 1 ? 'Lo-Fi Groove' : musicTrack === 2 ? 'Arcade Synth' : 'Suspense'})`}
+                  title={`Trocar música (Atual: Faixa ${musicTrack} — ${musicTrack === 1 ? 'Jazz Lounge' : musicTrack === 2 ? 'Funk Groove' : 'Bossa Nova'})`}
                 >
-                  <span>♪{musicTrack}</span>
+                  <Music className="w-3 h-3 shrink-0" />
+                  <span>{musicTrack}</span>
                   <span className="hidden 2xl:inline text-[10px] text-slate-400 font-bold">
-                    {musicTrack === 1 ? 'Lo-Fi' : musicTrack === 2 ? 'Arcade' : 'Suspense'}
+                    {musicTrack === 1 ? 'Jazz' : musicTrack === 2 ? 'Funk' : 'Bossa'}
                   </span>
                 </button>
                 <input

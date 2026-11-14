@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
 import { buildAnswerReview, buildQuizCsvReport, downloadCsvFile } from '../utils/quizReport';
-import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp, Printer, Download } from 'lucide-react';
+import { Trophy, RotateCcw, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp, Printer, Download, Medal, Award, Gift, Target } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface Props {
@@ -125,7 +125,7 @@ export const PodiumView: React.FC<Props> = ({
         <MascotDetail
           variant="full"
           mood="happy"
-          label={first ? `Parabéns, ${first.name}! Campeões da Arena! 🏆🦊` : 'Fim do show! Parabéns a todos!'}
+          label={first ? `Parabéns, ${first.name}! Campeões da Arena!` : 'Fim do show! Parabéns a todos!'}
           className="mb-2"
         />
         <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider mb-3 shadow-lg animate-bounce">
@@ -144,13 +144,17 @@ export const PodiumView: React.FC<Props> = ({
         {/* 2nd Place */}
         {second && (
           <div className="flex-1 flex flex-col items-center animate-fade-in" style={{ animationDelay: '200ms' }}>
-            <div className="mb-2.5 text-center">
-              <span className="text-2xl sm:text-3xl">🥈</span>
+            <div className="mb-2.5 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-full bg-slate-300 text-slate-900 flex items-center justify-center mb-1 shadow">
+                <Medal className="w-5 h-5" />
+              </div>
               <div className="font-black text-white text-sm md:text-base lg:text-lg truncate max-w-[140px] lg:max-w-[180px]">
                 {second.name}
               </div>
               <div className="text-xs sm:text-sm text-slate-300 font-bold">{second.points} pts</div>
-              <div className="text-[11px] text-pink-300">🍬 {second.candies} | 🍫 {second.chocolates}</div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] text-pink-300">
+                <Gift className="w-3 h-3" /> {second.candies} | <Award className="w-3 h-3 text-amber-300" /> {second.chocolates}
+              </div>
             </div>
             <div className="w-full bg-gradient-to-b from-slate-500 to-slate-700 border-t-4 border-slate-200 rounded-t-3xl h-40 flex items-center justify-center shadow-2xl">
               <span className="text-4xl lg:text-5xl font-black text-slate-200">2</span>
@@ -161,7 +165,7 @@ export const PodiumView: React.FC<Props> = ({
         {/* 1st Place */}
         {first && (
           <div className="flex-1 flex flex-col items-center scale-105 z-10 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            <div className="mb-2.5 text-center">
+            <div className="mb-2.5 text-center flex flex-col items-center">
               <div className="w-14 h-14 mx-auto rounded-full bg-yellow-400 border-2 border-white flex items-center justify-center text-slate-950 shadow-xl shadow-yellow-400/30 animate-bounce">
                 <Trophy className="w-8 h-8 fill-current" />
               </div>
@@ -169,10 +173,12 @@ export const PodiumView: React.FC<Props> = ({
                 {first.name}
               </div>
               <div className="text-sm sm:text-base text-white font-extrabold">{first.points} pts</div>
-              <div className="text-xs text-yellow-200 font-bold">🍬 {first.candies} balas • 🍫 {first.chocolates} choc</div>
+              <div className="inline-flex items-center gap-1.5 text-xs text-yellow-200 font-bold">
+                <Gift className="w-3.5 h-3.5" /> {first.candies} balas • <Award className="w-3.5 h-3.5" /> {first.chocolates} choc
+              </div>
               {first.participants.length > 0 && (
-                <div className="text-[11px] font-bold text-amber-200 truncate max-w-[160px] lg:max-w-[200px] mt-0.5">
-                  🏆 {first.participants.map(p => p.name).join(', ')}
+                <div className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-200 truncate max-w-[160px] lg:max-w-[200px] mt-0.5">
+                  <Trophy className="w-3 h-3 shrink-0" /> {first.participants.map(p => p.name).join(', ')}
                 </div>
               )}
             </div>
@@ -186,13 +192,17 @@ export const PodiumView: React.FC<Props> = ({
         {/* 3rd Place */}
         {third && (
           <div className="flex-1 flex flex-col items-center animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <div className="mb-2.5 text-center">
-              <span className="text-2xl sm:text-3xl">🥉</span>
+            <div className="mb-2.5 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center mb-1 shadow">
+                <Award className="w-5 h-5" />
+              </div>
               <div className="font-black text-white text-sm md:text-base lg:text-lg truncate max-w-[140px] lg:max-w-[180px]">
                 {third.name}
               </div>
               <div className="text-xs sm:text-sm text-slate-300 font-bold">{third.points} pts</div>
-              <div className="text-[11px] text-pink-300">🍬 {third.candies} | 🍫 {third.chocolates}</div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] text-pink-300">
+                <Gift className="w-3 h-3" /> {third.candies} | <Award className="w-3 h-3 text-amber-300" /> {third.chocolates}
+              </div>
             </div>
             <div className="w-full bg-gradient-to-b from-amber-700 to-amber-900 border-t-4 border-amber-500 rounded-t-3xl h-32 flex items-center justify-center shadow-2xl">
               <span className="text-3xl lg:text-4xl font-black text-amber-200">3</span>
@@ -203,13 +213,17 @@ export const PodiumView: React.FC<Props> = ({
         {/* 4th Place (Honorary) */}
         {fourth && (
           <div className="hidden sm:flex flex-1 flex-col items-center opacity-85">
-            <div className="mb-2.5 text-center">
-              <span className="text-xl">🎖️</span>
+            <div className="mb-2.5 text-center flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center mb-1">
+                <Medal className="w-4 h-4" />
+              </div>
               <div className="font-bold text-slate-300 text-xs lg:text-sm truncate max-w-[120px] lg:max-w-[150px]">
                 {fourth.name}
               </div>
               <div className="text-xs text-slate-400 font-semibold">{fourth.points} pts</div>
-              <div className="text-[10px] text-pink-300">🍬 {fourth.candies}</div>
+              <div className="inline-flex items-center gap-1 text-[10px] text-pink-300">
+                <Gift className="w-3 h-3" /> {fourth.candies}
+              </div>
             </div>
             <div className="w-full bg-slate-800/90 border-t-2 border-slate-600 rounded-t-2xl h-24 flex items-center justify-center">
               <span className="text-2xl font-bold text-slate-400">4</span>
@@ -220,24 +234,24 @@ export const PodiumView: React.FC<Props> = ({
 
       {/* Prize Totals Box */}
       <div className="w-full max-w-2xl glass-card rounded-3xl p-4 sm:p-5 mb-6 flex items-center justify-around shadow-xl">
-        <div className="text-center">
-          <div className="text-2xl">🍬</div>
+        <div className="text-center flex flex-col items-center">
+          <Gift className="w-6 h-6 text-pink-400 mb-1" />
           <div className="text-xl sm:text-2xl font-black text-white">
             {teams.reduce((acc, t) => acc + t.candies, 0)}
           </div>
           <div className="text-xs text-slate-400 font-bold">Total Balas Entregues</div>
         </div>
         <div className="h-10 w-px bg-slate-800" />
-        <div className="text-center">
-          <div className="text-2xl">🍫</div>
+        <div className="text-center flex flex-col items-center">
+          <Award className="w-6 h-6 text-amber-400 mb-1" />
           <div className="text-xl sm:text-2xl font-black text-white">
             {teams.reduce((acc, t) => acc + t.chocolates, 0)}
           </div>
           <div className="text-xs text-slate-400 font-bold">Total Chocolates</div>
         </div>
         <div className="h-10 w-px bg-slate-800" />
-        <div className="text-center">
-          <div className="text-2xl">🎯</div>
+        <div className="text-center flex flex-col items-center">
+          <Target className="w-6 h-6 text-cyan-400 mb-1" />
           <div className="text-xl sm:text-2xl font-black text-white">
             {questions.length > 0 ? `${questions.length} / ${questions.length}` : '10 / 10'}
           </div>

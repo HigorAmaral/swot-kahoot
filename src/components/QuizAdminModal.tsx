@@ -276,9 +276,9 @@ export const QuizAdminModal: React.FC<Props> = ({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {([
                   { id: 'direto', label: 'Direto (Padrão)' },
-                  { id: 'peao', label: '🌀 Pião Beyblade' },
-                  { id: 'buzzer', label: '⚡ Buzzer (1-4)' },
-                  { id: 'alvo', label: '🎯 Tiro ao Alvo' },
+                  { id: 'peao', label: 'Pião Beyblade' },
+                  { id: 'buzzer', label: 'Buzzer (1-4)' },
+                  { id: 'alvo', label: 'Tiro ao Alvo' },
                 ] as const).map(opt => (
                   <button
                     key={opt.id}

@@ -28,7 +28,8 @@ import {
   Navigation,
   ArrowRightLeft,
   Music,
-  Shuffle
+  Shuffle,
+  Gift
 } from 'lucide-react';
 
 interface Props {
@@ -550,7 +551,7 @@ export const AdminDashboard: React.FC<Props> = ({
                       {/* Candies & Chocolates row */}
                       <div className="grid grid-cols-2 gap-2 mb-4 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60 text-xs">
                         <div className="flex items-center justify-between">
-                          <span>🍬 Balas: <strong className="text-pink-300 font-bold">{team.candies}</strong></span>
+                          <span className="inline-flex items-center gap-1"><Gift className="w-3.5 h-3.5 text-pink-400" /> Balas: <strong className="text-pink-300 font-bold">{team.candies}</strong></span>
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleCandyAdjust(team.id, 'candies', -1)}
@@ -568,7 +569,7 @@ export const AdminDashboard: React.FC<Props> = ({
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <span>🍫 Choc: <strong className="text-amber-300 font-bold">{team.chocolates}</strong></span>
+                          <span className="inline-flex items-center gap-1"><Award className="w-3.5 h-3.5 text-amber-400" /> Choc: <strong className="text-amber-300 font-bold">{team.chocolates}</strong></span>
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleCandyAdjust(team.id, 'chocolates', -1)}
@@ -929,9 +930,9 @@ export const AdminDashboard: React.FC<Props> = ({
                   <div className="flex flex-wrap gap-2">
                     {([
                       { id: 'direto', label: 'Direto (Desativado)' },
-                      { id: 'peao', label: '🌀 Arena de Piões' },
-                      { id: 'buzzer', label: '⚡ Buzzer (Teclas 1-4)' },
-                      { id: 'alvo', label: '🎯 Tiro ao Alvo' },
+                      { id: 'peao', label: 'Arena de Piões' },
+                      { id: 'buzzer', label: 'Buzzer (Teclas 1-4)' },
+                      { id: 'alvo', label: 'Tiro ao Alvo' },
                     ] as const).map(opt => (
                       <button
                         key={opt.id}

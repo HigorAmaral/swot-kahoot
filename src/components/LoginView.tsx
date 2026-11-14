@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
-import { ArenaMascot, MascotMood } from './ArenaMascot';
+import { ArenaMascot, MascotMood, MascotDetail } from './ArenaMascot';
 import {
   LogIn,
   UserPlus,
@@ -18,6 +18,7 @@ import {
   Eye,
   EyeOff,
   Gamepad2,
+  Radio,
 } from 'lucide-react';
 
 interface Props {
@@ -73,20 +74,20 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
         return {
           mood: 'peeking',
           lookOffset: 2,
-          speech: 'Hehe, dando só uma espiadinha pra ver se você não digitou errado! 👀',
+          speech: 'Hehe, dando só uma espiadinha pra ver se você não digitou errado!',
         };
       }
       return {
         mood: 'hiding',
         lookOffset: 0,
-        speech: 'Pode digitar sua senha tranquilo, tapei os olhos! 🙈',
+        speech: 'Pode digitar sua senha tranquilo, tapei os olhos!',
       };
     }
     if (isHoveringSubmit || loading) {
       return {
         mood: 'happy',
         lookOffset: 0,
-        speech: loading ? 'Abrindo os portões da Arena...' : 'Tudo pronto! Bora começar o show! 🎉',
+        speech: loading ? 'Abrindo os portões da Arena...' : 'Tudo pronto! Bora começar o show!',
       };
     }
     if (focusedField === 'username' || focusedField === 'displayName' || focusedField === 'email') {
@@ -281,9 +282,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
           {/* Card Title Bar */}
           <div className="flex items-center justify-between gap-2 pb-3.5 sm:pb-4 mb-4 sm:mb-5 border-b-2 border-slate-800/90">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-orange-500 border-b-4 border-orange-700 flex items-center justify-center font-black text-lg sm:text-xl text-white shadow shrink-0">
-                🦊
-              </div>
+              <MascotDetail variant="face" size="sm" className="shrink-0" />
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-none truncate">
                   Arena<span className="text-amber-400">Quiz</span>
@@ -294,8 +293,8 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
               </div>
             </div>
 
-            <span className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-[10px] sm:text-[11px] font-black text-emerald-400 shrink-0">
-              ● AO VIVO
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-[10px] sm:text-[11px] font-black text-emerald-400 shrink-0">
+              <Radio className="w-3 h-3 animate-pulse" /> AO VIVO
             </span>
           </div>
 

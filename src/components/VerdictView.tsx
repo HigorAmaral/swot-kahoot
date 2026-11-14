@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
-import { CheckCircle2, XCircle, Award, Sparkles, ArrowRight, HelpCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Award, Sparkles, ArrowRight, HelpCircle, Gift, Zap } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface Props {
@@ -91,7 +91,7 @@ export const VerdictView: React.FC<Props> = ({
             <XCircle className="w-9 h-9 sm:w-12 sm:h-12 text-rose-400 animate-pulse shrink-0" />
           )}
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">
-            {isCorrect ? 'RESPOSTA CORRETA! 🎉' : isTimeout ? 'TEMPO ESGOTADO! ⏰' : 'RESPOSTA INCORRETA! ❌'}
+            {isCorrect ? 'RESPOSTA CORRETA!' : isTimeout ? 'TEMPO ESGOTADO!' : 'RESPOSTA INCORRETA!'}
           </h2>
         </div>
 
@@ -109,21 +109,22 @@ export const VerdictView: React.FC<Props> = ({
 
         {/* Special Passed question bonus */}
         {isPassed && !isCorrect && (
-          <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-200 text-xs sm:text-sm font-bold">
-            ⚡ Jogada Estratégica: {disputeWinnerTeam.name} passou a pergunta e a equipe rival errou! ({disputeWinnerTeam.name} ganha +500 pts bônus de risco).
+          <div className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-200 text-xs sm:text-sm font-bold">
+            <Zap className="w-4 h-4 shrink-0" />
+            <span>Jogada Estratégica: {disputeWinnerTeam.name} passou a pergunta e a equipe rival errou! ({disputeWinnerTeam.name} ganha +500 pts bônus de risco).</span>
           </div>
         )}
 
         {/* Brinde (Candy / Chocolate) Delivery Animation */}
         <div className="mt-5 sm:mt-6 flex flex-col items-center">
           <div className="inline-flex flex-wrap items-center justify-center gap-3 px-4 sm:px-6 py-3 rounded-2xl bg-slate-900/90 border-2 border-yellow-400 shadow-xl max-w-full">
-            <span className="text-2xl animate-bounce">🍬</span>
+            <Gift className="w-6 h-6 text-yellow-400 animate-bounce shrink-0" />
             <div className="text-center sm:text-left">
               <div className="text-[11px] sm:text-xs font-black uppercase text-yellow-400 tracking-wider">
                 Mesa / Grupo de Comando: Entregar Brinde Físico!
               </div>
               <div className="text-xs sm:text-sm font-extrabold text-white">
-                {brindeAwarded === 'chocolate' ? '🍫 1 Chocolate entregue!' : '🍬 1 Bala entregue para a equipe!'}
+                {brindeAwarded === 'chocolate' ? '1 Chocolate entregue!' : '1 Bala entregue para a equipe!'}
               </div>
             </div>
             <div className="flex gap-1.5 sm:ml-2">
@@ -132,14 +133,14 @@ export const VerdictView: React.FC<Props> = ({
                 className="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-xs font-bold text-white transition flex items-center gap-1"
                 title="Entregar mais uma bala"
               >
-                +🍬 Bala
+                <Gift className="w-3.5 h-3.5" /> +Bala
               </button>
               <button
                 onClick={() => handleManualBrinde('chocolate')}
                 className="px-2.5 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-xs font-bold text-white transition flex items-center gap-1"
                 title="Entregar um chocolate"
               >
-                +🍫 Chocolate
+                <Award className="w-3.5 h-3.5" /> +Chocolate
               </button>
             </div>
           </div>

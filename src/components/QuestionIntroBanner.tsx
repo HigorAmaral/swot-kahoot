@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Question } from '../data/questions';
 import { Team, DisputeMode } from '../types';
 import { sound } from '../utils/sound';
-import { Sparkles, ArrowRight, ArrowLeft, Layers, Dices, Gamepad2 } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Layers, Dices, Gamepad2, Flame, Zap, Target } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface Props {
@@ -48,11 +48,11 @@ export const QuestionIntroBanner: React.FC<Props> = ({
 
   const disputeBadgeLabel =
     disputeMode === 'peao'
-      ? '🌀 Mini-Game Ativo: Arena de Piões'
+      ? 'Mini-Game Ativo: Arena de Piões'
       : disputeMode === 'buzzer'
-      ? '⚡ Mini-Game Ativo: Buzzer de Reflexo'
+      ? 'Mini-Game Ativo: Buzzer de Reflexo'
       : disputeMode === 'alvo'
-      ? '🎯 Mini-Game Ativo: Tiro ao Alvo'
+      ? 'Mini-Game Ativo: Tiro ao Alvo'
       : null;
 
   const handleSpinRoulette = () => {
@@ -86,12 +86,13 @@ export const QuestionIntroBanner: React.FC<Props> = ({
       {/* Question Counter Pill */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-4 sm:mb-6">
         <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-xl">
-          <Sparkles className="w-4 h-4 fill-current text-cyan-300" />
-          {isTiebreaker ? '⚡ Rodada Morte Súbita' : `Pergunta #${questionIndex + 1} de ${totalQuestions}`}
+          {isTiebreaker ? <Zap className="w-4 h-4 text-amber-300" /> : <Sparkles className="w-4 h-4 fill-current text-cyan-300" />}
+          {isTiebreaker ? 'Rodada Morte Súbita' : `Pergunta #${questionIndex + 1} de ${totalQuestions}`}
         </div>
         {isFinalDouble && (
           <div className="inline-flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/25 border border-amber-400 text-amber-200 font-black text-xs sm:text-sm uppercase tracking-wider animate-pulse">
-            🔥 Pontos em Dobro (2x)!
+            <Flame className="w-4 h-4 text-amber-300" />
+            Pontos em Dobro (2x)!
           </div>
         )}
         {disputeBadgeLabel && !spunTeam && (
@@ -108,7 +109,7 @@ export const QuestionIntroBanner: React.FC<Props> = ({
           variant="peeking"
           size="lg"
           mood={spunTeam ? 'happy' : 'idle'}
-          label={spunTeam ? `Vai lá, ${spunTeam.name}! 🦊` : 'Preparem os dedos!'}
+          label={spunTeam ? `Vai lá, ${spunTeam.name}!` : 'Preparem os dedos!'}
         />
       </div>
 
@@ -154,8 +155,8 @@ export const QuestionIntroBanner: React.FC<Props> = ({
             {isSpinning ? 'Sorteando...' : `Sorteado: ${spunTeam.name}`}
           </span>
           {!isSpinning && spunParticipant && (
-            <span className="px-2.5 py-0.5 rounded-lg bg-black/30 text-xs font-bold text-amber-200">
-              🎯 {spunParticipant}
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-black/30 text-xs font-bold text-amber-200">
+              <Target className="w-3.5 h-3.5" /> {spunParticipant}
             </span>
           )}
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SavedQuiz, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
+import { showConfirm } from '../utils/confirm';
 import {
   X,
   FolderOpen,
@@ -203,7 +204,12 @@ export const MyQuizzesModal: React.FC<Props> = ({
   };
 
   const handleDelete = async (quiz: SavedQuiz) => {
-    if (!confirm(`Excluir o quiz "${quiz.title}"?`)) return;
+    const ok = await showConfirm({
+      title: 'Excluir Quiz',
+      message: `Excluir o quiz "${quiz.title}"?`,
+      confirmText: 'Excluir',
+    });
+    if (!ok) return;
     await dbService.deleteQuiz(quiz.shareCode, currentUser.username);
     if (sharingQuiz?.shareCode === quiz.shareCode) setSharingQuiz(null);
     fetchQuizzes();

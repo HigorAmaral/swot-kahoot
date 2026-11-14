@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Team, DisputeMode, GameStage, Participant, RoundLog, Question, UserAccount, SavedQuiz } from './types';
 import { questionsData } from './data/questions';
 import { sound } from './utils/sound';
-import { dbService, getSessionId } from './services/db';
+import { dbService, getSessionId, setSessionId, generateRoomPin } from './services/db';
 
 import { HostHeader } from './components/HostHeader';
 import { IntroSetupView } from './components/IntroSetupView';
@@ -12,7 +12,9 @@ import { LoginView } from './components/LoginView';
 import { RightKahootsSidebar } from './components/RightKahootsSidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { AlertToast } from './components/AlertToast';
+import { ConfirmModal } from './components/ConfirmModal';
 import { showAlert } from './utils/toast';
+import { shuffleQuestionsAndOptions } from './utils/quizShuffle';
 
 const VerdictView = lazy(() => import('./components/VerdictView').then(m => ({ default: m.VerdictView })));
 const ScoreboardView = lazy(() => import('./components/ScoreboardView').then(m => ({ default: m.ScoreboardView })));
@@ -118,7 +120,7 @@ export function App() {
 
   const [activeQuizInfo, setActiveQuizInfo] = useState<{ title: string; shareCode?: string } | null>(null);
   const [quizzesRefreshKey, setQuizzesRefreshKey] = useState<number>(0);
-  const [sessionId] = useState<string>(getSessionId());
+  const [sessionId, setSessionIdState] = useState<string>(getSessionId());
   const [teams, setTeams] = useState<Team[]>(() => {
     try {
       const cached = localStorage.getItem('swot_local_teams');
@@ -592,11 +594,37 @@ export function App() {
     });
   };
 
-  // Restore default FabricaQuiz questions (Admin)
+  // Restore default ArenaQuiz questions (Admin)
   const handleRestoreDefaultQuestions = () => {
     setQuestions(questionsData);
     setActiveQuizInfo(null);
     setCurrentQuestionIndex(0);
+  };
+
+  const handleShuffleQuestions = () => {
+    setQuestions(prev => shuffleQuestionsAndOptions(prev));
+    setCurrentQuestionIndex(0);
+    sound.playCorrect();
+    showAlert('Perguntas e alternativas embaralhadas!', 'success');
+  };
+
+  const handleChangeRoomPin = (nextPin?: string) => {
+    const clean = setSessionId(nextPin || generateRoomPin());
+    setSessionIdState(clean);
+    lastSyncedTeamsJsonRef.current = '';
+    lastSyncedLogsCountRef.current = 0;
+    setRoundLogs([]);
+    setTeams(initialTeams);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (clean === 'sala-principal') {
+        url.searchParams.delete('sala');
+      } else {
+        url.searchParams.set('sala', clean);
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
+    showAlert(`Conectado à sala ao vivo: ${clean}`, 'success');
   };
 
   // Start the Quiz
@@ -786,6 +814,7 @@ export function App() {
     return (
       <>
         <AlertToast />
+        <ConfirmModal />
         <LoginView
           onLoginSuccess={handleLoginSuccess}
           pendingQuizCode={pendingQuizCode}
@@ -797,6 +826,7 @@ export function App() {
   return (
     <div className="min-h-screen lg:h-screen bg-grid-pattern text-white flex flex-col font-sans select-none overflow-x-hidden lg:overflow-hidden">
       <AlertToast />
+      <ConfirmModal />
       {/* Top Header */}
       <HostHeader
         onOpenAdminModal={handleOpenAdmin}
@@ -824,6 +854,9 @@ export function App() {
             activeQuizInfo={activeQuizInfo}
             questions={questions}
             onClearActiveQuiz={handleRestoreDefaultQuestions}
+            onShuffleQuestions={handleShuffleQuestions}
+            sessionId={sessionId}
+            onChangeRoomPin={handleChangeRoomPin}
             onOpenActiveQuizAdmin={
               activeQuizInfo?.shareCode
                 ? () =>
@@ -966,6 +999,8 @@ export function App() {
             onMoveParticipant={handleMoveParticipant}
             onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
             onRestoreDefaultQuestions={handleRestoreDefaultQuestions}
+            onShuffleQuestions={handleShuffleQuestions}
+            onChangeRoomPin={handleChangeRoomPin}
             onAddParticipant={handleAddParticipant}
             onRemoveParticipant={handleRemoveParticipant}
             onResetGame={handleResetGame}

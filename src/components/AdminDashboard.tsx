@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Team, RoundLog, Question, GameStage } from '../types';
 import { questionsData } from '../data/questions';
 import { sound } from '../utils/sound';
+import { showConfirm } from '../utils/confirm';
 import {
   ShieldAlert,
   Trophy,
@@ -26,7 +27,8 @@ import {
   FolderOpen,
   Navigation,
   ArrowRightLeft,
-  Music
+  Music,
+  Shuffle
 } from 'lucide-react';
 
 interface Props {
@@ -56,6 +58,8 @@ interface Props {
   onOpenCreatorModal?: () => void;
   onOpenMyQuizzesModal?: () => void;
   onRestoreDefaultQuestions?: () => void;
+  onShuffleQuestions?: () => void;
+  onChangeRoomPin?: (pin?: string) => void;
   onLogout?: () => void;
 }
 
@@ -86,6 +90,8 @@ export const AdminDashboard: React.FC<Props> = ({
   onOpenCreatorModal,
   onOpenMyQuizzesModal,
   onRestoreDefaultQuestions,
+  onShuffleQuestions,
+  onChangeRoomPin,
   onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<'winner_scores' | 'participants' | 'quiz_control' | 'logs'>('winner_scores');
@@ -439,8 +445,13 @@ export const AdminDashboard: React.FC<Props> = ({
                       Limpar Vencedores
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm('Zerar pontos e brindes de todas as equipes mantendo os alunos inscritos?')) {
+                      onClick={async () => {
+                        const ok = await showConfirm({
+                          title: 'Zerar Pontos',
+                          message: 'Zerar pontos e brindes de todas as equipes mantendo os alunos inscritos?',
+                          confirmText: 'Zerar Pontos',
+                        });
+                        if (ok) {
                           onUpdateAllTeams(t => ({
                             ...t,
                             points: 0,
@@ -648,8 +659,13 @@ export const AdminDashboard: React.FC<Props> = ({
                           <span>{team.participants.length} participante(s)</span>
                           {team.participants.length > 0 && (
                             <button
-                              onClick={() => {
-                                if (confirm(`Remover todos os alunos de "${team.name}"?`)) {
+                              onClick={async () => {
+                                const ok = await showConfirm({
+                                  title: 'Remover Alunos',
+                                  message: `Remover todos os alunos de "${team.name}"?`,
+                                  confirmText: 'Remover Todos',
+                                });
+                                if (ok) {
                                   team.participants.forEach(p => onRemoveParticipant(team.id, p.id, p.name));
                                 }
                               }}
@@ -812,11 +828,37 @@ export const AdminDashboard: React.FC<Props> = ({
                         <FolderOpen className="w-3.5 h-3.5" /> Meus Kahoots / Email
                       </button>
                     )}
+                    {onShuffleQuestions && (
+                      <button
+                        type="button"
+                        onClick={onShuffleQuestions}
+                        className="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-300 text-xs font-bold flex items-center gap-1.5 transition"
+                        title="Embaralhar ordem das perguntas e alternativas"
+                      >
+                        <Shuffle className="w-3.5 h-3.5" /> Embaralhar
+                      </button>
+                    )}
+                    {onChangeRoomPin && (
+                      <button
+                        type="button"
+                        onClick={() => onChangeRoomPin()}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 text-xs font-bold transition"
+                        title="Gerar novo PIN exclusivo para esta sala"
+                      >
+                        Novo PIN ({sessionId})
+                      </button>
+                    )}
                     {onRestoreDefaultQuestions && (
                       <button
                         type="button"
-                        onClick={() => {
-                          if (confirm('Restaurar as perguntas padrão do ArenaQuiz?')) {
+                        onClick={async () => {
+                          const ok = await showConfirm({
+                            title: 'Restaurar Perguntas Padrão',
+                            message: 'Restaurar as perguntas padrão do ArenaQuiz?',
+                            confirmText: 'Restaurar',
+                            danger: false,
+                          });
+                          if (ok) {
                             onRestoreDefaultQuestions();
                           }
                         }}
@@ -927,8 +969,13 @@ export const AdminDashboard: React.FC<Props> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm("Deseja realmente zerar o jogo?")) {
+                  onClick={async () => {
+                    const ok = await showConfirm({
+                      title: 'Resetar Jogo',
+                      message: 'Deseja realmente zerar o jogo? Todas as pontuações, brindes e registros da sessão atual serão apagados.',
+                      confirmText: 'Sim, Resetar',
+                    });
+                    if (ok) {
                       onResetGame();
                       onClose();
                     }

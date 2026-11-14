@@ -55,13 +55,34 @@ export function getSessionId(): string {
   if (typeof window === 'undefined') return 'sala-principal';
   const params = new URLSearchParams(window.location.search);
   const paramSession = params.get('sala') || params.get('session') || params.get('pin');
-  if (paramSession) {
-    localStorage.setItem(SESSION_KEY, paramSession);
-    return paramSession;
+  if (paramSession && paramSession.trim()) {
+    const clean = paramSession.trim();
+    localStorage.setItem(SESSION_KEY, clean);
+    return clean;
   }
-  // Default to standard shared room so every student and projector connects to the same room
+  const stored = localStorage.getItem(SESSION_KEY);
+  if (stored && stored.trim()) {
+    return stored.trim();
+  }
   localStorage.setItem(SESSION_KEY, 'sala-principal');
   return 'sala-principal';
+}
+
+export function setSessionId(pin: string): string {
+  const clean = pin.trim() || 'sala-principal';
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(SESSION_KEY, clean);
+  }
+  return clean;
+}
+
+export function generateRoomPin(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = '';
+  for (let i = 0; i < 6; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
 }
 
 export class DatabaseService {

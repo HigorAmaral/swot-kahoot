@@ -3,7 +3,8 @@ import { Team, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import { showAlert } from '../utils/toast';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X } from 'lucide-react';
+import { showConfirm } from '../utils/confirm';
+import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -15,6 +16,9 @@ interface Props {
   activeQuizInfo?: { title: string; shareCode?: string } | null;
   questions?: Question[];
   onClearActiveQuiz?: () => void;
+  onShuffleQuestions?: () => void;
+  sessionId?: string;
+  onChangeRoomPin?: (pin?: string) => void;
   onOpenActiveQuizAdmin?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
@@ -43,6 +47,9 @@ export const IntroSetupView: React.FC<Props> = ({
   activeQuizInfo,
   questions = [],
   onClearActiveQuiz,
+  onShuffleQuestions,
+  sessionId = 'sala-principal',
+  onChangeRoomPin,
   onOpenActiveQuizAdmin,
   onAddParticipant,
   onRemoveParticipant,
@@ -54,6 +61,8 @@ export const IntroSetupView: React.FC<Props> = ({
   const [showNewGroupForm, setShowNewGroupForm] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupColorIdx, setNewGroupColorIdx] = useState(4);
+  const [pinInput, setPinInput] = useState('');
+  const [showPinJoin, setShowPinJoin] = useState(false);
   const [quizSummary, setQuizSummary] = useState<{
     playingCount: number;
     finishedCount: number;
@@ -402,9 +411,14 @@ export const IntroSetupView: React.FC<Props> = ({
                       {onRemoveTeam && teams.length > 2 && (
                         <button
                           type="button"
-                          onClick={e => {
+                          onClick={async e => {
                             e.stopPropagation();
-                            if (confirm(`Remover "${team.name}" da competição?`)) {
+                            const ok = await showConfirm({
+                              title: 'Remover Grupo',
+                              message: `Remover "${team.name}" da competição?`,
+                              confirmText: 'Remover',
+                            });
+                            if (ok) {
                               onRemoveTeam(team.id);
                               if (selectedTeamId === team.id) {
                                 const next = teams.find(t => t.id !== team.id);

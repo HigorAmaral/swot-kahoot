@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { SavedQuiz, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
+import { showConfirm } from '../utils/confirm';
 import {
   Sparkles,
   Play,
@@ -69,7 +70,12 @@ export const RightKahootsSidebar: React.FC<Props> = ({
   }, [currentUser.username, refreshKey]);
 
   const handleDelete = async (quiz: SavedQuiz) => {
-    if (!confirm(`Excluir o Kahoot "${quiz.title}"?`)) return;
+    const ok = await showConfirm({
+      title: 'Excluir Kahoot',
+      message: `Excluir o Kahoot "${quiz.title}"?`,
+      confirmText: 'Excluir',
+    });
+    if (!ok) return;
     await dbService.deleteQuiz(quiz.shareCode, currentUser.username);
     sound.playTone(300, 0.1, 'triangle', 0.15);
     loadQuizzes();

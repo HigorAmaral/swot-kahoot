@@ -4,6 +4,8 @@ import { UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import { showAlert } from '../utils/toast';
+import { showConfirm } from '../utils/confirm';
+import { extractTextFromPdfFile } from '../utils/pdfParser';
 import {
   X,
   Plus,
@@ -195,8 +197,14 @@ export const KahootCreatorModal: React.FC<Props> = ({
   };
 
   // Restore Default SWOT Questions
-  const handleRestoreDefaults = () => {
-    if (confirm("Deseja restaurar as 10 perguntas originais da Análise SWOT da InovaTech?")) {
+  const handleRestoreDefaults = async () => {
+    const ok = await showConfirm({
+      title: 'Restaurar Perguntas Originais',
+      message: 'Deseja restaurar as 10 perguntas originais da Análise SWOT da InovaTech?',
+      confirmText: 'Restaurar',
+      danger: false,
+    });
+    if (ok) {
       setQuestionsList(questionsData);
       sound.playCorrect();
       setImportFeedback("Perguntas originais restauradas!");
@@ -846,8 +854,13 @@ export const KahootCreatorModal: React.FC<Props> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm('Limpar todas as perguntas da lista para começar do zero?')) {
+                    onClick={async () => {
+                      const ok = await showConfirm({
+                        title: 'Limpar Lista',
+                        message: 'Limpar todas as perguntas da lista para começar do zero?',
+                        confirmText: 'Limpar Tudo',
+                      });
+                      if (ok) {
                         setQuestionsList([]);
                       }
                     }}

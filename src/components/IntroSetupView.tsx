@@ -5,7 +5,7 @@ import { sound } from '../utils/sound';
 import { showAlert } from '../utils/toast';
 import { showConfirm } from '../utils/confirm';
 import { QRCodeSVG } from 'qrcode.react';
-import { Play, Users, User, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode, Sliders, BookOpen, HelpCircle, Smartphone, Gamepad2 } from 'lucide-react';
+import { Play, Users, User, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode, Sliders, HelpCircle, Gamepad2 } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface Props {
@@ -27,9 +27,7 @@ interface Props {
   disputeMode?: DisputeMode;
   onOpenRoomConfig?: () => void;
   onOpenActiveQuizAdmin?: () => void;
-  onOpenCaseStudy?: () => void;
   onOpenDynamicGuide?: () => void;
-  onOpenRemoteControl?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
   onAddTeam?: (name: string, colorIdx?: number) => void;
@@ -66,9 +64,7 @@ export const IntroSetupView: React.FC<Props> = ({
   disputeMode = 'direto',
   onOpenRoomConfig,
   onOpenActiveQuizAdmin,
-  onOpenCaseStudy,
   onOpenDynamicGuide,
-  onOpenRemoteControl,
   onAddParticipant,
   onRemoveParticipant,
   onAddTeam,
@@ -169,15 +165,15 @@ export const IntroSetupView: React.FC<Props> = ({
   const totalParticipants = teams.reduce((acc, t) => acc + t.participants.length, 0);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-7xl mx-auto p-2 sm:p-4 lg:p-6 xl:p-8 animate-fade-in">
+    <div className="flex flex-col items-center justify-center w-full max-w-7xl mx-auto p-2 sm:p-4 lg:p-5 xl:p-6 animate-fade-in">
       {/* Top Hero Banner */}
-      <div className="relative overflow-hidden w-full glass-card rounded-3xl p-4 sm:p-6 lg:p-8 mb-5 sm:mb-6 border border-slate-800/90 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
+      <div className="relative overflow-hidden w-full glass-card rounded-3xl p-4 sm:p-6 lg:p-7 mb-4 sm:mb-5 border border-slate-800/90 flex flex-col lg:flex-row items-center justify-between gap-5 lg:gap-8">
         {/* Ambient Desktop Glows */}
         <div className="pointer-events-none hidden lg:block absolute -top-28 -left-28 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl" />
         <div className="pointer-events-none hidden lg:block absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-cyan-500/10 blur-3xl" />
 
         <div className="relative z-10 flex-1 text-center lg:text-left">
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-3">
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-2.5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-black text-[11px] uppercase tracking-wider">
               <Layers className="w-3.5 h-3.5 text-emerald-400" />
               {activeQuizInfo ? 'Kahoot Selecionado' : 'Arena de Perguntas'}
@@ -191,7 +187,7 @@ export const IntroSetupView: React.FC<Props> = ({
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2.5">
+          <h1 className="text-2xl sm:text-4xl lg:text-[42px] font-black text-white tracking-tight leading-tight mb-2">
             {activeQuizInfo ? (
               <span>{activeQuizInfo.title}</span>
             ) : (
@@ -201,15 +197,15 @@ export const IntroSetupView: React.FC<Props> = ({
             )}
           </h1>
 
-          <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-2xl font-medium leading-relaxed">
+          <p className="text-slate-300 text-xs sm:text-sm lg:text-base max-w-2xl font-medium leading-relaxed">
             {activeQuizInfo
               ? `Este Kahoot possui ${questions.length} pergunta(s) pronta(s). Escolha sua equipe abaixo e clique em Começar!`
               : 'Escolha sua equipe abaixo, entre com sua conta e dispute os pontos, combos e brindes da rodada em tempo real!'}
           </p>
 
-          {/* Live Room PIN Bar + QR Code + Game Mode */}
-          <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-inner text-xs">
+          {/* Clean Room Controls Bar */}
+          <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-inner text-xs">
               <KeyRound className="w-3.5 h-3.5 text-amber-400" />
               <span className="text-slate-400 font-bold">PIN:</span>
               <span className="font-mono font-black text-amber-300 tracking-wider text-sm">{sessionId}</span>
@@ -247,7 +243,7 @@ export const IntroSetupView: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => setShowPinJoin(v => !v)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-[11px] font-bold text-cyan-300 transition"
+                    className="px-2 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-[11px] font-bold text-cyan-300 transition"
                   >
                     {showPinJoin ? 'Fechar' : 'Entrar por PIN'}
                   </button>
@@ -308,30 +304,6 @@ export const IntroSetupView: React.FC<Props> = ({
               </button>
             )}
 
-            {onOpenRemoteControl && (
-              <button
-                type="button"
-                onClick={onOpenRemoteControl}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-xs font-black transition"
-                title="Abrir controle no celular para responder com figuras geométricas"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                Controle Mobile
-              </button>
-            )}
-
-            {onOpenCaseStudy && (
-              <button
-                type="button"
-                onClick={onOpenCaseStudy}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-300 text-xs font-bold transition"
-                title="Ver Estudo de Caso InovaTech e Matriz SWOT"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                Estudo de Caso
-              </button>
-            )}
-
             {onOpenDynamicGuide && (
               <button
                 type="button"
@@ -387,7 +359,7 @@ export const IntroSetupView: React.FC<Props> = ({
           </div>
 
           {activeQuizInfo && (
-            <div className="mt-3.5 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+            <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-2">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-200 text-xs font-bold">
                 <Layers className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{questions.length} pergunta(s)</span>
@@ -411,13 +383,13 @@ export const IntroSetupView: React.FC<Props> = ({
         </div>
 
         {/* Main CTA Launch Pad with Peeking Mascot */}
-        <div className="relative z-10 flex flex-col items-center lg:items-stretch gap-2.5 w-full lg:w-[320px] xl:w-[340px] shrink-0 lg:bg-slate-950/60 lg:p-4 lg:rounded-2xl lg:border lg:border-slate-800/90">
+        <div className="relative z-10 flex flex-col items-center lg:items-stretch gap-2.5 w-full lg:w-[310px] xl:w-[330px] shrink-0 lg:bg-slate-950/65 lg:p-4 lg:rounded-2xl lg:border lg:border-slate-800/90">
           <div className="flex items-center justify-center -mb-3 z-10">
             <MascotDetail variant="peeking" size="md" mood="happy" label="Tudo pronto? Bora!" />
           </div>
           <button
             onClick={onStartGame}
-            className="w-full px-7 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2.5"
+            className="w-full px-7 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2.5"
           >
             <Play className="w-5 h-5 fill-current" />
             COMEÇAR O QUIZ
@@ -449,7 +421,7 @@ export const IntroSetupView: React.FC<Props> = ({
 
       {/* SELECTED KAHOOT QUESTIONS PREVIEW ON MAIN SCREEN */}
       {activeQuizInfo && questions.length > 0 && (
-        <div className="w-full glass-card rounded-2xl p-4 sm:p-5 mb-6 border border-slate-800 shadow-lg animate-fade-in">
+        <div className="w-full glass-card rounded-2xl p-4 sm:p-5 mb-4 sm:mb-5 border border-slate-800 shadow-lg animate-fade-in">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
@@ -506,33 +478,50 @@ export const IntroSetupView: React.FC<Props> = ({
         </div>
       )}
 
-      {/* ACCOUNT QUICK JOIN BAR (NO NAME TYPING NEEDED) */}
-      <div className="w-full glass-card rounded-3xl p-4 sm:p-5 mb-6 text-left border border-emerald-500/30 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-2xl shadow">
+      {/* UNIFIED QUICK JOIN & GROUPS HEADER BAR */}
+      <div className="w-full glass-card rounded-2xl p-3.5 sm:p-4 mb-4 text-left border border-emerald-500/30 shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-xl shadow shrink-0">
               {currentUser.avatar}
             </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-black text-white">
-                Participando como: <span className="text-emerald-400">{currentUser.displayName}</span>
-              </h3>
-              <p className="text-xs text-slate-400">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-black text-white truncate">
+                  Participando como: <span className="text-emerald-400">{currentUser.displayName}</span>
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-slate-900/90 border border-slate-700 text-[10px] font-bold text-cyan-300">
+                  {teams.length} grupos • {totalParticipants} na sala
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 truncate">
                 {participationMode === 'individual'
-                  ? `Modo Individual ativo — clique para entrar automaticamente (${totalParticipants} na sala)`
-                  : `Selecione uma equipe abaixo para entrar com 1 clique (${totalParticipants} na sala)`}
+                  ? 'Modo Individual ativo — clique para entrar automaticamente'
+                  : 'Selecione uma equipe abaixo ou entre direto com 1 clique'}
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
-          >
-            <UserPlus className="w-4 h-4" />
-            {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
-          </button>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {onAddTeam && (
+              <button
+                type="button"
+                onClick={() => setShowNewGroupForm(prev => !prev)}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/40 text-emerald-300 text-xs font-black flex items-center gap-1.5 transition"
+              >
+                {showNewGroupForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                {showNewGroupForm ? 'Fechar' : 'Novo Grupo'}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => (participationMode === 'individual' ? handleJoinIndividual() : handleJoinTeam(selectedTeamId))}
+              className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 font-black text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 transform transition active:scale-95 whitespace-nowrap"
+            >
+              <UserPlus className="w-4 h-4" />
+              {participationMode === 'individual' ? 'Entrar na Disputa Individual' : `Entrar no ${activeTeam.name}`}
+            </button>
+          </div>
         </div>
 
         {/* Success Alert */}
@@ -546,22 +535,6 @@ export const IntroSetupView: React.FC<Props> = ({
 
       {/* Teams Grid */}
       <div className="w-full text-left">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
-          <span className="text-xs font-black uppercase text-cyan-300 tracking-wider flex items-center gap-2">
-            <Users className="w-4 h-4 text-emerald-400" />
-            Competição entre Grupos ({teams.length} grupos ativos — clique para entrar):
-          </span>
-          {onAddTeam && (
-            <button
-              type="button"
-              onClick={() => setShowNewGroupForm(prev => !prev)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/50 text-emerald-300 text-xs font-black flex items-center gap-1.5 transition"
-            >
-              {showNewGroupForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-              {showNewGroupForm ? 'Fechar' : 'Novo Grupo'}
-            </button>
-          )}
-        </div>
 
         {/* Create New Competing Group Form */}
         {showNewGroupForm && onAddTeam && (

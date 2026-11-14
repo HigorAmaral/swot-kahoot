@@ -30,9 +30,7 @@ const MyQuizzesModal = lazy(() => import('./components/MyQuizzesModal').then(m =
 const ProfileModal = lazy(() => import('./components/ProfileModal').then(m => ({ default: m.ProfileModal })));
 const QuizAdminModal = lazy(() => import('./components/QuizAdminModal').then(m => ({ default: m.QuizAdminModal })));
 const CommunityModal = lazy(() => import('./components/CommunityModal').then(m => ({ default: m.CommunityModal })));
-const CaseStudyModal = lazy(() => import('./components/CaseStudyModal').then(m => ({ default: m.CaseStudyModal })));
 const DynamicGuideModal = lazy(() => import('./components/DynamicGuideModal').then(m => ({ default: m.DynamicGuideModal })));
-const PlayerRemoteModal = lazy(() => import('./components/PlayerRemoteModal').then(m => ({ default: m.PlayerRemoteModal })));
 const RoomConfigModal = lazy(() => import('./components/RoomConfigModal').then(m => ({ default: m.RoomConfigModal })));
 
 const initialTeams: Team[] = [
@@ -184,9 +182,7 @@ export function App() {
   const [isMobileKahootsOpen, setIsMobileKahootsOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isRoomConfigOpen, setIsRoomConfigOpen] = useState(false);
-  const [isCaseStudyOpen, setIsCaseStudyOpen] = useState(false);
   const [isDynamicGuideOpen, setIsDynamicGuideOpen] = useState(false);
-  const [isRemoteControlOpen, setIsRemoteControlOpen] = useState(false);
 
   // Unlock Web Audio and start pleasant background music on first user gesture
   useEffect(() => {
@@ -1013,9 +1009,7 @@ export function App() {
             participationMode={participationMode}
             disputeMode={disputeMode}
             onOpenRoomConfig={() => setIsRoomConfigOpen(true)}
-            onOpenCaseStudy={() => setIsCaseStudyOpen(true)}
             onOpenDynamicGuide={() => setIsDynamicGuideOpen(true)}
-            onOpenRemoteControl={() => setIsRemoteControlOpen(true)}
             onOpenActiveQuizAdmin={
               activeQuizInfo?.shareCode
                 ? () =>
@@ -1082,7 +1076,6 @@ export function App() {
               setAnsweringTeamId(teamId);
             }}
             sessionId={sessionId}
-            onOpenRemoteControl={() => setIsRemoteControlOpen(true)}
           />
         )}
 
@@ -1285,13 +1278,6 @@ export function App() {
           />
         )}
 
-        {isCaseStudyOpen && (
-          <CaseStudyModal
-            isOpen={isCaseStudyOpen}
-            onClose={() => setIsCaseStudyOpen(false)}
-          />
-        )}
-
         {isDynamicGuideOpen && (
           <DynamicGuideModal
             isOpen={isDynamicGuideOpen}
@@ -1299,17 +1285,6 @@ export function App() {
           />
         )}
 
-        {isRemoteControlOpen && (
-          <PlayerRemoteModal
-            isOpen={isRemoteControlOpen}
-            onClose={() => setIsRemoteControlOpen(false)}
-            sessionId={sessionId}
-            teams={teams}
-            currentUser={currentUser}
-            currentQuestion={currentQuestion}
-            stage={stage}
-          />
-        )}
         {isRoomConfigOpen && (
           <RoomConfigModal
             isOpen={isRoomConfigOpen}

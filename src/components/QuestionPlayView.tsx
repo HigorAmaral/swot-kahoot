@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '../data/questions';
 import { Team, GamePlayMode } from '../types';
 import { sound } from '../utils/sound';
-import { FastForward, Sparkles, Clock, Zap, Shield, Smartphone, Flame } from 'lucide-react';
+import { FastForward, Sparkles, Clock, Zap, Shield, Flame } from 'lucide-react';
 import { MascotDetail } from './ArenaMascot';
 
 interface PowerUpsUsedInRound {
@@ -25,7 +25,6 @@ interface Props {
   allTeams?: Team[];
   onSelectAnsweringTeam?: (teamId: number) => void;
   sessionId?: string;
-  onOpenRemoteControl?: () => void;
 }
 
 export const QuestionPlayView: React.FC<Props> = ({
@@ -42,7 +41,6 @@ export const QuestionPlayView: React.FC<Props> = ({
   allTeams,
   onSelectAnsweringTeam,
   sessionId,
-  onOpenRemoteControl,
 }) => {
   const [timeLeft, setTimeLeft] = useState(questionDuration || 30);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -272,17 +270,6 @@ export const QuestionPlayView: React.FC<Props> = ({
 
         {/* Controls: Power-Ups & Reveal */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          {onOpenRemoteControl && (
-            <button
-              type="button"
-              onClick={onOpenRemoteControl}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/50 text-cyan-200 text-xs font-black transition"
-              title="Abrir Controle Mobile para votar com figuras geométricas"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Controle</span>
-            </button>
-          )}
           <button
             onClick={handleFiftyFifty}
             disabled={teamPowerUps.fiftyFifty || usedFiftyFifty || selectedOption !== null || question.options.length <= 2}

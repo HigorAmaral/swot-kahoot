@@ -20,7 +20,7 @@ export const ScoreboardView: React.FC<Props> = ({
   const maxPoints = Math.max(...sorted.map(t => t.points), 1000);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-4xl mx-auto p-2.5 sm:p-4 animate-fade-in">
       <div className="text-center mb-5 sm:mb-6">
         <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-kahoot-purple/60 border border-purple-400 text-purple-200 text-xs sm:text-sm font-semibold mb-2">
           <Trophy className="w-4 h-4 text-yellow-400" />
@@ -73,7 +73,7 @@ export const ScoreboardView: React.FC<Props> = ({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5 font-medium">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-0.5 font-medium">
                     <span>Acertos: <strong>{team.answersCorrect}</strong></span>
                     <span>•</span>
                     <span className="text-pink-300">🍬 {team.candies} balas</span>
@@ -104,12 +104,12 @@ export const ScoreboardView: React.FC<Props> = ({
       {/* Advance to next */}
       <button
         onClick={onNextQuestion}
-        className="px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xl shadow-2xl flex items-center gap-3 transform transition active:scale-95"
+        className="w-full sm:w-auto justify-center px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-base sm:text-xl shadow-2xl flex items-center gap-3 transform transition active:scale-95"
       >
         <span>
           {questionNumber < totalQuestions ? `Ir para a Pergunta #${questionNumber + 1}` : 'Ver o Pódio Final! 🏆'}
         </span>
-        <ArrowRight className="w-6 h-6" />
+        <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
       </button>
     </div>
   );

@@ -305,8 +305,14 @@ export const RightKahootsSidebar: React.FC<Props> = ({
 
       {/* Mobile Slide-Over Right Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="w-80 max-w-[85vw] h-full bg-slate-950 border-l border-cyan-500/30 shadow-2xl">
+        <div
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-sm animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-80 max-w-[85vw] h-full bg-slate-950 border-l border-cyan-500/30 shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+          >
             {sidebarContent}
           </div>
         </div>

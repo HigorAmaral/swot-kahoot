@@ -1,6 +1,6 @@
-# 🎯 SWOT Kahoot! - Funções Administrativas & Planejamento em TI
+# 🎯 ArenaQuiz (SWOT Kahoot!) — Quiz Interativo em Tempo Real
 
-Sistema completo de Quiz interativo e gamificado no estilo **Kahoot!**, desenvolvido especialmente para dinâmicas de sala de aula universitárias e corporativas.
+Plataforma completa de Quiz interativo e gamificado no estilo **Kahoot!**, desenvolvida para dinâmicas de sala de aula, treinamentos corporativos e competições em equipe — com suporte completo a **Mobile**, **PWA instalável**, **criação/importação de quizzes**, **compartilhamento** e **música de fundo**.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHigorAmaral%2Fswot-kahoot)
 
@@ -8,54 +8,43 @@ Sistema completo de Quiz interativo e gamificado no estilo **Kahoot!**, desenvol
 
 ---
 
-## 📋 Sobre a Dinâmica de Sala
+## ✨ Principais Funcionalidades
 
-Esta atividade foi desenhada para a condução do **Grupo de Comando** (alunos que estão apresentando) com a participação ativa de toda a turma dividida em **4 equipes**.
+### 📱 Experiência Mobile & PWA Instalável
+- **Instalável como App (PWA):** suporte a `manifest.webmanifest`, Service Worker (`sw.js`) e botão **Instalar App** no cabeçalho quando disponível no navegador.
+- **Navegação Mobile Nativa:** barra inferior dedicada (`MobileBottomNav`) com acesso rápido a **Kahoots**, **Criar**, **Enviar** e **Painel ADM**, além de suporte a `100dvh` e áreas seguras (`safe-area-inset`).
 
-### 🌟 Pilares Pedagógicos
-1. **Funções Administrativas:** Ênfase no **Planejamento Estratégico** (além de Organização, Direção e Controle - PODC).
-2. **Matriz SWOT (FOFA):**
-   - **Forças (Strengths):** Fatores internos positivos e controláveis.
-   - **Fraquezas (Weaknesses):** Fatores internos negativos e controláveis.
-   - **Oportunidades (Opportunities):** Fatores externos favoráveis (incontroláveis).
-   - **Ameaças (Threats):** Fatores externos desfavoráveis (incontroláveis).
-3. **Estudo de Caso / Paper em TI:** Aplicação na empresa **InovaTech Soluções Digitais**, enfrentando desafios de migração para Cloud Computing, dívida técnica em código legado, adequação à LGPD, ciberataques de Ransomware e concorrência com startups nativas da nuvem.
+### 🛠️ Criador de Quizzes (`Criar Quiz`)
+Crie seus próprios Kahoots de 4 formas diferentes:
+1. **Manual:** crie perguntas com 4 alternativas coloridas (▲ ◆ ● ■), resposta correta e explicação teórica.
+2. **Planilhas (Excel / CSV):** baixe o modelo `.csv`, importe planilhas colando os dados e exporte suas perguntas em **CSV** (UTF-8 com BOM, compatível com Excel) ou **JSON**.
+3. **Upload de Arquivo:** importe questões diretamente de arquivos `.pdf`, `.txt`, `.csv` ou `.md`.
+4. **Colar Texto / IA:** cole listas de questões geradas no ChatGPT, Word ou provas para conversão automática.
 
----
+### 🔗 Meus Kahoots & Compartilhamento
+- Salve quizzes na sua conta e gerencie pela barra lateral **Kahoots** ou pelo modal **Meus Kahoots / Enviar**.
+- Gere links diretos (`?quiz=CODIGO`), compartilhe com outros usuários da plataforma ou envie convites por e-mail.
+- Acompanhe execuções e resultados em tempo real pelo painel de gestão do quiz.
 
-## 🕹️ Mecânicas de Disputa & Gamificação
+### 🛡️ Painel Administrativo (`Painel ADM`)
+Exclusivo para o administrador/professor, com layout responsivo para celular e desktop:
+1. **Placar & Vencedor:** ajuste pontos, balas 🍬 e chocolates 🍫, renomeie equipes, exporte placar em CSV ou declare o vencedor.
+2. **Alunos nos Grupos:** adicione participantes em lote, mova alunos entre as 4 equipes ou limpe listas.
+3. **Rodadas & Som:** configure tempo por pergunta (`15s` a `60s`), pontuação base, navegue entre telas, pule para qualquer pergunta com visualização opcional do gabarito e controle áudio/música.
+4. **Histórico da Rodada:** acompanhe cada resposta em tempo real, copie o resumo formatado para WhatsApp ou exporte o histórico em CSV.
 
-### 1. 🌀 Disputa do Peão Tradicional
-- Cada equipe tem seu peão estilizado na tela (ou peão físico na mesa da sala).
-- O representante de cada equipe gira o peão.
-- **O peão que demorar mais tempo para parar ganha a rodada!**
-- O vencedor pode escolher:
-  - **Responder a pergunta** para faturar 1.000 pontos + Brinde!
-  - **Passar a pergunta** para uma equipe adversária (se a adversária errar, quem passou ganha bônus de risco de 500 pontos!).
-
-### 2. ⚡ Quem Bate Primeiro (Buzzer)
-- Botões de acionamento rápido com registro em milissegundos e suporte a teclas de atalho no teclado:
-  - Equipe 1: Tecla `1`
-  - Equipe 2: Tecla `2`
-  - Equipe 3: Tecla `3`
-  - Equipe 4: Tecla `4`
-
-### 3. 🎯 Acerta o Alvo
-- Mira móvel com círculos concêntricos. Quem dispara mais perto do centro (100 pts) ganha a vez da pergunta.
-
-### 4. 🍬 Placar de Brindes (Balas & Chocolates)
-- Cada equipe que acerta recebe imediatamente a comemoração com confetes e um brinde físico (uma bala 🍬 ou um chocolate 🍫) entregue pela mesa de comando!
-- O sistema registra e totaliza os doces distribuídos no pódio final.
+### 🎵 Música de Fundo & Efeitos Sonoros
+- **Web Audio API Synthesizer:** trilha sonora de fundo agradável iniciada automaticamente após a primeira interação na página, além de efeitos sonoros nativos para acertos, erros, brindes, contagem regressiva e buzzer (sem depender de arquivos MP3 externos).
+- **Controles independentes:** ligue/desligue a **Música de Fundo** e os **Efeitos Sonoros** separadamente pelo cabeçalho ou pelo Painel ADM.
 
 ---
 
-## 🚀 Como Publicar no Vercel em 1 Clique
+## 📋 Dinâmica Pedagógica Padrão (SWOT & TI)
 
-1. Acesse o link direto de importação:
-   **[https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHigorAmaral%2Fswot-kahoot](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHigorAmaral%2Fswot-kahoot)**
-2. Faça login com sua conta do GitHub (`HigorAmaral`).
-3. Clique no botão **"Deploy"**.
-4. Em menos de 1 minuto, seu Kahoot estará no ar com link público HTTPS pronto para ser aberto no projetor da sala!
+O sistema já vem pronto com um quiz padrão sobre **Funções Administrativas, Planejamento Estratégico e Matriz SWOT (FOFA)** aplicado ao estudo de caso da empresa **InovaTech Soluções Digitais** (Cloud Computing, código legado, LGPD, Ransomware e concorrência).
+
+- **4 Equipes configuradas** com cores, placar de pontos e registro de brindes físicos (**Balas 🍬** e **Chocolates 🍫**).
+- **Pódio Final** com comemoração em confetes e resumo completo da partida.
 
 ---
 
@@ -77,12 +66,29 @@ npm run dev
 
 Abra seu navegador em `http://localhost:5173`.
 
+### Scripts Disponíveis
+- `npm run dev` — inicia o servidor Vite em modo desenvolvimento.
+- `npm test` — executa os testes unitários com Vitest (`vitest run`).
+- `npm run build` — valida tipos TypeScript (`tsc`) e gera o build de produção (`vite build`).
+- `npm run preview` — pré-visualiza o build de produção localmente.
+
+---
+
+## 🚀 Deploy na Vercel & Banco de Dados
+
+1. Clique em **Deploy with Vercel** acima ou importe o repositório `HigorAmaral/swot-kahoot` na [Vercel](https://vercel.com/).
+2. *(Opcional)* Para persistência em nuvem e envio de e-mails nas APIs serverless (`/api/*`), configure as variáveis de ambiente no projeto da Vercel:
+   - `DATABASE_URL` — string de conexão PostgreSQL (**Neon**).
+   - Credenciais SMTP (quando utilizar envio de convites por e-mail via `nodemailer`).
+3. Sem banco configurado, a aplicação continua funcionando localmente com armazenamento em `localStorage`.
+
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 - **React 18** + **TypeScript**
-- **Vite 6** (Build ultrarrápido)
-- **Tailwind CSS** (Design vibrante e responsivo fiel ao Kahoot)
-- **Web Audio API Synthesizer** (Efeitos sonoros nativos sem necessidade de arquivos mp3 externos)
-- **Canvas Confetti** (Efeitos de comemoração na tela)
-- **Lucide React** (Ícones modernos)
+- **Vite 6** + **Vitest**
+- **Tailwind CSS**
+- **Neon Serverless PostgreSQL** (`@neondatabase/serverless`) + **Vercel Serverless Functions**
+- **Web Audio API Synthesizer** (música de fundo e efeitos sonoros)
+- **Canvas Confetti** & **Lucide React**
+- **Nodemailer** (convites por e-mail)

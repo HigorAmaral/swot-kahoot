@@ -11,6 +11,8 @@ import { QuestionPlayView } from './components/QuestionPlayView';
 import { LoginView } from './components/LoginView';
 import { RightKahootsSidebar } from './components/RightKahootsSidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { AlertToast } from './components/AlertToast';
+import { showAlert } from './utils/toast';
 
 const VerdictView = lazy(() => import('./components/VerdictView').then(m => ({ default: m.VerdictView })));
 const ScoreboardView = lazy(() => import('./components/ScoreboardView').then(m => ({ default: m.ScoreboardView })));
@@ -412,8 +414,28 @@ export function App() {
     }
   };
 
-  // Add Participant to Team (Optimistic UI update for instant feedback)
+  // Add Participant to Team (enforces 1 group per participant + optimistic UI update)
   const handleAddParticipant = async (teamId: number, userName: string, avatar: string = '👨‍💻') => {
+    const normalizedName = userName.trim().toLowerCase();
+    if (!normalizedName) return;
+
+    const existingTeam = teams.find(t =>
+      t.participants.some(
+        p => (p.name || (p as any).user_name || '').trim().toLowerCase() === normalizedName
+      )
+    );
+    if (existingTeam) {
+      if (existingTeam.id === teamId) {
+        showAlert(`${userName} já está participando do ${existingTeam.name}!`, 'info');
+      } else {
+        showAlert(
+          `${userName} já está no ${existingTeam.name}! Cada usuário pode participar de apenas 1 grupo.`,
+          'warning'
+        );
+      }
+      return;
+    }
+
     const tempId = 'p_temp_' + Date.now();
     const optimisticParticipant: Participant = {
       id: tempId,
@@ -762,15 +784,19 @@ export function App() {
 
   if (!currentUser) {
     return (
-      <LoginView
-        onLoginSuccess={handleLoginSuccess}
-        pendingQuizCode={pendingQuizCode}
-      />
+      <>
+        <AlertToast />
+        <LoginView
+          onLoginSuccess={handleLoginSuccess}
+          pendingQuizCode={pendingQuizCode}
+        />
+      </>
     );
   }
 
   return (
     <div className="min-h-screen lg:h-screen bg-grid-pattern text-white flex flex-col font-sans select-none overflow-x-hidden lg:overflow-hidden">
+      <AlertToast />
       {/* Top Header */}
       <HostHeader
         onOpenAdminModal={handleOpenAdmin}

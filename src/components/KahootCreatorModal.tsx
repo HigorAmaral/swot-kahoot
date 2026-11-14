@@ -3,6 +3,7 @@ import { Question, questionsData } from '../data/questions';
 import { UserAccount } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
+import { showAlert } from '../utils/toast';
 import {
   X,
   Plus,
@@ -67,7 +68,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
   const handleAddManualQuestion = (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualTitle.trim() || !manualOptA.trim() || !manualOptB.trim() || !manualOptC.trim() || !manualOptD.trim()) {
-      alert("Por favor, preencha a pergunta e as 4 opções!");
+      showAlert("Por favor, preencha a pergunta e as 4 opções!", 'warning');
       return;
     }
 
@@ -261,7 +262,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
     if (!pastedText.trim()) return;
     const imported = parseRawText(pastedText);
     if (imported.length === 0) {
-      alert("Não foi possível identificar perguntas no texto. Verifique se o formato tem '1. Pergunta', seguido de A), B), C), D) e 'Resposta: X'.");
+      showAlert("Não foi possível identificar perguntas no texto. Verifique se o formato tem '1. Pergunta', seguido de A), B), C), D) e 'Resposta: X'.", 'warning');
       return;
     }
 
@@ -327,7 +328,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
     if (!csvText.trim()) return;
     const imported = parseCSV(csvText);
     if (imported.length === 0) {
-      alert("Não foi possível identificar linhas válidas no formato: Pergunta, A, B, C, D, Resposta");
+      showAlert("Não foi possível identificar linhas válidas no formato: Pergunta, A, B, C, D, Resposta", 'warning');
       return;
     }
 
@@ -355,7 +356,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
           sound.playCorrect();
           setImportFeedback(`${imported.length} perguntas importadas do arquivo ${file.name}!`);
         } else {
-          alert("Nenhuma pergunta válida encontrada no CSV.");
+          showAlert("Nenhuma pergunta válida encontrada no CSV.", 'warning');
         }
       } else {
         // Text / Markdown / PDF stream text
@@ -368,7 +369,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
           // If regex failed, paste text in textarea for manual review
           setPastedText(content);
           setActiveTab('paste');
-          alert("O texto do arquivo foi carregado na aba 'Colar Texto'. Revise e clique em 'Processar'.");
+          showAlert("O texto do arquivo foi carregado na aba 'Colar Texto'. Revise e clique em 'Processar'.", 'info');
         }
       }
     };
@@ -392,7 +393,7 @@ export const KahootCreatorModal: React.FC<Props> = ({
   // Save and apply to Quiz
   const handleSaveAndApply = async () => {
     if (questionsList.length === 0) {
-      alert("Adicione pelo menos 1 pergunta ao Quiz!");
+      showAlert("Adicione pelo menos 1 pergunta ao Quiz!", 'warning');
       return;
     }
 

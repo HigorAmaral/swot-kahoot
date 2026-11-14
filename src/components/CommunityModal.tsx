@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SavedQuiz, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
+import { showAlert } from '../utils/toast';
 import {
   X,
   Globe,
@@ -125,7 +126,7 @@ export const CommunityModal: React.FC<Props> = ({
       await Promise.all([loadMine(), loadCommunity(search, selectedCategory)]);
       onQuizCloned?.();
     } else {
-      alert(res.error || 'Não foi possível atualizar o quiz.');
+      showAlert(res.error || 'Não foi possível atualizar o quiz.', 'error');
     }
   };
 
@@ -168,7 +169,7 @@ export const CommunityModal: React.FC<Props> = ({
       loadMine();
       onQuizCloned?.();
     } else {
-      alert(res.error || 'Erro ao salvar quiz na sua conta.');
+      showAlert(res.error || 'Erro ao salvar quiz na sua conta.', 'error');
     }
   };
 

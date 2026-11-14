@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Team, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
+import { showAlert } from '../utils/toast';
 import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X } from 'lucide-react';
 
 interface Props {
@@ -86,12 +87,31 @@ export const IntroSetupView: React.FC<Props> = ({
   }, [activeQuizInfo?.shareCode]);
 
   const activeTeam = teams.find(t => t.id === selectedTeamId) || teams[0];
+  const userCurrentTeam = teams.find(t =>
+    t.participants.some(
+      p => (p.name || (p as any).user_name || '').trim().toLowerCase() === currentUser.displayName.trim().toLowerCase()
+    )
+  );
 
   const handleJoinTeam = (teamId: number) => {
+    if (userCurrentTeam) {
+      if (userCurrentTeam.id === teamId) {
+        showAlert(`Você já está participando do ${userCurrentTeam.name}!`, 'info');
+      } else {
+        showAlert(
+          `Você já está no ${userCurrentTeam.name}! Saia do seu grupo atual (clique no × ao lado do seu nome) para entrar em outro.`,
+          'warning'
+        );
+      }
+      return;
+    }
+
     const targetTeam = teams.find(t => t.id === teamId) || activeTeam;
     onAddParticipant(teamId, currentUser.displayName, currentUser.avatar);
     sound.playTone(650, 0.15, 'sine', 0.2);
-    setLastJoinedMessage(`${currentUser.avatar} ${currentUser.displayName} entrou no ${targetTeam.name}!`);
+    const msg = `${currentUser.avatar} ${currentUser.displayName} entrou no ${targetTeam.name}!`;
+    setLastJoinedMessage(msg);
+    showAlert(msg, 'success');
 
     setTimeout(() => {
       setLastJoinedMessage(null);
@@ -452,6 +472,17 @@ export const IntroSetupView: React.FC<Props> = ({
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Você está neste grupo
                     </div>
+                  ) : userCurrentTeam ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleJoinTeam(team.id);
+                      }}
+                      className="w-full py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                    >
+                      Já está no {userCurrentTeam.name}
+                    </button>
                   ) : (
                     <button
                       type="button"

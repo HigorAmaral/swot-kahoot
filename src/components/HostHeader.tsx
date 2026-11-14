@@ -26,7 +26,8 @@ export const HostHeader: React.FC<Props> = ({
   isAdmin,
 }) => {
   const [isMuted, setIsMuted] = useState(sound.getMuted());
-  const [isMusicOn, setIsMusicOn] = useState(sound.getMusicEnabled());
+  const [isMusicOn, setIsMusicOn] = useState(() => sound.getMusicEnabled());
+  const [musicTrack, setMusicTrack] = useState<1 | 2>(() => sound.getMusicTrack());
   const { canInstall, promptInstall } = usePwaInstall();
 
   const handleToggleSound = () => {
@@ -37,6 +38,11 @@ export const HostHeader: React.FC<Props> = ({
   const handleToggleMusic = () => {
     const enabled = sound.toggleMusic();
     setIsMusicOn(enabled);
+  };
+
+  const handleSwitchTrack = () => {
+    const nextTrack = sound.toggleMusicTrack();
+    setMusicTrack(nextTrack);
   };
 
   const handleToggleFullscreen = () => {
@@ -125,18 +131,29 @@ export const HostHeader: React.FC<Props> = ({
             </button>
           )}
 
-          {/* Background Music Toggle */}
-          <button
-            onClick={handleToggleMusic}
-            className={`p-2 rounded-xl transition border ${
-              isMusicOn && !isMuted
-                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-500'
-            }`}
-            title={isMusicOn ? 'Desligar Música de Fundo' : 'Ligar Música de Fundo'}
-          >
-            <Music className="w-4 h-4" />
-          </button>
+          {/* Background Music Toggle + Track Switcher */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleToggleMusic}
+              className={`p-2 rounded-xl transition border ${
+                isMusicOn && !isMuted
+                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/40 text-emerald-300'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-500'
+              }`}
+              title={isMusicOn ? 'Desligar Música de Fundo' : 'Ligar Música de Fundo'}
+            >
+              <Music className="w-4 h-4" />
+            </button>
+            {isMusicOn && !isMuted && (
+              <button
+                onClick={handleSwitchTrack}
+                className="px-2 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-[11px] font-black text-emerald-300 transition"
+                title={`Trocar música (Atual: Faixa ${musicTrack} — ${musicTrack === 1 ? 'Lo-Fi Groove' : 'Arcade Synth'})`}
+              >
+                ♪{musicTrack}
+              </button>
+            )}
+          </div>
 
           {/* Sound Toggle */}
           <button

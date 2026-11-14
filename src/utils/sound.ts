@@ -6,6 +6,7 @@ class SoundManager {
   private musicInterval: number | null = null;
   private isMusicPlaying: boolean = false;
   private musicGain: GainNode | null = null;
+  private musicTrack: 1 | 2 = 1;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -13,6 +14,10 @@ class SoundManager {
         const savedMusic = localStorage.getItem('arenaquiz_bg_music');
         if (savedMusic === 'false') {
           this.isMusicEnabled = false;
+        }
+        const savedTrack = localStorage.getItem('arenaquiz_music_track');
+        if (savedTrack === '2') {
+          this.musicTrack = 2;
         }
       } catch {}
     }
@@ -250,27 +255,49 @@ class SoundManager {
     this.playTone(urgent ? 880 : 440, 0.05, 'square', urgent ? 0.2 : 0.08);
   }
 
-  // Pleasant upbeat background music loop (warm game-show / lo-fi groove)
+  // Pleasant upbeat background music loop (Track 1: Lo-Fi Groove, Track 2: Arcade Synthwave)
   public startLobbyMusic() {
     if (this.isMuted || !this.isMusicEnabled || this.isMusicPlaying) return;
     this.isMusicPlaying = true;
     this.initCtx();
 
-    const stepMs = 260; // ~115 BPM eighth-note groove
-    // 16-step progression: Cmaj7 -> Am7 -> Fmaj7 -> G6
-    const bassPattern = [
-      130.81, 0, 196.00, 0, // C3, G3
-      110.00, 0, 164.81, 0, // A2, E3
-      87.31,  0, 130.81, 0, // F2, C3
-      98.00,  0, 146.83, 0, // G2, D3
-    ];
-    const melodyPattern = [
-      523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
-      440.00, 523.25, 659.25, 523.25, // A4 C5 E5 C5
-      349.23, 440.00, 523.25, 659.25, // F4 A4 C5 E5
-      392.00, 493.88, 587.33, 493.88, // G4 B4 D5 B4
-    ];
-    const padRoots = [261.63, 220.00, 174.61, 196.00]; // C4, A3, F3, G3
+    const isTrack2 = this.musicTrack === 2;
+    const stepMs = isTrack2 ? 210 : 260;
+
+    // Track 1: Cmaj7 -> Am7 -> Fmaj7 -> G6
+    // Track 2: Em -> C -> G -> D (energetic arcade)
+    const bassPattern = isTrack2
+      ? [
+          164.81, 164.81, 246.94, 0, // E3
+          130.81, 130.81, 196.00, 0, // C3
+          196.00, 196.00, 293.66, 0, // G3
+          146.83, 146.83, 220.00, 0, // D3
+        ]
+      : [
+          130.81, 0, 196.00, 0, // C3, G3
+          110.00, 0, 164.81, 0, // A2, E3
+          87.31,  0, 130.81, 0, // F2, C3
+          98.00,  0, 146.83, 0, // G2, D3
+        ];
+
+    const melodyPattern = isTrack2
+      ? [
+          659.25, 783.99, 987.77, 783.99, // E5 G5 B5 G5
+          523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
+          587.33, 783.99, 987.77, 783.99, // D5 G5 B5 G5
+          587.33, 739.99, 880.00, 739.99, // D5 F#5 A5 F#5
+        ]
+      : [
+          523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5
+          440.00, 523.25, 659.25, 523.25, // A4 C5 E5 C5
+          349.23, 440.00, 523.25, 659.25, // F4 A4 C5 E5
+          392.00, 493.88, 587.33, 493.88, // G4 B4 D5 B4
+        ];
+
+    const padRoots = isTrack2
+      ? [329.63, 261.63, 392.00, 293.66] // E4, C4, G4, D4
+      : [261.63, 220.00, 174.61, 196.00]; // C4, A3, F3, G3
+
     let step = 0;
 
     this.musicInterval = window.setInterval(() => {
@@ -285,18 +312,34 @@ class SoundManager {
       const mel = melodyPattern[idx];
 
       if (bass > 0) {
-        this.playMusicNote(bass, 0.24, 'triangle', 0.08);
+        this.playMusicNote(bass, isTrack2 ? 0.18 : 0.24, 'triangle', isTrack2 ? 0.065 : 0.08);
       }
       if (mel > 0) {
-        this.playMusicNote(mel, 0.2, 'sine', 0.055);
+        this.playMusicNote(mel, isTrack2 ? 0.16 : 0.2, isTrack2 ? 'triangle' : 'sine', isTrack2 ? 0.045 : 0.055);
       }
       if (idx % 4 === 0) {
         const root = padRoots[Math.floor(idx / 4)];
-        this.playMusicNote(root, 0.85, 'sine', 0.035);
+        this.playMusicNote(root, 0.75, 'sine', 0.032);
       }
 
       step++;
     }, stepMs);
+  }
+
+  public getMusicTrack(): 1 | 2 {
+    return this.musicTrack;
+  }
+
+  public toggleMusicTrack(): 1 | 2 {
+    this.musicTrack = this.musicTrack === 1 ? 2 : 1;
+    try {
+      localStorage.setItem('arenaquiz_music_track', String(this.musicTrack));
+    } catch {}
+    if (this.isMusicPlaying) {
+      this.stopMusic();
+      this.startLobbyMusic();
+    }
+    return this.musicTrack;
   }
 
   public stopMusic() {

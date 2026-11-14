@@ -13,6 +13,7 @@ import { RightKahootsSidebar } from './components/RightKahootsSidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { AlertToast } from './components/AlertToast';
 import { ConfirmModal } from './components/ConfirmModal';
+import { RoomConfigModal, RoomSettings } from './components/RoomConfigModal';
 import { showAlert } from './utils/toast';
 import { shuffleQuestionsAndOptions } from './utils/quizShuffle';
 
@@ -133,6 +134,7 @@ export function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [disputeMode] = useState<DisputeMode>('direto');
   const [gameMode, setGameMode] = useState<'turno' | 'todos'>('turno');
+  const [participationMode, setParticipationMode] = useState<'equipes' | 'individual'>('equipes');
   const [questionDuration, setQuestionDuration] = useState<number>(30);
   const [pointsPerCorrect, setPointsPerCorrect] = useState<number>(1000);
 
@@ -166,6 +168,7 @@ export function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileKahootsOpen, setIsMobileKahootsOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
+  const [isRoomConfigOpen, setIsRoomConfigOpen] = useState(false);
 
   // Unlock Web Audio and start pleasant background music on first user gesture
   useEffect(() => {
@@ -610,6 +613,7 @@ export function App() {
   };
 
   const handleChangeRoomPin = (nextPin?: string) => {
+    const isNewRoom = !nextPin;
     const clean = setSessionId(nextPin || generateRoomPin());
     setSessionIdState(clean);
     lastSyncedTeamsJsonRef.current = '';
@@ -626,6 +630,67 @@ export function App() {
       window.history.replaceState({}, '', url.toString());
     }
     showAlert(`Conectado à sala ao vivo: ${clean}`, 'success');
+    if (isNewRoom) {
+      setIsRoomConfigOpen(true);
+    }
+  };
+
+  const handleApplyRoomSettings = (settings: RoomSettings) => {
+    setParticipationMode(settings.participationMode);
+    setGameMode(settings.gameMode);
+    setQuestionDuration(settings.questionDuration);
+    setPointsPerCorrect(settings.pointsPerCorrect);
+
+    const palette = [
+      { color: '#E21B3C', bgClass: 'bg-kahoot-red', borderClass: 'border-kahoot-red', textClass: 'text-kahoot-red', glowClass: 'shadow-neon-red' },
+      { color: '#1368CE', bgClass: 'bg-kahoot-blue', borderClass: 'border-kahoot-blue', textClass: 'text-kahoot-blue', glowClass: 'shadow-neon-blue' },
+      { color: '#D89E00', bgClass: 'bg-kahoot-yellow', borderClass: 'border-kahoot-yellow', textClass: 'text-kahoot-yellow', glowClass: 'shadow-neon-yellow' },
+      { color: '#26890C', bgClass: 'bg-kahoot-green', borderClass: 'border-kahoot-green', textClass: 'text-kahoot-green', glowClass: 'shadow-neon-green' },
+      { color: '#9333EA', bgClass: 'bg-purple-600', borderClass: 'border-purple-500', textClass: 'text-purple-400', glowClass: 'shadow-lg shadow-purple-500/30' },
+      { color: '#06B6D4', bgClass: 'bg-cyan-600', borderClass: 'border-cyan-500', textClass: 'text-cyan-400', glowClass: 'shadow-lg shadow-cyan-500/30' },
+    ];
+
+    if (settings.participationMode === 'equipes') {
+      const targetCount = Math.max(2, Math.min(6, settings.teamCount));
+      const nextTeams: Team[] = Array.from({ length: targetCount }, (_, idx) => {
+        const existing = teams[idx];
+        if (existing) {
+          return {
+            ...existing,
+            name: existing.name.startsWith('Jogador ') ? (initialTeams[idx]?.name || `Grupo ${idx + 1}`) : existing.name,
+          };
+        }
+        const preset = initialTeams[idx];
+        if (preset) return { ...preset, participants: [] };
+        const style = palette[idx % palette.length];
+        return {
+          id: idx + 1,
+          name: `Grupo ${idx + 1}`,
+          ...style,
+          points: 0,
+          candies: 0,
+          chocolates: 0,
+          answersCorrect: 0,
+          answersWrong: 0,
+          participants: [],
+        };
+      });
+      updateTeamsState(nextTeams);
+      if (!nextTeams.some(t => t.id === answeringTeamId)) {
+        setAnsweringTeamId(nextTeams[0].id);
+      }
+      if (!nextTeams.some(t => t.id === disputeWinnerId)) {
+        setDisputeWinnerId(nextTeams[0].id);
+      }
+    } else {
+      const nextTeams = teams.map((t, idx) => ({
+        ...t,
+        name: t.participants[0]?.name ? t.participants[0].name : `Jogador ${idx + 1}`,
+      }));
+      updateTeamsState(nextTeams);
+    }
+
+    showAlert('Configurações da sala atualizadas!', 'success');
   };
 
   // Start the Quiz
@@ -865,6 +930,8 @@ export function App() {
             onChangeRoomPin={handleChangeRoomPin}
             gameMode={gameMode}
             onSetGameMode={setGameMode}
+            participationMode={participationMode}
+            onOpenRoomConfig={() => setIsRoomConfigOpen(true)}
             onOpenActiveQuizAdmin={
               activeQuizInfo?.shareCode
                 ? () =>
@@ -1087,6 +1154,20 @@ export function App() {
           />
         )}
       </Suspense>
+
+      <RoomConfigModal
+        isOpen={isRoomConfigOpen}
+        onClose={() => setIsRoomConfigOpen(false)}
+        sessionId={sessionId}
+        initialSettings={{
+          participationMode,
+          teamCount: Math.max(2, Math.min(6, teams.length)),
+          gameMode,
+          questionDuration,
+          pointsPerCorrect,
+        }}
+        onApplySettings={handleApplyRoomSettings}
+      />
 
       {/* Footer (Desktop / Tablet) */}
       <footer className="hidden sm:flex w-full text-center px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 items-center justify-center flex-wrap gap-x-3 gap-y-1 shrink-0">

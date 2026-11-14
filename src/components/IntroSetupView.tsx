@@ -5,7 +5,7 @@ import { sound } from '../utils/sound';
 import { showAlert } from '../utils/toast';
 import { showConfirm } from '../utils/confirm';
 import { QRCodeSVG } from 'qrcode.react';
-import { Play, Users, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode } from 'lucide-react';
+import { Play, Users, User, Sparkles, UserPlus, CheckCircle2, Share2, Layers, RotateCcw, BarChart3, Trophy, Activity, Plus, Trash2, X, Shuffle, Copy, KeyRound, RefreshCw, QrCode, Sliders } from 'lucide-react';
 
 interface Props {
   teams: Team[];
@@ -22,6 +22,8 @@ interface Props {
   onChangeRoomPin?: (pin?: string) => void;
   gameMode?: GamePlayMode;
   onSetGameMode?: (mode: GamePlayMode) => void;
+  participationMode?: 'equipes' | 'individual';
+  onOpenRoomConfig?: () => void;
   onOpenActiveQuizAdmin?: () => void;
   onAddParticipant: (teamId: number, name: string, avatar?: string) => void;
   onRemoveParticipant: (teamId: number, participantId: string, name: string) => void;
@@ -55,6 +57,8 @@ export const IntroSetupView: React.FC<Props> = ({
   onChangeRoomPin,
   gameMode = 'turno',
   onSetGameMode,
+  participationMode = 'equipes',
+  onOpenRoomConfig,
   onOpenActiveQuizAdmin,
   onAddParticipant,
   onRemoveParticipant,
@@ -236,6 +240,25 @@ export const IntroSetupView: React.FC<Props> = ({
                   Todos Respondem
                 </button>
               </div>
+            )}
+
+            {onOpenRoomConfig && (
+              <button
+                type="button"
+                onClick={onOpenRoomConfig}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-black transition"
+                title="Configurar equipes/individual, tempo e pontos da sala"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                Configurar Sala
+              </button>
+            )}
+
+            {participationMode === 'individual' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-[11px] font-black">
+                <User className="w-3.5 h-3.5" />
+                Modo Individual
+              </span>
             )}
 
             {showPinJoin && onChangeRoomPin && (

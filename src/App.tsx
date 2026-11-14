@@ -1191,6 +1191,16 @@ export function App() {
             onSetPointsPerCorrect={setPointsPerCorrect}
             disputeMode={disputeMode}
             onSetDisputeMode={setDisputeMode}
+            gameMode={gameMode}
+            onSetGameMode={setGameMode}
+            participationMode={participationMode}
+            onSetParticipationMode={setParticipationMode}
+            stage={stage}
+            activeQuizTitle={activeQuizInfo?.title || 'ArenaQuiz Padrão'}
+            activeQuizCode={activeQuizInfo?.shareCode}
+            currentUserName={currentUser?.displayName}
+            onAddTeam={handleAddTeam}
+            onRemoveTeam={handleRemoveTeam}
             onGoToPodium={() => setStage('podium')}
             onGoToStage={setStage}
             onUpdateTeamName={handleUpdateTeamName}

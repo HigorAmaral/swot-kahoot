@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Team, RoundLog, Question, GameStage, DisputeMode } from '../types';
+import { Team, RoundLog, Question, GameStage, DisputeMode, GamePlayMode } from '../types';
 import { questionsData } from '../data/questions';
 import { sound } from '../utils/sound';
 import { showConfirm } from '../utils/confirm';
@@ -29,7 +29,12 @@ import {
   ArrowRightLeft,
   Music,
   Shuffle,
-  Gift
+  Gift,
+  Cpu,
+  HardDrive,
+  KeyRound,
+  RefreshCw,
+  User
 } from 'lucide-react';
 
 interface Props {
@@ -50,6 +55,16 @@ interface Props {
   onSetPointsPerCorrect?: (points: number) => void;
   disputeMode?: DisputeMode;
   onSetDisputeMode?: (mode: DisputeMode) => void;
+  gameMode?: GamePlayMode;
+  onSetGameMode?: (mode: GamePlayMode) => void;
+  participationMode?: 'equipes' | 'individual';
+  onSetParticipationMode?: (mode: 'equipes' | 'individual') => void;
+  stage?: GameStage;
+  activeQuizTitle?: string;
+  activeQuizCode?: string;
+  currentUserName?: string;
+  onAddTeam?: (name: string) => void;
+  onRemoveTeam?: (teamId: number) => void;
   onGoToPodium?: () => void;
   onGoToStage?: (stage: GameStage) => void;
   onAddParticipant: (teamId: number, name: string) => void;
@@ -84,6 +99,16 @@ export const AdminDashboard: React.FC<Props> = ({
   onSetPointsPerCorrect,
   disputeMode = 'direto',
   onSetDisputeMode,
+  gameMode = 'turno',
+  onSetGameMode,
+  participationMode = 'equipes',
+  onSetParticipationMode,
+  stage = 'intro',
+  activeQuizTitle = 'ArenaQuiz Padrão',
+  activeQuizCode,
+  currentUserName,
+  onAddTeam,
+  onRemoveTeam,
   onGoToPodium,
   onGoToStage,
   onAddParticipant,
@@ -99,12 +124,16 @@ export const AdminDashboard: React.FC<Props> = ({
   onChangeRoomPin,
   onLogout,
 }) => {
-  const [activeTab, setActiveTab] = useState<'winner_scores' | 'participants' | 'quiz_control' | 'logs'>('winner_scores');
+  const [activeTab, setActiveTab] = useState<'winner_scores' | 'participants' | 'quiz_control' | 'logs' | 'system'>('winner_scores');
   const [newParticipantNames, setNewParticipantNames] = useState<{ [teamId: number]: string }>({});
   const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
   const [editingTeamName, setEditingTeamName] = useState('');
   const [isMuted, setIsMuted] = useState(sound.getMuted());
   const [isMusicOn, setIsMusicOn] = useState(sound.getMusicEnabled());
+  const [musicTrack, setMusicTrack] = useState(sound.getMusicTrack());
+  const [musicVolume, setMusicVolume] = useState(sound.getMusicVolume());
+  const [customPinInput, setCustomPinInput] = useState('');
+  const [newTeamNameInput, setNewTeamNameInput] = useState('');
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
 
@@ -349,6 +378,18 @@ export const AdminDashboard: React.FC<Props> = ({
           >
             <Database className="w-4 h-4 shrink-0" />
             <span className="truncate">4. Histórico ({roundLogs.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('system')}
+            className={`col-span-2 sm:col-span-1 px-3 py-2.5 sm:py-0 sm:pb-3 sm:px-4 rounded-xl sm:rounded-none font-bold text-xs sm:text-sm sm:border-b-2 transition flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
+              activeTab === 'system'
+                ? 'bg-cyan-500/15 sm:bg-transparent border border-cyan-500/40 sm:border-0 sm:border-cyan-400 text-cyan-300'
+                : 'bg-slate-800/50 sm:bg-transparent border border-slate-800 sm:border-0 sm:border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Cpu className="w-4 h-4 shrink-0" />
+            <span className="truncate">5. Sistema & Sala</span>
           </button>
         </div>
 
@@ -1092,6 +1133,300 @@ export const AdminDashboard: React.FC<Props> = ({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 5: SISTEMA & CONTROLE TOTAL */}
+          {activeTab === 'system' && (
+            <div className="space-y-5 animate-fade-in">
+              {/* System Telemetry Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <div className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-emerald-400" /> Banco Neon
+                  </div>
+                  <div className={`text-base font-black mt-1 ${isDbConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {isDbConnected ? 'Conectado (ON)' : 'Modo Local (OFF)'}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <div className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-amber-400" /> Sala / PIN
+                  </div>
+                  <div className="text-base font-black text-amber-300 mt-1 truncate">
+                    {sessionId}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <div className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5 text-cyan-400" /> Tela & Rodada
+                  </div>
+                  <div className="text-sm font-black text-cyan-300 mt-1 truncate">
+                    {stage.toUpperCase()} • {currentQuestionIndex + 1}/{questions.length}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700">
+                  <div className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                    <HardDrive className="w-3.5 h-3.5 text-purple-400" /> Quiz & ADM
+                  </div>
+                  <div className="text-xs font-black text-white mt-1 truncate" title={activeQuizTitle}>
+                    {activeQuizTitle}{activeQuizCode ? ` (${activeQuizCode})` : ''}
+                  </div>
+                  {currentUserName && (
+                    <div className="text-[10px] text-slate-400 truncate">ADM: {currentUserName}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Room PIN & Participation/Game Mode Controls */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {onChangeRoomPin && (
+                  <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3">
+                    <h4 className="font-black text-white text-sm flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-amber-400" /> Controle de Sala & PIN:
+                    </h4>
+                    <form
+                      onSubmit={e => {
+                        e.preventDefault();
+                        if (!customPinInput.trim()) return;
+                        onChangeRoomPin(customPinInput.trim());
+                        setCustomPinInput('');
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="text"
+                        value={customPinInput}
+                        onChange={e => setCustomPinInput(e.target.value)}
+                        placeholder={`PIN atual: ${sessionId}`}
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      />
+                      <button
+                        type="submit"
+                        className="px-3 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black transition"
+                      >
+                        Aplicar PIN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onChangeRoomPin()}
+                        className="p-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 transition"
+                        title="Gerar PIN aleatório"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3">
+                  <h4 className="font-black text-white text-sm flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-emerald-400" /> Modos de Jogo & Participação:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {onSetParticipationMode && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onSetParticipationMode('equipes')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black border flex items-center gap-1.5 transition ${
+                            participationMode === 'equipes'
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400'
+                              : 'bg-slate-900 text-slate-300 border-slate-700'
+                          }`}
+                        >
+                          <Users className="w-3.5 h-3.5" /> Por Equipes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onSetParticipationMode('individual')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black border flex items-center gap-1.5 transition ${
+                            participationMode === 'individual'
+                              ? 'bg-cyan-500 text-slate-950 border-cyan-400'
+                              : 'bg-slate-900 text-slate-300 border-slate-700'
+                          }`}
+                        >
+                          <User className="w-3.5 h-3.5" /> Individual
+                        </button>
+                      </>
+                    )}
+                    {onSetGameMode && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onSetGameMode('turno')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black border transition ${
+                            gameMode === 'turno'
+                              ? 'bg-amber-400 text-slate-950 border-amber-300'
+                              : 'bg-slate-900 text-slate-300 border-slate-700'
+                          }`}
+                        >
+                          Por Turno
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onSetGameMode('todos')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black border transition ${
+                            gameMode === 'todos'
+                              ? 'bg-purple-500 text-white border-purple-400'
+                              : 'bg-slate-900 text-slate-300 border-slate-700'
+                          }`}
+                        >
+                          Todos Respondem
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Team Management & Power-Ups Reset */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3">
+                  <h4 className="font-black text-white text-sm flex items-center gap-2">
+                    <Users className="w-4 h-4 text-cyan-400" /> Gerenciar Equipes ({teams.length}):
+                  </h4>
+                  {onAddTeam && (
+                    <form
+                      onSubmit={e => {
+                        e.preventDefault();
+                        if (!newTeamNameInput.trim()) return;
+                        onAddTeam(newTeamNameInput.trim());
+                        setNewTeamNameInput('');
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="text"
+                        value={newTeamNameInput}
+                        onChange={e => setNewTeamNameInput(e.target.value)}
+                        placeholder="Nome da nova equipe..."
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400"
+                      />
+                      <button
+                        type="submit"
+                        className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black flex items-center gap-1 transition"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Criar
+                      </button>
+                    </form>
+                  )}
+                  <div className="flex flex-wrap gap-1.5">
+                    {teams.map(t => (
+                      <span
+                        key={t.id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs font-bold text-slate-200"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                        {t.name}
+                        {onRemoveTeam && teams.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveTeam(t.id)}
+                            className="text-rose-400 hover:text-rose-300 ml-1"
+                            title={`Remover ${t.name}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Audio Track, Volume & Power-Ups Reset */}
+                <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3">
+                  <h4 className="font-black text-white text-sm flex items-center gap-2">
+                    <Music className="w-4 h-4 text-emerald-400" /> Trilha Sonora & Power-Ups:
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMusicTrack(sound.toggleMusicTrack())}
+                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 border border-emerald-500/40 text-xs font-black text-emerald-300 transition"
+                    >
+                      Faixa Atual: ♪{musicTrack} ({musicTrack === 1 ? 'Lo-Fi' : musicTrack === 2 ? 'Arcade' : 'Suspense'})
+                    </button>
+                    <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
+                      <span className="text-[11px] font-bold text-slate-400">Vol: {Math.round(musicVolume * 100)}%</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={musicVolume}
+                        onChange={e => setMusicVolume(sound.setMusicVolume(parseFloat(e.target.value)))}
+                        className="w-20 accent-emerald-400 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  {onUpdateAllTeams && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdateAllTeams(t => ({
+                          ...t,
+                          streak: 0,
+                          powerUpsUsed: { fiftyFifty: false, doublePoints: false, shield: false },
+                        }))
+                      }
+                      className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-200 text-xs font-black transition"
+                    >
+                      Liberar Power-Ups & Zerar Combos de Todas Equipes
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Local Cache & Full System Reset */}
+              <div className="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/30 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-black text-white text-sm flex items-center gap-2">
+                    <HardDrive className="w-4 h-4 text-rose-400" /> Manutenção & Cache Local
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Chaves salvas no navegador: <strong className="text-slate-200">{typeof window !== 'undefined' ? Object.keys(localStorage).length : 0}</strong> • Perguntas carregadas: <strong className="text-emerald-300">{questions.length}</strong> • Logs: <strong className="text-cyan-300">{roundLogs.length}</strong>
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const ok = await showConfirm({
+                        title: 'Limpar Cache Local',
+                        message: 'Limpar cache local de equipes e perguntas customizadas? (Sua conta continuará logada)',
+                        confirmText: 'Limpar Cache',
+                      });
+                      if (ok) {
+                        localStorage.removeItem('swot_local_teams');
+                        localStorage.removeItem('swot_custom_questions');
+                        onResetGame();
+                        onClose();
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200 transition"
+                  >
+                    Limpar Cache Local
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const ok = await showConfirm({
+                        title: 'Reset Total do Sistema',
+                        message: 'Zerar pontos, brindes, histórico e voltar para a tela inicial?',
+                        confirmText: 'Resetar Tudo',
+                      });
+                      if (ok) {
+                        onResetGame();
+                        onClose();
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black flex items-center gap-1.5 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Resetar Partida Completa
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

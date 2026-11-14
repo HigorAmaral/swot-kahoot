@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { Question, RoundLog, Team } from '../types';
 import { sound } from '../utils/sound';
@@ -24,8 +24,11 @@ export const PodiumView: React.FC<Props> = ({
   sessionId = 'sala-principal',
 }) => {
   const [showReview, setShowReview] = useState(false);
-  const reviewItems = buildAnswerReview(questions, roundLogs, teams);
-  const sorted = [...teams].sort((a, b) => b.points - a.points || (b.candies + b.chocolates) - (a.candies + a.chocolates));
+  const reviewItems = useMemo(() => buildAnswerReview(questions, roundLogs, teams), [questions, roundLogs, teams]);
+  const sorted = useMemo(
+    () => [...teams].sort((a, b) => b.points - a.points || (b.candies + b.chocolates) - (a.candies + a.chocolates)),
+    [teams]
+  );
   const first = sorted[0];
   const second = sorted[1];
   const third = sorted[2];

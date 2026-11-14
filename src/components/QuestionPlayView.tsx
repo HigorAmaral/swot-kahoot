@@ -165,30 +165,27 @@ export const QuestionPlayView: React.FC<Props> = ({
     };
   }, [sessionId, question.id, question.options.length, gameMode, answeringTeam.id, handleSelect]);
 
-  // Timer countdown
+  // Handle timeout when timeLeft reaches 0
+  useEffect(() => {
+    if (selectedOption !== null || timeLeft > 0) return;
+    onAnswerSelected(-1, 0);
+  }, [timeLeft, selectedOption, onAnswerSelected]);
+
+  // Timer countdown (single interval per question until answered)
   useEffect(() => {
     if (selectedOption !== null) return;
 
-    if (timeLeft <= 0) {
-      // Time is up! Select -1 (timeout)
-      onAnswerSelected(-1, 0);
-      return;
-    }
-
     const timer = setInterval(() => {
       setTimeLeft(prev => {
+        if (prev <= 1) return 0;
         const next = prev - 1;
-        if (next <= 5 && next > 0) {
-          sound.playTick(true);
-        } else if (next > 5) {
-          sound.playTick(false);
-        }
+        sound.playTick(next <= 5);
         return next;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, selectedOption, onAnswerSelected]);
+  }, [selectedOption, question.id]);
 
   const progressPercent = Math.round(((questionIndex + 1) / Math.max(totalQuestions, 1)) * 100);
   const maxDuration = Math.max(questionDuration || 30, timeLeft);

@@ -13,7 +13,7 @@ import { RightKahootsSidebar } from './components/RightKahootsSidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { AlertToast } from './components/AlertToast';
 import { ConfirmModal } from './components/ConfirmModal';
-import { RoomConfigModal, RoomSettings } from './components/RoomConfigModal';
+import type { RoomSettings } from './components/RoomConfigModal';
 import { showAlert } from './utils/toast';
 import { shuffleQuestionsAndOptions } from './utils/quizShuffle';
 
@@ -33,6 +33,7 @@ const CommunityModal = lazy(() => import('./components/CommunityModal').then(m =
 const CaseStudyModal = lazy(() => import('./components/CaseStudyModal').then(m => ({ default: m.CaseStudyModal })));
 const DynamicGuideModal = lazy(() => import('./components/DynamicGuideModal').then(m => ({ default: m.DynamicGuideModal })));
 const PlayerRemoteModal = lazy(() => import('./components/PlayerRemoteModal').then(m => ({ default: m.PlayerRemoteModal })));
+const RoomConfigModal = lazy(() => import('./components/RoomConfigModal').then(m => ({ default: m.RoomConfigModal })));
 
 const initialTeams: Team[] = [
   {
@@ -1309,23 +1310,24 @@ export function App() {
             stage={stage}
           />
         )}
+        {isRoomConfigOpen && (
+          <RoomConfigModal
+            isOpen={isRoomConfigOpen}
+            onClose={() => setIsRoomConfigOpen(false)}
+            sessionId={sessionId}
+            canConfigureDispute={canConfigureDispute}
+            initialSettings={{
+              participationMode,
+              teamCount: Math.max(2, Math.min(6, teams.length)),
+              gameMode,
+              questionDuration,
+              pointsPerCorrect,
+              disputeMode,
+            }}
+            onApplySettings={handleApplyRoomSettings}
+          />
+        )}
       </Suspense>
-
-      <RoomConfigModal
-        isOpen={isRoomConfigOpen}
-        onClose={() => setIsRoomConfigOpen(false)}
-        sessionId={sessionId}
-        canConfigureDispute={canConfigureDispute}
-        initialSettings={{
-          participationMode,
-          teamCount: Math.max(2, Math.min(6, teams.length)),
-          gameMode,
-          questionDuration,
-          pointsPerCorrect,
-          disputeMode,
-        }}
-        onApplySettings={handleApplyRoomSettings}
-      />
 
       {/* Footer (Desktop / Tablet) */}
       <footer className="hidden sm:flex w-full text-center px-6 py-2.5 bg-[#090d16]/90 backdrop-blur-xl border-t border-slate-800/80 text-[11px] text-slate-400 items-center justify-center flex-wrap gap-x-3 gap-y-1 shrink-0">

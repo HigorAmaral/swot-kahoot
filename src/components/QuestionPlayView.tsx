@@ -247,9 +247,9 @@ export const QuestionPlayView: React.FC<Props> = ({
       </div>
 
       {/* Central Question Box */}
-      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-6 md:p-8 shadow-2xl text-center mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[160px] overflow-hidden">
+      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-6 md:p-8 shadow-2xl text-center mt-4 mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[160px]">
         {/* Floating Timer Circle */}
-        <div className={`absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl shadow-2xl transition-all ${
+        <div className={`absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl shadow-2xl transition-all z-10 ${
           timeLeft <= 5
             ? 'bg-red-600 border-red-300 text-white animate-bounce ring-4 ring-red-400/50'
             : timeLeft <= 10
@@ -271,7 +271,7 @@ export const QuestionPlayView: React.FC<Props> = ({
         </div>
 
         {/* Countdown Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-900/80">
+        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-900/80 overflow-hidden rounded-b-3xl">
           <div
             className={`h-full transition-all duration-1000 linear ${
               timeLeft <= 5

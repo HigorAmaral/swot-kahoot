@@ -1,0 +1,33 @@
+{
+  "name": "ArenaQuiz - Quiz Interativo em Sala",
+  "short_name": "ArenaQuiz",
+  "description": "Quiz interativo em tempo real para equipes, sala de aula e dinâmicas com placar e premiação.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090b10",
+  "theme_color": "#090b10",
+  "lang": "pt-BR",
+  "categories": ["education", "games"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

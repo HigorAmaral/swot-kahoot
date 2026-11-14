@@ -49,25 +49,25 @@ export const VerdictView: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-5xl mx-auto p-3 sm:p-4 animate-fade-in">
       {/* Result Banner */}
-      <div className={`w-full p-6 md:p-8 rounded-3xl border-4 text-center shadow-2xl mb-6 transform transition-all ${
+      <div className={`w-full p-4 sm:p-6 md:p-8 rounded-3xl border-4 text-center shadow-2xl mb-6 transform transition-all ${
         isCorrect
           ? 'bg-emerald-950/70 border-emerald-400 ring-4 ring-emerald-500/30'
           : 'bg-rose-950/70 border-rose-500 ring-4 ring-rose-500/30'
       }`}>
-        <div className="flex items-center justify-center gap-3 mb-2">
+        <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-2">
           {isCorrect ? (
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 animate-bounce" />
+            <CheckCircle2 className="w-9 h-9 sm:w-12 sm:h-12 text-emerald-400 animate-bounce shrink-0" />
           ) : (
-            <XCircle className="w-12 h-12 text-rose-400 animate-pulse" />
+            <XCircle className="w-9 h-9 sm:w-12 sm:h-12 text-rose-400 animate-pulse shrink-0" />
           )}
-          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">
             {isCorrect ? 'RESPOSTA CORRETA! 🎉' : isTimeout ? 'TEMPO ESGOTADO! ⏰' : 'RESPOSTA INCORRETA! ❌'}
           </h2>
         </div>
 
-        <p className="text-lg md:text-xl font-bold text-slate-200 mt-1">
+        <p className="text-base sm:text-lg md:text-xl font-bold text-slate-200 mt-1">
           {isCorrect ? (
             <span>
               A equipe <strong className="text-emerald-300 underline">{answeringTeam.name}</strong> faturou <strong>1.000 pontos</strong> e garantiu o brinde!
@@ -81,34 +81,34 @@ export const VerdictView: React.FC<Props> = ({
 
         {/* Special Passed question bonus */}
         {isPassed && !isCorrect && (
-          <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-200 text-sm font-bold">
+          <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-200 text-xs sm:text-sm font-bold">
             ⚡ Jogada Estratégica: {disputeWinnerTeam.name} passou a pergunta e a equipe rival errou! ({disputeWinnerTeam.name} ganha +500 pts bônus de risco).
           </div>
         )}
 
         {/* Brinde (Candy / Chocolate) Delivery Animation */}
-        <div className="mt-6 flex flex-col items-center">
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-900/90 border-2 border-yellow-400 shadow-xl">
+        <div className="mt-5 sm:mt-6 flex flex-col items-center">
+          <div className="inline-flex flex-wrap items-center justify-center gap-3 px-4 sm:px-6 py-3 rounded-2xl bg-slate-900/90 border-2 border-yellow-400 shadow-xl max-w-full">
             <span className="text-2xl animate-bounce">🍬</span>
-            <div className="text-left">
-              <div className="text-xs font-black uppercase text-yellow-400 tracking-wider">
+            <div className="text-center sm:text-left">
+              <div className="text-[11px] sm:text-xs font-black uppercase text-yellow-400 tracking-wider">
                 Mesa / Grupo de Comando: Entregar Brinde Físico!
               </div>
-              <div className="text-sm font-extrabold text-white">
+              <div className="text-xs sm:text-sm font-extrabold text-white">
                 {brindeAwarded === 'chocolate' ? '🍫 1 Chocolate entregue!' : '🍬 1 Bala entregue para a equipe!'}
               </div>
             </div>
-            <div className="flex gap-1.5 ml-2">
+            <div className="flex gap-1.5 sm:ml-2">
               <button
                 onClick={() => handleManualBrinde('candy')}
-                className="px-2.5 py-1 rounded-lg bg-pink-600 hover:bg-pink-500 text-xs font-bold text-white transition flex items-center gap-1"
+                className="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-xs font-bold text-white transition flex items-center gap-1"
                 title="Entregar mais uma bala"
               >
                 +🍬 Bala
               </button>
               <button
                 onClick={() => handleManualBrinde('chocolate')}
-                className="px-2.5 py-1 rounded-lg bg-amber-700 hover:bg-amber-600 text-xs font-bold text-white transition flex items-center gap-1"
+                className="px-2.5 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-xs font-bold text-white transition flex items-center gap-1"
                 title="Entregar um chocolate"
               >
                 +🍫 Chocolate

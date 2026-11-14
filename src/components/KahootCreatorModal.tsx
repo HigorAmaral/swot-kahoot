@@ -553,102 +553,82 @@ export const KahootCreatorModal: React.FC<Props> = ({
                   As 4 Opções do Kahoot (Marque o círculo da resposta correta):
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Option A (Red ▲) */}
-                  <div className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition ${
-                    manualCorrectIndex === 0 ? 'bg-red-950/60 border-red-400 ring-2 ring-red-400' : 'bg-slate-950/80 border-red-500/50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="correct_opt"
-                      checked={manualCorrectIndex === 0}
-                      onChange={() => setManualCorrectIndex(0)}
-                      className="w-5 h-5 accent-red-500 cursor-pointer"
-                      title="Marcar como correta"
-                    />
-                    <span className="w-8 h-8 rounded-lg bg-kahoot-red flex items-center justify-center font-black text-sm text-white flex-shrink-0">
-                      ▲
-                    </span>
-                    <input
-                      type="text"
-                      value={manualOptA}
-                      onChange={e => setManualOptA(e.target.value)}
-                      placeholder="Opção Vermelha (▲)..."
-                      className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Option B (Blue ◆) */}
-                  <div className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition ${
-                    manualCorrectIndex === 1 ? 'bg-blue-950/60 border-blue-400 ring-2 ring-blue-400' : 'bg-slate-950/80 border-blue-500/50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="correct_opt"
-                      checked={manualCorrectIndex === 1}
-                      onChange={() => setManualCorrectIndex(1)}
-                      className="w-5 h-5 accent-blue-500 cursor-pointer"
-                      title="Marcar como correta"
-                    />
-                    <span className="w-8 h-8 rounded-lg bg-kahoot-blue flex items-center justify-center font-black text-sm text-white flex-shrink-0">
-                      ◆
-                    </span>
-                    <input
-                      type="text"
-                      value={manualOptB}
-                      onChange={e => setManualOptB(e.target.value)}
-                      placeholder="Opção Azul (◆)..."
-                      className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Option C (Yellow ●) */}
-                  <div className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition ${
-                    manualCorrectIndex === 2 ? 'bg-amber-950/60 border-amber-400 ring-2 ring-amber-400' : 'bg-slate-950/80 border-yellow-500/50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="correct_opt"
-                      checked={manualCorrectIndex === 2}
-                      onChange={() => setManualCorrectIndex(2)}
-                      className="w-5 h-5 accent-yellow-500 cursor-pointer"
-                      title="Marcar como correta"
-                    />
-                    <span className="w-8 h-8 rounded-lg bg-kahoot-yellow flex items-center justify-center font-black text-sm text-white flex-shrink-0">
-                      ●
-                    </span>
-                    <input
-                      type="text"
-                      value={manualOptC}
-                      onChange={e => setManualOptC(e.target.value)}
-                      placeholder="Opção Amarela (●)..."
-                      className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Option D (Green ■) */}
-                  <div className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition ${
-                    manualCorrectIndex === 3 ? 'bg-emerald-950/60 border-emerald-400 ring-2 ring-emerald-400' : 'bg-slate-950/80 border-green-500/50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="correct_opt"
-                      checked={manualCorrectIndex === 3}
-                      onChange={() => setManualCorrectIndex(3)}
-                      className="w-5 h-5 accent-emerald-500 cursor-pointer"
-                      title="Marcar como correta"
-                    />
-                    <span className="w-8 h-8 rounded-lg bg-kahoot-green flex items-center justify-center font-black text-sm text-white flex-shrink-0">
-                      ■
-                    </span>
-                    <input
-                      type="text"
-                      value={manualOptD}
-                      onChange={e => setManualOptD(e.target.value)}
-                      placeholder="Opção Verde (■)..."
-                      className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:outline-none"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                  {[
+                    {
+                      idx: 0,
+                      val: manualOptA,
+                      setVal: setManualOptA,
+                      symbol: '▲',
+                      badgeBg: 'bg-kahoot-red',
+                      activeCls: 'bg-red-950/60 border-red-400',
+                      idleCls: 'bg-slate-950/80 border-red-500/40',
+                      placeholder: 'Opção Vermelha (▲)...',
+                    },
+                    {
+                      idx: 1,
+                      val: manualOptB,
+                      setVal: setManualOptB,
+                      symbol: '◆',
+                      badgeBg: 'bg-kahoot-blue',
+                      activeCls: 'bg-blue-950/60 border-blue-400',
+                      idleCls: 'bg-slate-950/80 border-blue-500/40',
+                      placeholder: 'Opção Azul (◆)...',
+                    },
+                    {
+                      idx: 2,
+                      val: manualOptC,
+                      setVal: setManualOptC,
+                      symbol: '●',
+                      badgeBg: 'bg-kahoot-yellow',
+                      activeCls: 'bg-amber-950/60 border-amber-400',
+                      idleCls: 'bg-slate-950/80 border-yellow-500/40',
+                      placeholder: 'Opção Amarela (●)...',
+                    },
+                    {
+                      idx: 3,
+                      val: manualOptD,
+                      setVal: setManualOptD,
+                      symbol: '■',
+                      badgeBg: 'bg-kahoot-green',
+                      activeCls: 'bg-emerald-950/60 border-emerald-400',
+                      idleCls: 'bg-slate-950/80 border-green-500/40',
+                      placeholder: 'Opção Verde (■)...',
+                    },
+                  ].map(opt => {
+                    const isCorrectOpt = manualCorrectIndex === opt.idx;
+                    return (
+                      <div
+                        key={opt.idx}
+                        className={`p-2.5 sm:p-3 rounded-2xl border-2 flex items-center gap-2.5 transition ${
+                          isCorrectOpt ? opt.activeCls : opt.idleCls
+                        }`}
+                      >
+                        <span className={`w-8 h-8 rounded-xl ${opt.badgeBg} flex items-center justify-center font-black text-sm text-white shrink-0`}>
+                          {opt.symbol}
+                        </span>
+                        <input
+                          type="text"
+                          value={opt.val}
+                          onChange={e => opt.setVal(e.target.value)}
+                          placeholder={opt.placeholder}
+                          className="flex-1 min-w-0 bg-transparent border-none text-xs sm:text-sm font-bold text-white focus:outline-none py-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setManualCorrectIndex(opt.idx)}
+                          className={`px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase transition shrink-0 ${
+                            isCorrectOpt
+                              ? 'bg-emerald-400 text-slate-950'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+                          }`}
+                          title="Marcar como resposta correta"
+                        >
+                          {isCorrectOpt ? '✓ Correta' : 'Marcar'}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -817,25 +797,25 @@ export const KahootCreatorModal: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+            <div className="space-y-2.5 sm:max-h-64 sm:overflow-y-auto sm:pr-1">
               {questionsList.map((q, idx) => (
                 <div
                   key={q.id || idx}
-                  className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  className="p-3 sm:p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs"
                 >
-                  <div className="flex items-start gap-3 flex-1">
+                  <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
                     <span className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-emerald-400 flex items-center justify-center font-black flex-shrink-0">
                       #{q.id}
                     </span>
-                    <div>
-                      <div className="font-extrabold text-white text-sm leading-snug">
+                    <div className="min-w-0">
+                      <div className="font-extrabold text-white text-xs sm:text-sm leading-snug">
                         {q.question}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-400">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 text-[11px] text-slate-400">
                         <span className="text-slate-300 font-bold">{q.category}</span>
                         <span>•</span>
                         <span className="text-emerald-400 font-bold">
-                          Correta: Opção {q.correctIndex === 0 ? 'A (▲)' : q.correctIndex === 1 ? 'B (◆)' : q.correctIndex === 2 ? 'C (●)' : 'D (■)'} ({q.options[q.correctIndex]?.text})
+                          Correta: {q.correctIndex === 0 ? 'A (▲)' : q.correctIndex === 1 ? 'B (◆)' : q.correctIndex === 2 ? 'C (●)' : 'D (■)'}
                         </span>
                       </div>
                     </div>
@@ -843,38 +823,43 @@ export const KahootCreatorModal: React.FC<Props> = ({
 
                   <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
                     <button
+                      type="button"
                       onClick={() => handleMoveQuestion(idx, -1)}
                       disabled={idx === 0}
-                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-30 text-slate-300 transition"
+                      className="p-2 sm:p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-30 text-slate-300 transition"
                       title="Subir"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleMoveQuestion(idx, 1)}
                       disabled={idx === questionsList.length - 1}
-                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-30 text-slate-300 transition"
+                      className="p-2 sm:p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-30 text-slate-300 transition"
                       title="Descer"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleEditQuestion(q)}
-                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyan-950 text-cyan-300 transition"
+                      className="p-2 sm:p-1.5 rounded-lg bg-slate-900 hover:bg-cyan-950 text-cyan-300 transition"
                       title="Editar Pergunta"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDuplicateQuestion(q)}
-                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-purple-950 text-purple-300 transition"
+                      className="p-2 sm:p-1.5 rounded-lg bg-slate-900 hover:bg-purple-950 text-purple-300 transition"
                       title="Duplicar Pergunta"
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDeleteQuestion(q.id)}
-                      className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/60 transition"
+                      className="p-2 sm:p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/60 transition"
                       title="Excluir Pergunta"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -887,25 +872,27 @@ export const KahootCreatorModal: React.FC<Props> = ({
         </div>
 
         {/* Footer with Save & Close */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <span className="text-xs text-slate-400">
-            Total: <strong>{questionsList.length}</strong> perguntas prontas para a rodada.
+        <div className="px-3.5 sm:px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
+          <span className="text-xs text-slate-400 text-center sm:text-left">
+            Total: <strong className="text-white">{questionsList.length}</strong> pergunta(s) pronta(s)
           </span>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
+              type="button"
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition"
             >
               Cancelar
             </button>
             <button
+              type="button"
               onClick={handleSaveAndApply}
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-black text-xs transition active:scale-95 flex items-center gap-1.5"
+              className="flex-1 sm:flex-initial justify-center px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-black text-xs transition active:scale-95 flex items-center gap-1.5"
             >
-              <CheckCircle2 className="w-4 h-4" />
-              {isSaving ? 'Salvando...' : 'Salvar na Conta & Usar no Jogo!'}
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              {isSaving ? 'Salvando...' : 'Salvar e Usar no Jogo!'}
             </button>
           </div>
         </div>

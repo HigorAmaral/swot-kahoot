@@ -160,7 +160,7 @@ export const IntroSetupView: React.FC<Props> = ({
             COMEÇAR O QUIZ
           </button>
 
-          <div className="flex flex-wrap items-center gap-2 justify-center">
+          <div className="hidden sm:flex flex-wrap items-center gap-2 justify-center">
             {onOpenCreatorModal && (
               <button
                 onClick={onOpenCreatorModal}

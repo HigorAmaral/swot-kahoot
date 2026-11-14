@@ -10,6 +10,7 @@ import { QuestionIntroBanner } from './components/QuestionIntroBanner';
 import { QuestionPlayView } from './components/QuestionPlayView';
 import { LoginView } from './components/LoginView';
 import { RightKahootsSidebar } from './components/RightKahootsSidebar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 const VerdictView = lazy(() => import('./components/VerdictView').then(m => ({ default: m.VerdictView })));
 const ScoreboardView = lazy(() => import('./components/ScoreboardView').then(m => ({ default: m.ScoreboardView })));
@@ -153,6 +154,7 @@ export function App() {
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
   const [isMyQuizzesModalOpen, setIsMyQuizzesModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isMobileKahootsOpen, setIsMobileKahootsOpen] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex] || questions[0];
   const answeringTeam = teams.find(t => t.id === answeringTeamId) || teams[0];
@@ -723,7 +725,7 @@ export function App() {
 
       {/* Main Body + Right Sidebar */}
       <div className="flex-1 min-h-0 flex w-full">
-        <main ref={mainRef} className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 sm:p-4">
+        <main ref={mainRef} className="flex-1 min-w-0 w-full min-h-0 lg:overflow-y-auto flex flex-col items-center p-2.5 pb-24 sm:p-4">
           <div className="w-full my-auto flex flex-col items-center">
         {stage === 'intro' && (
           <IntroSetupView
@@ -933,8 +935,8 @@ export function App() {
         )}
       </Suspense>
 
-      {/* Minimal Footer */}
-      <footer className="w-full text-center pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 flex items-center justify-center gap-4 shrink-0">
+      {/* Minimal Footer (hidden on phones where MobileBottomNav is fixed) */}
+      <footer className="hidden sm:flex w-full text-center pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 items-center justify-center gap-4 shrink-0">
         <span>ArenaQuiz • Arena Interativa em Sala</span>
         {isAdmin && (
           <>
@@ -948,6 +950,20 @@ export function App() {
           </>
         )}
       </footer>
+
+      {/* Mobile Bottom App Navigation */}
+      <MobileBottomNav
+        onGoHome={() => {
+          setIsMobileKahootsOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
+        onOpenKahootsDrawer={() => setIsMobileKahootsOpen(true)}
+        onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+        onOpenAdminModal={handleOpenAdmin}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }

@@ -19,6 +19,11 @@ export interface SavedQuiz {
   questions: import('./data/questions').Question[];
   createdAt?: string;
   sharedBy?: string;
+  isPublic?: boolean;
+  likesCount?: number;
+  playsCount?: number;
+  category?: string;
+  ownerAvatar?: string;
 }
 
 export interface Participant {

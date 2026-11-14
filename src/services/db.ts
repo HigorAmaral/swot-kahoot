@@ -328,6 +328,100 @@ export class DatabaseService {
     }
   }
 
+  // Get Public Community Quizzes
+  async getCommunityQuizzes(search?: string, category?: string): Promise<SavedQuiz[]> {
+    try {
+      const params = new URLSearchParams({ type: 'community_quizzes' });
+      if (search?.trim()) params.set('q', search.trim());
+      if (category && category !== 'Todos') params.set('category', category);
+      const res = await fetch(`/api/db?${params.toString()}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.quizzes || [];
+    } catch {
+      return [];
+    }
+  }
+
+  // Publish or unpublish a quiz in Community
+  async toggleQuizPublic(
+    shareCode: string,
+    ownerUsername: string,
+    isPublic: boolean,
+    category?: string
+  ): Promise<{ success: boolean; isPublic?: boolean; category?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'toggle_quiz_public',
+          shareCode,
+          ownerUsername,
+          isPublic,
+          category,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao atualizar visibilidade' };
+      return { success: true, isPublic: data.isPublic, category: data.category };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
+  // Like a Community Quiz
+  async likeCommunityQuiz(shareCode: string): Promise<{ success: boolean; likesCount?: number }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'like_community_quiz', shareCode }),
+      });
+      if (!res.ok) return { success: false };
+      const data = await res.json();
+      return { success: true, likesCount: data.likesCount };
+    } catch {
+      return { success: false };
+    }
+  }
+
+  // Increment Community Quiz play count
+  async incrementQuizPlay(shareCode: string): Promise<void> {
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'increment_quiz_play', shareCode }),
+      });
+    } catch {}
+  }
+
+  // Clone a Community Quiz into user's own library
+  async cloneCommunityQuiz(
+    shareCode: string,
+    username: string,
+    displayName: string
+  ): Promise<{ success: boolean; quiz?: SavedQuiz; error?: string }> {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'clone_community_quiz',
+          shareCode,
+          username,
+          displayName,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Erro ao salvar quiz na sua conta' };
+      return { success: true, quiz: data.quiz };
+    } catch {
+      return { success: false, error: 'Erro de conexão com o servidor.' };
+    }
+  }
+
   // Get Shared Quiz by Code
   async getQuizByCode(code: string): Promise<{ success: boolean; quiz?: SavedQuiz; error?: string }> {
     try {

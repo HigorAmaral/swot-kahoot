@@ -332,10 +332,18 @@ async function ensureTables(sql: any) {
         owner_name VARCHAR(120) NOT NULL,
         title VARCHAR(255) NOT NULL,
         questions_json TEXT NOT NULL,
+        is_public BOOLEAN DEFAULT FALSE,
+        likes_count INTEGER DEFAULT 0,
+        plays_count INTEGER DEFAULT 0,
+        category VARCHAR(80) DEFAULT 'Geral',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
+    await sql`ALTER TABLE fabrica_quizzes ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE;`;
+    await sql`ALTER TABLE fabrica_quizzes ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;`;
+    await sql`ALTER TABLE fabrica_quizzes ADD COLUMN IF NOT EXISTS plays_count INTEGER DEFAULT 0;`;
+    await sql`ALTER TABLE fabrica_quizzes ADD COLUMN IF NOT EXISTS category VARCHAR(80) DEFAULT 'Geral';`;
     await sql`
       CREATE TABLE IF NOT EXISTS fabrica_quiz_shares (
         id SERIAL PRIMARY KEY,
@@ -452,7 +460,7 @@ export default async function handler(req: any, res: any) {
         if (!username) return res.status(400).json({ error: 'Usuário não informado' });
 
         const ownRows = await sql`
-          SELECT id, share_code, owner_username, owner_name, title, questions_json, created_at
+          SELECT id, share_code, owner_username, owner_name, title, questions_json, is_public, likes_count, plays_count, category, created_at
           FROM fabrica_quizzes
           WHERE owner_username = ${username}
           ORDER BY updated_at DESC
@@ -462,7 +470,7 @@ export default async function handler(req: any, res: any) {
         const userEmail = userRows[0]?.email ? String(userRows[0].email).trim().toLowerCase() : '';
 
         const receivedRows = await sql`
-          SELECT DISTINCT ON (q.share_code) q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.created_at, s.sender_username
+          SELECT DISTINCT ON (q.share_code) q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.is_public, q.likes_count, q.plays_count, q.category, q.created_at, s.sender_username
           FROM fabrica_quiz_shares s
           JOIN fabrica_quizzes q ON q.share_code = s.quiz_share_code
           WHERE s.recipient_username = ${username}
@@ -471,7 +479,7 @@ export default async function handler(req: any, res: any) {
 
         const emailInviteRows = userEmail
           ? await sql`
-              SELECT DISTINCT ON (q.share_code) q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.created_at, e.sender_username
+              SELECT DISTINCT ON (q.share_code) q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json, q.is_public, q.likes_count, q.plays_count, q.category, q.created_at, e.sender_username
               FROM fabrica_email_invites e
               JOIN fabrica_quizzes q ON q.share_code = e.quiz_share_code
               WHERE e.recipient_email = ${userEmail}
@@ -489,6 +497,10 @@ export default async function handler(req: any, res: any) {
               ownerName: r.owner_name,
               title: r.title,
               questions: JSON.parse(r.questions_json),
+              isPublic: Boolean(r.is_public),
+              likesCount: Number(r.likes_count || 0),
+              playsCount: Number(r.plays_count || 0),
+              category: r.category || 'Geral',
               createdAt: r.created_at,
               sharedBy: r.sender_username,
             });
@@ -504,10 +516,69 @@ export default async function handler(req: any, res: any) {
             ownerName: r.owner_name,
             title: r.title,
             questions: JSON.parse(r.questions_json),
+            isPublic: Boolean(r.is_public),
+            likesCount: Number(r.likes_count || 0),
+            playsCount: Number(r.plays_count || 0),
+            category: r.category || 'Geral',
             createdAt: r.created_at,
           })),
           receivedQuizzes: Array.from(mergedMap.values()),
         });
+      }
+
+      // Fetch public community quizzes
+      if (reqType === 'community_quizzes') {
+        await ensureTables(sql);
+        const rawQ = String(req.query?.q || '').trim().toLowerCase();
+        const catFilter = String(req.query?.category || '').trim();
+        const escaped = rawQ.replace(/[%_\\]/g, '\\$&');
+        const pattern = `%${escaped}%`;
+
+        const rows = rawQ
+          ? await sql`
+              SELECT q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json,
+                     q.is_public, q.likes_count, q.plays_count, q.category, q.created_at, u.avatar AS owner_avatar
+              FROM fabrica_quizzes q
+              LEFT JOIN fabrica_users u ON LOWER(u.username) = LOWER(q.owner_username)
+              WHERE q.is_public = TRUE
+                AND (
+                  LOWER(q.title) LIKE ${pattern}
+                  OR LOWER(q.owner_name) LIKE ${pattern}
+                  OR LOWER(q.owner_username) LIKE ${pattern}
+                  OR LOWER(q.share_code) LIKE ${pattern}
+                  OR LOWER(COALESCE(q.category, '')) LIKE ${pattern}
+                )
+              ORDER BY q.likes_count DESC, q.updated_at DESC
+              LIMIT 50
+            `
+          : await sql`
+              SELECT q.id, q.share_code, q.owner_username, q.owner_name, q.title, q.questions_json,
+                     q.is_public, q.likes_count, q.plays_count, q.category, q.created_at, u.avatar AS owner_avatar
+              FROM fabrica_quizzes q
+              LEFT JOIN fabrica_users u ON LOWER(u.username) = LOWER(q.owner_username)
+              WHERE q.is_public = TRUE
+              ORDER BY q.likes_count DESC, q.updated_at DESC
+              LIMIT 50
+            `;
+
+        const quizzes = rows
+          .filter((r: any) => !catFilter || catFilter === 'Todos' || (r.category || 'Geral') === catFilter)
+          .map((r: any) => ({
+            id: r.id,
+            shareCode: r.share_code,
+            ownerUsername: r.owner_username,
+            ownerName: r.owner_name,
+            ownerAvatar: r.owner_avatar || '👨‍💻',
+            title: r.title,
+            questions: JSON.parse(r.questions_json),
+            isPublic: Boolean(r.is_public),
+            likesCount: Number(r.likes_count || 0),
+            playsCount: Number(r.plays_count || 0),
+            category: r.category || 'Geral',
+            createdAt: r.created_at,
+          }));
+
+        return res.status(200).json({ success: true, quizzes });
       }
 
       // Search users by sequential character match (autocomplete)
@@ -874,19 +945,23 @@ export default async function handler(req: any, res: any) {
         const title = String(body.title || 'Meu Quiz no ArenaQuiz').trim();
         const questionsJson = JSON.stringify(body.questions || []);
         const shareCode = body.shareCode ? String(body.shareCode).trim().toUpperCase() : generateShareCode();
+        const isPublic = Boolean(body.isPublic);
+        const category = String(body.category || 'Geral').trim() || 'Geral';
 
         if (!ownerUsername) {
           return res.status(400).json({ error: 'Usuário proprietário não informado.' });
         }
 
         const saved = await sql`
-          INSERT INTO fabrica_quizzes (share_code, owner_username, owner_name, title, questions_json, updated_at)
-          VALUES (${shareCode}, ${ownerUsername}, ${ownerName}, ${title}, ${questionsJson}, NOW())
+          INSERT INTO fabrica_quizzes (share_code, owner_username, owner_name, title, questions_json, is_public, category, updated_at)
+          VALUES (${shareCode}, ${ownerUsername}, ${ownerName}, ${title}, ${questionsJson}, ${isPublic}, ${category}, NOW())
           ON CONFLICT (share_code) DO UPDATE SET
             title = EXCLUDED.title,
             questions_json = EXCLUDED.questions_json,
+            is_public = COALESCE(${body.isPublic !== undefined ? isPublic : null}, fabrica_quizzes.is_public),
+            category = COALESCE(${body.category ? category : null}, fabrica_quizzes.category),
             updated_at = NOW()
-          RETURNING id, share_code, owner_username, owner_name, title, created_at
+          RETURNING id, share_code, owner_username, owner_name, title, is_public, likes_count, plays_count, category, created_at
         `;
         const q = saved[0];
         return res.status(200).json({
@@ -898,8 +973,126 @@ export default async function handler(req: any, res: any) {
             ownerName: q.owner_name,
             title: q.title,
             questions: body.questions || [],
+            isPublic: Boolean(q.is_public),
+            likesCount: Number(q.likes_count || 0),
+            playsCount: Number(q.plays_count || 0),
+            category: q.category || 'Geral',
             createdAt: q.created_at,
           }
+        });
+      }
+
+      // 11b. Toggle Quiz Public status for Community
+      if (action === 'toggle_quiz_public') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        const ownerUsername = String(body.ownerUsername || '').trim().toLowerCase();
+        const isPublic = Boolean(body.isPublic);
+        const category = body.category ? String(body.category).trim() : null;
+
+        if (!shareCode || !ownerUsername) {
+          return res.status(400).json({ error: 'Dados inválidos.' });
+        }
+        if (authUser && authUser.username !== ownerUsername && authUser.username !== 'higoramaral') {
+          return res.status(403).json({ error: 'Sem permissão para alterar este quiz.' });
+        }
+
+        const updated = category
+          ? await sql`
+              UPDATE fabrica_quizzes
+              SET is_public = ${isPublic}, category = ${category}, updated_at = NOW()
+              WHERE share_code = ${shareCode} AND owner_username = ${ownerUsername}
+              RETURNING is_public, category
+            `
+          : await sql`
+              UPDATE fabrica_quizzes
+              SET is_public = ${isPublic}, updated_at = NOW()
+              WHERE share_code = ${shareCode} AND owner_username = ${ownerUsername}
+              RETURNING is_public, category
+            `;
+
+        if (updated.length === 0) {
+          return res.status(404).json({ error: 'Quiz não encontrado.' });
+        }
+
+        return res.status(200).json({
+          success: true,
+          isPublic: Boolean(updated[0].is_public),
+          category: updated[0].category || 'Geral',
+        });
+      }
+
+      // 11c. Like a Community Quiz
+      if (action === 'like_community_quiz') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        if (!shareCode) return res.status(400).json({ error: 'Código inválido.' });
+
+        const updated = await sql`
+          UPDATE fabrica_quizzes
+          SET likes_count = COALESCE(likes_count, 0) + 1
+          WHERE share_code = ${shareCode} AND is_public = TRUE
+          RETURNING likes_count
+        `;
+        if (updated.length === 0) {
+          return res.status(404).json({ error: 'Quiz público não encontrado.' });
+        }
+        return res.status(200).json({ success: true, likesCount: Number(updated[0].likes_count || 0) });
+      }
+
+      // 11d. Increment Play Count on Community Quiz
+      if (action === 'increment_quiz_play') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        if (!shareCode) return res.status(400).json({ error: 'Código inválido.' });
+        await sql`
+          UPDATE fabrica_quizzes
+          SET plays_count = COALESCE(plays_count, 0) + 1
+          WHERE share_code = ${shareCode}
+        `;
+        return res.status(200).json({ success: true });
+      }
+
+      // 11e. Clone a Community Quiz into user's account
+      if (action === 'clone_community_quiz') {
+        const shareCode = String(body.shareCode || '').trim().toUpperCase();
+        const username = String(body.username || '').trim().toLowerCase();
+        const displayName = String(body.displayName || username).trim();
+        if (!shareCode || !username) {
+          return res.status(400).json({ error: 'Dados incompletos para clonar quiz.' });
+        }
+
+        const sourceRows = await sql`
+          SELECT title, questions_json, category
+          FROM fabrica_quizzes
+          WHERE share_code = ${shareCode} AND is_public = TRUE
+          LIMIT 1
+        `;
+        if (sourceRows.length === 0) {
+          return res.status(404).json({ error: 'Quiz público não encontrado.' });
+        }
+
+        const src = sourceRows[0];
+        const newCode = generateShareCode();
+        const clonedTitle = `${src.title} (Cópia)`;
+        const inserted = await sql`
+          INSERT INTO fabrica_quizzes (share_code, owner_username, owner_name, title, questions_json, is_public, category, updated_at)
+          VALUES (${newCode}, ${username}, ${displayName}, ${clonedTitle}, ${src.questions_json}, FALSE, ${src.category || 'Geral'}, NOW())
+          RETURNING id, share_code, owner_username, owner_name, title, is_public, likes_count, plays_count, category, created_at
+        `;
+        const q = inserted[0];
+        return res.status(200).json({
+          success: true,
+          quiz: {
+            id: q.id,
+            shareCode: q.share_code,
+            ownerUsername: q.owner_username,
+            ownerName: q.owner_name,
+            title: q.title,
+            questions: JSON.parse(src.questions_json),
+            isPublic: false,
+            likesCount: 0,
+            playsCount: 0,
+            category: q.category || 'Geral',
+            createdAt: q.created_at,
+          },
         });
       }
 

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { UserAccount } from '../types';
 import { sound } from '../utils/sound';
-import { Volume2, VolumeX, Maximize2, ShieldAlert, Sparkles, Share2, LogOut, Download, Music } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, ShieldAlert, Sparkles, Share2, LogOut, Download, Music, Globe } from 'lucide-react';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 
 interface Props {
   onOpenAdminModal: () => void;
   onOpenCreatorModal: () => void;
   onOpenMyQuizzesModal: () => void;
+  onOpenCommunityModal: () => void;
   onOpenProfileModal: () => void;
   currentUser: UserAccount;
   onLogoutUser: () => void;
@@ -18,6 +19,7 @@ export const HostHeader: React.FC<Props> = ({
   onOpenAdminModal,
   onOpenCreatorModal,
   onOpenMyQuizzesModal,
+  onOpenCommunityModal,
   onOpenProfileModal,
   currentUser,
   onLogoutUser,
@@ -75,6 +77,16 @@ export const HostHeader: React.FC<Props> = ({
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Criar Quiz</span>
+          </button>
+
+          {/* Community Button */}
+          <button
+            onClick={onOpenCommunityModal}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/50 text-cyan-300 text-xs font-black transition active:scale-95"
+            title="Explorar e compartilhar Kahoots na Comunidade"
+          >
+            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden md:inline">Comunidade</span>
           </button>
 
           {/* My Quizzes / Share Button (Desktop / Tablet) */}

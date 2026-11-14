@@ -21,6 +21,7 @@ const KahootCreatorModal = lazy(() => import('./components/KahootCreatorModal').
 const MyQuizzesModal = lazy(() => import('./components/MyQuizzesModal').then(m => ({ default: m.MyQuizzesModal })));
 const ProfileModal = lazy(() => import('./components/ProfileModal').then(m => ({ default: m.ProfileModal })));
 const QuizAdminModal = lazy(() => import('./components/QuizAdminModal').then(m => ({ default: m.QuizAdminModal })));
+const CommunityModal = lazy(() => import('./components/CommunityModal').then(m => ({ default: m.CommunityModal })));
 
 const initialTeams: Team[] = [
   {
@@ -159,6 +160,7 @@ export function App() {
   const [isMyQuizzesModalOpen, setIsMyQuizzesModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileKahootsOpen, setIsMobileKahootsOpen] = useState(false);
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
 
   // Unlock Web Audio and start pleasant background music on first user gesture
   useEffect(() => {
@@ -774,6 +776,7 @@ export function App() {
         onOpenAdminModal={handleOpenAdmin}
         onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
         onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+        onOpenCommunityModal={() => setIsCommunityModalOpen(true)}
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
         currentUser={currentUser}
         onLogoutUser={handleLogoutUser}
@@ -1002,6 +1005,17 @@ export function App() {
             onProfileUpdated={handleProfileUpdated}
           />
         )}
+
+        {isCommunityModalOpen && (
+          <CommunityModal
+            isOpen={isCommunityModalOpen}
+            onClose={() => setIsCommunityModalOpen(false)}
+            currentUser={currentUser}
+            onLoadQuiz={(qs, title, shareCode) => handleSaveQuestions(qs, title, shareCode)}
+            onOpenCreator={() => setIsCreatorModalOpen(true)}
+            onQuizCloned={() => setQuizzesRefreshKey(prev => prev + 1)}
+          />
+        )}
       </Suspense>
 
       {/* Footer (Desktop / Tablet) */}
@@ -1044,6 +1058,7 @@ export function App() {
         onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
         onOpenKahootsDrawer={() => setIsMobileKahootsOpen(true)}
         onOpenMyQuizzesModal={() => setIsMyQuizzesModalOpen(true)}
+        onOpenCommunityModal={() => setIsCommunityModalOpen(true)}
         onOpenAdminModal={handleOpenAdmin}
         isAdmin={isAdmin}
       />

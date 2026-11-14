@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { SavedQuiz, UserAccount, Question } from '../types';
 import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
@@ -303,20 +304,23 @@ export const RightKahootsSidebar: React.FC<Props> = ({
         </span>
       </button>
 
-      {/* Mobile Slide-Over Right Drawer */}
-      {mobileOpen && (
-        <div
-          onClick={() => setMobileOpen(false)}
-          className="lg:hidden fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-sm animate-fade-in"
-        >
+      {/* Mobile Slide-Over Right Drawer (Portal to document.body for reliable mobile/iOS fixed positioning) */}
+      {mobileOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-80 max-w-[85vw] h-full bg-slate-950 border-l border-cyan-500/30 shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden fixed inset-0 z-[60] flex justify-end bg-black/75 backdrop-blur-sm animate-fade-in"
           >
-            {sidebarContent}
-          </div>
-        </div>
-      )}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-80 max-w-[88vw] h-full bg-slate-950 border-l border-cyan-500/30 shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+            >
+              {sidebarContent}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 };

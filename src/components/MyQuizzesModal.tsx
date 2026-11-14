@@ -53,6 +53,8 @@ export const MyQuizzesModal: React.FC<Props> = ({
   const [targetEmail, setTargetEmail] = useState('');
   const [lastSentEmail, setLastSentEmail] = useState<string | null>(null);
   const [sendFeedback, setSendFeedback] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingUser, setSendingUser] = useState(false);
 
   // Import state
   const [importCode, setImportCode] = useState('');
@@ -106,10 +108,27 @@ export const MyQuizzesModal: React.FC<Props> = ({
 
   const handleCopyLink = (quiz: SavedQuiz) => {
     const url = getShareUrl(quiz.shareCode);
-    navigator.clipboard.writeText(url);
+    navigator.clipboard?.writeText(url).catch(() => {});
     sound.playTone(700, 0.12, 'sine', 0.15);
     setCopiedCode(quiz.shareCode);
     setTimeout(() => setCopiedCode(null), 2500);
+  };
+
+  const handleNativeShare = async (quiz: SavedQuiz) => {
+    const url = getShareUrl(quiz.shareCode);
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `ArenaQuiz: ${quiz.title}`,
+          text: `🎯 Jogue meu quiz "${quiz.title}" no ArenaQuiz! Código: ${quiz.shareCode}`,
+          url,
+        });
+      } catch {
+        // User cancelled share sheet
+      }
+    } else {
+      handleCopyLink(quiz);
+    }
   };
 
   const handleWhatsAppShare = (quiz: SavedQuiz) => {
@@ -120,9 +139,11 @@ export const MyQuizzesModal: React.FC<Props> = ({
 
   const handleSendToUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sharingQuiz || !targetUsername.trim()) return;
+    if (!sharingQuiz || !targetUsername.trim() || sendingUser) return;
     setSendFeedback(null);
+    setSendingUser(true);
     const res = await dbService.sendQuizToUser(sharingQuiz.shareCode, currentUser.username, targetUsername);
+    setSendingUser(false);
     if (res.success) {
       sound.playCorrect();
       setSendFeedback({ type: 'ok', msg: `Quiz enviado para @${targetUsername.replace(/^@/, '')}!` });
@@ -132,8 +153,6 @@ export const MyQuizzesModal: React.FC<Props> = ({
       setSendFeedback({ type: 'err', msg: res.error || 'Erro ao enviar' });
     }
   };
-
-  const [sendingEmail, setSendingEmail] = useState(false);
 
   const handleSendToEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,37 +239,48 @@ export const MyQuizzesModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in text-white select-none">
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-slate-900 border-2 border-cyan-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in text-white select-none"
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        className="relative w-full max-w-4xl max-h-[92dvh] bg-slate-900 border-2 border-cyan-500/40 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+      >
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 text-slate-950 shadow-lg">
-              <FolderOpen className="w-5 h-5" />
+        <div className="flex items-center justify-between p-3.5 sm:p-5 border-b border-slate-800 bg-slate-950 gap-2.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 text-slate-950 shadow-lg shrink-0">
+              <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-black text-white">
-                Meus Kahoots & Compartilhamento
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-xl font-black text-white truncate">
+                Meus Kahoots & Compartilhar
               </h2>
-              <p className="text-xs text-slate-400">
-                Logado como <strong className="text-emerald-400">{currentUser.avatar} @{currentUser.username}</strong> • Envie seus quizzes para qualquer pessoa
+              <p className="text-[11px] sm:text-xs text-slate-400 truncate">
+                <strong className="text-emerald-400">{currentUser.avatar} @{currentUser.username}</strong> • Envie seus quizzes
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
+              type="button"
               onClick={() => {
                 onClose();
                 onOpenCreator();
               }}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 text-xs font-black transition flex items-center gap-1.5"
+              className="px-2.5 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:brightness-110 text-slate-950 text-xs font-black transition flex items-center gap-1"
             >
-              <Plus className="w-4 h-4" /> Criar Novo
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Criar Novo</span>
+              <span className="sm:hidden">Novo</span>
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+              title="Fechar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -258,7 +288,7 @@ export const MyQuizzesModal: React.FC<Props> = ({
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-950/60 px-4 gap-2 overflow-x-auto">
+        <div className="flex border-b border-slate-800 bg-slate-950/60 px-2 sm:px-4 gap-1 sm:gap-2 overflow-x-auto">
           <button
             onClick={() => setTab('mine')}
             className={`px-4 py-3 text-xs sm:text-sm font-black border-b-2 transition flex items-center gap-1.5 whitespace-nowrap ${
@@ -503,9 +533,10 @@ export const MyQuizzesModal: React.FC<Props> = ({
                             </div>
                             <button
                               type="submit"
-                              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+                              disabled={sendingUser}
+                              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-60 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 whitespace-nowrap"
                             >
-                              <Send className="w-3.5 h-3.5" /> Enviar para Usuário
+                              <Send className="w-3.5 h-3.5" /> {sendingUser ? 'Enviando...' : 'Enviar para Usuário'}
                             </button>
                           </form>
 

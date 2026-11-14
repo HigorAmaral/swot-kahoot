@@ -92,3 +92,11 @@ Abra seu navegador em `http://localhost:5173`.
 - **Web Audio API Synthesizer** (música de fundo e efeitos sonoros)
 - **Canvas Confetti** & **Lucide React**
 - **Nodemailer** (convites por e-mail)
+
+---
+
+## 👤 Autor & Licença
+
+Desenvolvido por **Higor Amaral** — © 2026 ArenaQuiz.  
+Distribuído sob a [Licença MIT](LICENSE).
+

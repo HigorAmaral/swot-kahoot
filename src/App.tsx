@@ -885,6 +885,16 @@ export function App() {
             />
           )}
         </Suspense>
+
+            {/* Mobile Footer Credit (above MobileBottomNav) */}
+            <div className="sm:hidden mt-6 pt-4 border-t border-slate-800/80 text-center text-[11px] text-slate-400 space-y-1">
+              <p>
+                Desenvolvido por <strong className="text-emerald-400">Higor Amaral</strong>
+              </p>
+              <p className="text-[10px] text-slate-500">
+                © {new Date().getFullYear()} ArenaQuiz • Todos os direitos reservados • Licença MIT
+              </p>
+            </div>
           </div>
         </main>
 
@@ -994,12 +1004,26 @@ export function App() {
         )}
       </Suspense>
 
-      {/* Minimal Footer (hidden on phones where MobileBottomNav is fixed) */}
-      <footer className="hidden sm:flex w-full text-center pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 items-center justify-center gap-4 shrink-0">
-        <span>ArenaQuiz • Arena Interativa em Sala</span>
+      {/* Footer (Desktop / Tablet) */}
+      <footer className="hidden sm:flex w-full text-center px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-950/80 border-t border-cyan-500/20 text-[11px] text-slate-400 items-center justify-center flex-wrap gap-x-3 gap-y-1 shrink-0">
+        <span>
+          Desenvolvido por{' '}
+          <a
+            href="https://github.com/HigorAmaral/swot-kahoot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline"
+          >
+            Higor Amaral
+          </a>
+        </span>
+        <span className="text-slate-600">•</span>
+        <span>© {new Date().getFullYear()} ArenaQuiz — Todos os direitos reservados</span>
+        <span className="text-slate-600">•</span>
+        <span>Licença MIT</span>
         {isAdmin && (
           <>
-            <span>•</span>
+            <span className="text-slate-600">•</span>
             <button
               onClick={handleOpenAdmin}
               className="text-amber-400 hover:underline font-bold"

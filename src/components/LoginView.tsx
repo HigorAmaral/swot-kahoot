@@ -473,6 +473,15 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
           </button>
         </form>
         )}
+
+        <div className="mt-5 pt-4 border-t border-slate-800/80 text-center text-[11px] text-slate-400 space-y-0.5">
+          <p>
+            Desenvolvido por <strong className="text-emerald-400">Higor Amaral</strong>
+          </p>
+          <p className="text-[10px] text-slate-500">
+            © {new Date().getFullYear()} ArenaQuiz • Todos os direitos reservados • Licença MIT
+          </p>
+        </div>
       </div>
     </div>
   );

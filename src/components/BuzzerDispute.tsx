@@ -80,10 +80,10 @@ export const BuzzerDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
           <Zap className="w-4 h-4 text-amber-400 fill-amber-400 animate-bounce" />
           Pergunta #{questionNumber} • Disputa: Quem Bate Primeiro (Buzzer)
         </div>
-        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
           Bata no botão ou use as teclas (1, 2, 3, 4)!
         </h2>
-        <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto mt-2">
+        <p className="text-slate-300 text-xs sm:text-sm md:text-base max-w-xl mx-auto mt-2">
           A primeira equipe a acionar o buzzer ganha a posse da pergunta da Análise SWOT!
         </p>
       </div>
@@ -91,15 +91,15 @@ export const BuzzerDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
       {decisionStep === 'waiting' && (
         <button
           onClick={startRound}
-          className="px-10 py-5 rounded-2xl bg-gradient-to-r from-amber-500 via-red-500 to-pink-600 hover:brightness-110 text-white font-black text-2xl shadow-2xl active:scale-95 transition flex items-center gap-3 animate-pulse"
+          className="px-6 sm:px-10 py-3.5 sm:py-5 rounded-2xl bg-gradient-to-r from-amber-500 via-red-500 to-pink-600 hover:brightness-110 text-white font-black text-base sm:text-2xl shadow-2xl active:scale-95 transition flex items-center gap-2.5 sm:gap-3 animate-pulse"
         >
-          <Zap className="w-8 h-8 fill-current" />
+          <Zap className="w-6 h-6 sm:w-8 sm:h-8 fill-current" />
           LIBERAR OS BUZZERS AGORA!
         </button>
       )}
 
       {(decisionStep === 'ready' || decisionStep === 'choose') && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 w-full mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full mb-8">
           {teams.map(team => {
             const buzz = buzzList.find(b => b.teamId === team.id);
             const isFirst = buzz?.rank === 1;
@@ -108,7 +108,7 @@ export const BuzzerDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
               <div
                 key={team.id}
                 onClick={() => triggerBuzz(team.id)}
-                className={`relative flex flex-col items-center p-6 rounded-3xl border-4 cursor-pointer select-none transition-all duration-150 transform active:scale-90 shadow-2xl ${
+                className={`relative flex flex-col items-center p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border-4 cursor-pointer select-none transition-all duration-150 transform active:scale-90 shadow-2xl ${
                   isFirst
                     ? 'border-yellow-400 bg-yellow-950/60 scale-105 ring-4 ring-yellow-400 animate-pulse'
                     : buzz
@@ -131,8 +131,8 @@ export const BuzzerDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
                   </div>
                 )}
 
-                <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center my-4 shadow-inner">
-                  <Zap className="w-12 h-12 text-white fill-white" />
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center my-3 sm:my-4 shadow-inner">
+                  <Zap className="w-8 h-8 sm:w-12 sm:h-12 text-white fill-white" />
                 </div>
 
                 <h3 className="text-xl font-black text-white text-center">

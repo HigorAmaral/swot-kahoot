@@ -590,13 +590,13 @@ export const KahootCreatorModal: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <input
               type="text"
               value={quizTitle}
               onChange={e => setQuizTitle(e.target.value)}
               placeholder="Nome do seu Quiz..."
-              className="bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none w-44 sm:w-56"
+              className="bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none w-full sm:w-56"
             />
             <button
               onClick={handleRestoreDefaults}

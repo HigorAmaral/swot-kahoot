@@ -143,24 +143,24 @@ export const PodiumView: React.FC<Props> = ({
       </div>
 
       {/* 3D-style Podium Blocks */}
-      <div className="flex items-end justify-center gap-3 sm:gap-5 w-full max-w-4xl mb-10 h-76">
+      <div className="flex items-end justify-center gap-1.5 sm:gap-5 w-full max-w-4xl mb-8 sm:mb-10 min-h-[15rem] sm:h-76">
         {/* 2nd Place */}
         {second && (
           <div className="flex-1 flex flex-col items-center animate-fade-in" style={{ animationDelay: '200ms' }}>
-            <div className="mb-2.5 text-center flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-slate-300 text-slate-900 flex items-center justify-center mb-1 shadow">
-                <Medal className="w-5 h-5" />
+            <div className="mb-2 sm:mb-2.5 text-center flex flex-col items-center">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-300 text-slate-900 flex items-center justify-center mb-1 shadow">
+                <Medal className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div className="font-black text-white text-sm md:text-base lg:text-lg truncate max-w-[140px] lg:max-w-[180px]">
+              <div className="font-black text-white text-xs sm:text-sm md:text-base lg:text-lg truncate max-w-[90px] sm:max-w-[140px] lg:max-w-[180px]">
                 {second.name}
               </div>
-              <div className="text-xs sm:text-sm text-slate-300 font-bold">{second.points} pts</div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] text-pink-300">
+              <div className="text-[11px] sm:text-sm text-slate-300 font-bold">{second.points} pts</div>
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-pink-300">
                 <Gift className="w-3 h-3" /> {second.candies} | <Award className="w-3 h-3 text-amber-300" /> {second.chocolates}
               </div>
             </div>
-            <div className="w-full bg-gradient-to-b from-slate-500 to-slate-700 border-t-4 border-slate-200 rounded-t-3xl h-40 flex items-center justify-center shadow-2xl">
-              <span className="text-4xl lg:text-5xl font-black text-slate-200">2</span>
+            <div className="w-full bg-gradient-to-b from-slate-500 to-slate-700 border-t-4 border-slate-200 rounded-t-2xl sm:rounded-t-3xl h-32 sm:h-40 flex items-center justify-center shadow-2xl">
+              <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-200">2</span>
             </div>
           </div>
         )}
@@ -168,26 +168,26 @@ export const PodiumView: React.FC<Props> = ({
         {/* 1st Place */}
         {first && (
           <div className="flex-1 flex flex-col items-center scale-105 z-10 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            <div className="mb-2.5 text-center flex flex-col items-center">
-              <div className="w-14 h-14 mx-auto rounded-full bg-yellow-400 border-2 border-white flex items-center justify-center text-slate-950 shadow-xl shadow-yellow-400/30 animate-bounce">
-                <Trophy className="w-8 h-8 fill-current" />
+            <div className="mb-2 sm:mb-2.5 text-center flex flex-col items-center">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 mx-auto rounded-full bg-yellow-400 border-2 border-white flex items-center justify-center text-slate-950 shadow-xl shadow-yellow-400/30 animate-bounce">
+                <Trophy className="w-6 h-6 sm:w-8 sm:h-8 fill-current" />
               </div>
-              <div className="font-black text-yellow-400 text-base md:text-lg lg:text-xl truncate max-w-[160px] lg:max-w-[210px] mt-1.5">
+              <div className="font-black text-yellow-400 text-sm sm:text-base md:text-lg lg:text-xl truncate max-w-[100px] sm:max-w-[160px] lg:max-w-[210px] mt-1.5">
                 {first.name}
               </div>
-              <div className="text-sm sm:text-base text-white font-extrabold">{first.points} pts</div>
-              <div className="inline-flex items-center gap-1.5 text-xs text-yellow-200 font-bold">
-                <Gift className="w-3.5 h-3.5" /> {first.candies} balas • <Award className="w-3.5 h-3.5" /> {first.chocolates} choc
+              <div className="text-xs sm:text-base text-white font-extrabold">{first.points} pts</div>
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-yellow-200 font-bold">
+                <Gift className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {first.candies} balas • <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {first.chocolates} choc
               </div>
               {first.participants.length > 0 && (
-                <div className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-200 truncate max-w-[160px] lg:max-w-[200px] mt-0.5">
+                <div className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-200 truncate max-w-[95px] sm:max-w-[160px] lg:max-w-[200px] mt-0.5">
                   <Trophy className="w-3 h-3 shrink-0" /> {first.participants.map(p => p.name).join(', ')}
                 </div>
               )}
             </div>
-            <div className="w-full bg-gradient-to-b from-yellow-400 via-yellow-500 to-amber-600 border-t-4 border-yellow-200 rounded-t-3xl h-56 flex flex-col items-center justify-center shadow-2xl shadow-yellow-500/20">
-              <span className="text-6xl font-black text-slate-950">1</span>
-              <span className="text-xs font-black uppercase text-slate-950 tracking-wider">Campeã</span>
+            <div className="w-full bg-gradient-to-b from-yellow-400 via-yellow-500 to-amber-600 border-t-4 border-yellow-200 rounded-t-2xl sm:rounded-t-3xl h-44 sm:h-56 flex flex-col items-center justify-center shadow-2xl shadow-yellow-500/20">
+              <span className="text-4xl sm:text-6xl font-black text-slate-950">1</span>
+              <span className="text-[10px] sm:text-xs font-black uppercase text-slate-950 tracking-wider">Campeã</span>
             </div>
           </div>
         )}
@@ -195,20 +195,20 @@ export const PodiumView: React.FC<Props> = ({
         {/* 3rd Place */}
         {third && (
           <div className="flex-1 flex flex-col items-center animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <div className="mb-2.5 text-center flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center mb-1 shadow">
-                <Award className="w-5 h-5" />
+            <div className="mb-2 sm:mb-2.5 text-center flex flex-col items-center">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center mb-1 shadow">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div className="font-black text-white text-sm md:text-base lg:text-lg truncate max-w-[140px] lg:max-w-[180px]">
+              <div className="font-black text-white text-xs sm:text-sm md:text-base lg:text-lg truncate max-w-[90px] sm:max-w-[140px] lg:max-w-[180px]">
                 {third.name}
               </div>
-              <div className="text-xs sm:text-sm text-slate-300 font-bold">{third.points} pts</div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] text-pink-300">
+              <div className="text-[11px] sm:text-sm text-slate-300 font-bold">{third.points} pts</div>
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-pink-300">
                 <Gift className="w-3 h-3" /> {third.candies} | <Award className="w-3 h-3 text-amber-300" /> {third.chocolates}
               </div>
             </div>
-            <div className="w-full bg-gradient-to-b from-amber-700 to-amber-900 border-t-4 border-amber-500 rounded-t-3xl h-32 flex items-center justify-center shadow-2xl">
-              <span className="text-3xl lg:text-4xl font-black text-amber-200">3</span>
+            <div className="w-full bg-gradient-to-b from-amber-700 to-amber-900 border-t-4 border-amber-500 rounded-t-2xl sm:rounded-t-3xl h-24 sm:h-32 flex items-center justify-center shadow-2xl">
+              <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-200">3</span>
             </div>
           </div>
         )}
@@ -236,29 +236,27 @@ export const PodiumView: React.FC<Props> = ({
       </div>
 
       {/* Prize Totals Box */}
-      <div className="w-full max-w-2xl glass-card rounded-3xl p-4 sm:p-5 mb-6 flex items-center justify-around shadow-xl">
+      <div className="w-full max-w-2xl glass-card rounded-2xl sm:rounded-3xl p-3 sm:p-5 mb-6 grid grid-cols-3 gap-2 sm:gap-4 shadow-xl">
         <div className="text-center flex flex-col items-center">
-          <Gift className="w-6 h-6 text-pink-400 mb-1" />
-          <div className="text-xl sm:text-2xl font-black text-white">
+          <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-pink-400 mb-1" />
+          <div className="text-lg sm:text-2xl font-black text-white">
             {teams.reduce((acc, t) => acc + t.candies, 0)}
           </div>
-          <div className="text-xs text-slate-400 font-bold">Total Balas Entregues</div>
+          <div className="text-[10px] sm:text-xs text-slate-400 font-bold">Balas Entregues</div>
         </div>
-        <div className="h-10 w-px bg-slate-800" />
-        <div className="text-center flex flex-col items-center">
-          <Award className="w-6 h-6 text-amber-400 mb-1" />
-          <div className="text-xl sm:text-2xl font-black text-white">
+        <div className="text-center flex flex-col items-center border-x border-slate-800 px-1">
+          <Award className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 mb-1" />
+          <div className="text-lg sm:text-2xl font-black text-white">
             {teams.reduce((acc, t) => acc + t.chocolates, 0)}
           </div>
-          <div className="text-xs text-slate-400 font-bold">Total Chocolates</div>
+          <div className="text-[10px] sm:text-xs text-slate-400 font-bold">Chocolates</div>
         </div>
-        <div className="h-10 w-px bg-slate-800" />
         <div className="text-center flex flex-col items-center">
-          <Target className="w-6 h-6 text-cyan-400 mb-1" />
-          <div className="text-xl sm:text-2xl font-black text-white">
+          <Target className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 mb-1" />
+          <div className="text-lg sm:text-2xl font-black text-white">
             {questions.length > 0 ? `${questions.length} / ${questions.length}` : '10 / 10'}
           </div>
-          <div className="text-xs text-slate-400 font-bold">Perguntas Concluídas</div>
+          <div className="text-[10px] sm:text-xs text-slate-400 font-bold">Perguntas</div>
         </div>
       </div>
 

@@ -73,12 +73,12 @@ export const VerdictView: React.FC<Props> = ({
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-160px)] w-full max-w-6xl mx-auto p-3 sm:p-5 lg:p-6 animate-fade-in">
       {/* Result Banner */}
-      <div className={`w-full p-5 sm:p-6 md:p-8 rounded-3xl border-2 text-center shadow-2xl mb-6 transform transition-all ${
+      <div className={`w-full p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border-2 text-center shadow-2xl mb-6 transform transition-all ${
         isCorrect
           ? 'bg-gradient-to-b from-emerald-950/85 to-slate-950/95 border-emerald-400/80 ring-4 ring-emerald-500/20'
           : 'bg-gradient-to-b from-rose-950/85 to-slate-950/95 border-rose-500/80 ring-4 ring-rose-500/20'
       }`}>
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-2">
           <MascotDetail
             variant="face"
             size="md"
@@ -86,11 +86,11 @@ export const VerdictView: React.FC<Props> = ({
             label={isCorrect ? 'Mandou bem!' : undefined}
           />
           {isCorrect ? (
-            <CheckCircle2 className="w-9 h-9 sm:w-12 sm:h-12 text-emerald-400 animate-bounce shrink-0" />
+            <CheckCircle2 className="w-8 h-8 sm:w-12 sm:h-12 text-emerald-400 animate-bounce shrink-0" />
           ) : (
-            <XCircle className="w-9 h-9 sm:w-12 sm:h-12 text-rose-400 animate-pulse shrink-0" />
+            <XCircle className="w-8 h-8 sm:w-12 sm:h-12 text-rose-400 animate-pulse shrink-0" />
           )}
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">
             {isCorrect ? 'RESPOSTA CORRETA!' : isTimeout ? 'TEMPO ESGOTADO!' : 'RESPOSTA INCORRETA!'}
           </h2>
         </div>
@@ -117,7 +117,7 @@ export const VerdictView: React.FC<Props> = ({
 
         {/* Brinde (Candy / Chocolate) Delivery Animation */}
         <div className="mt-5 sm:mt-6 flex flex-col items-center">
-          <div className="inline-flex flex-wrap items-center justify-center gap-3 px-4 sm:px-6 py-3 rounded-2xl bg-slate-900/90 border-2 border-yellow-400 shadow-xl max-w-full">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 px-4 sm:px-6 py-3 rounded-2xl bg-slate-900/90 border-2 border-yellow-400 shadow-xl w-full sm:w-auto max-w-full">
             <Gift className="w-6 h-6 text-yellow-400 animate-bounce shrink-0" />
             <div className="text-center sm:text-left">
               <div className="text-[11px] sm:text-xs font-black uppercase text-yellow-400 tracking-wider">
@@ -127,7 +127,7 @@ export const VerdictView: React.FC<Props> = ({
                 {brindeAwarded === 'chocolate' ? '1 Chocolate entregue!' : '1 Bala entregue para a equipe!'}
               </div>
             </div>
-            <div className="flex gap-1.5 sm:ml-2">
+            <div className="flex flex-wrap justify-center gap-1.5 sm:ml-2">
               <button
                 onClick={() => handleManualBrinde('candy')}
                 className="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-xs font-bold text-white transition flex items-center gap-1"

@@ -111,7 +111,7 @@ export const ScoreboardView: React.FC<Props> = ({
                     {team.participants.length > 0 && (
                       <>
                         <span>•</span>
-                        <span className="inline-flex items-center gap-1 text-slate-300 truncate max-w-[200px]">
+                        <span className="inline-flex items-center gap-1 text-slate-300 truncate max-w-[180px] sm:max-w-[220px]">
                           <Users className="w-3 h-3 shrink-0" /> {team.participants.map(p => p.name).join(', ')}
                         </span>
                       </>
@@ -121,7 +121,7 @@ export const ScoreboardView: React.FC<Props> = ({
               </div>
 
               {/* Right Info: Points */}
-              <div className="relative z-10 text-right">
+              <div className="relative z-10 text-left sm:text-right">
                 <div className="font-mono text-2xl md:text-3xl font-black text-white">
                   {team.points.toLocaleString('pt-BR')} <span className="text-xs font-bold text-slate-400">pts</span>
                 </div>

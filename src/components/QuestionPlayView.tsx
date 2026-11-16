@@ -224,7 +224,7 @@ export const QuestionPlayView: React.FC<Props> = ({
         <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-1.5 rounded-2xl bg-slate-950/90 border border-slate-700/80 shadow-md">
           <span className="text-xs text-slate-400 font-semibold">Vez:</span>
           {allTeams && onSelectAnsweringTeam ? (
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               {allTeams.map(t => (
                 <button
                   key={t.id}
@@ -339,7 +339,7 @@ export const QuestionPlayView: React.FC<Props> = ({
       </div>
 
       {/* Central Question Box */}
-      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-3xl p-5 sm:p-7 md:p-9 lg:p-10 shadow-2xl text-center mt-4 mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[140px] sm:min-h-[180px] lg:min-h-[210px]">
+      <div className="relative w-full glass-card border-2 border-cyan-500/30 rounded-2xl sm:rounded-3xl p-5 pt-7 sm:p-7 sm:pt-9 md:p-9 lg:p-10 shadow-2xl text-center mt-4 mb-4 sm:mb-6 flex flex-col items-center justify-center min-h-[140px] sm:min-h-[180px] lg:min-h-[210px]">
         {/* Animated Mascot Peeking on Corner of Question Box */}
         <div className="hidden sm:flex items-center gap-1 absolute -top-11 right-6 z-20">
           <MascotDetail
@@ -349,7 +349,6 @@ export const QuestionPlayView: React.FC<Props> = ({
             label={selectedOption !== null ? 'Boa!' : timeLeft <= 8 ? 'Corre!' : undefined}
           />
         </div>
-
         {/* Floating Timer Circle */}
         <div className={`absolute -top-5 sm:-top-7 left-1/2 -translate-x-1/2 w-11 h-11 sm:w-15 sm:h-15 lg:w-16 lg:h-16 rounded-full border-4 flex items-center justify-center font-black text-base sm:text-xl lg:text-2xl shadow-2xl transition-all z-10 ${
           timeLeft <= 5
@@ -402,7 +401,7 @@ export const QuestionPlayView: React.FC<Props> = ({
         </div>
 
         {/* Countdown Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-2 bg-slate-900/90 overflow-hidden rounded-b-3xl">
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-slate-900/90 overflow-hidden rounded-b-2xl sm:rounded-b-3xl">
           <div
             className={`h-full transition-all duration-1000 linear ${
               timeLeft <= 5

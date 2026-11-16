@@ -73,27 +73,27 @@ export const TargetDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[580px] w-full max-w-4xl mx-auto p-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] w-full max-w-4xl mx-auto p-3 sm:p-4 animate-fade-in">
       <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500/20 border border-red-400 text-red-200 text-sm font-semibold mb-2">
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-red-500/20 border border-red-400 text-red-200 text-xs sm:text-sm font-semibold mb-2">
           <Target className="w-4 h-4 text-red-400 animate-spin-slow" />
           Pergunta #{questionNumber} • Disputa: Quem Acerta o Alvo
         </div>
-        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
           Mire no Centro do Alvo!
         </h2>
-        <p className="text-slate-300 text-sm md:text-base mt-1">
-          Vez da equipe: <strong className="text-yellow-400 text-lg underline">{activeTeam?.name}</strong> disparar quando a mira estiver no meio!
+        <p className="text-slate-300 text-xs sm:text-sm md:text-base mt-1">
+          Vez da equipe: <strong className="text-yellow-400 text-base sm:text-lg underline">{activeTeam?.name}</strong> disparar quando a mira estiver no meio!
         </p>
       </div>
 
       {decisionStep === 'shooting' && (
-        <div className="relative w-full max-w-md h-80 bg-slate-900 border-4 border-slate-700 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center cursor-crosshair select-none my-4">
+        <div className="relative w-full max-w-md h-72 sm:h-80 bg-slate-900 border-4 border-slate-700 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center cursor-crosshair select-none my-3 sm:my-4">
           {/* Target concentric rings */}
-          <div className="absolute w-72 h-72 rounded-full border-2 border-red-500/30 flex items-center justify-center">
-            <div className="w-52 h-52 rounded-full border-2 border-yellow-500/40 flex items-center justify-center">
-              <div className="w-32 h-32 rounded-full border-2 border-emerald-500/50 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-red-600/80 flex items-center justify-center animate-ping" />
+          <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full border-2 border-red-500/30 flex items-center justify-center">
+            <div className="w-40 h-40 sm:w-52 sm:h-52 rounded-full border-2 border-yellow-500/40 flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-emerald-500/50 flex items-center justify-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-600/80 flex items-center justify-center animate-ping" />
               </div>
             </div>
           </div>
@@ -115,15 +115,15 @@ export const TargetDispute: React.FC<Props> = ({ teams, onDisputeResolved, quest
 
           <button
             onClick={shoot}
-            className="absolute bottom-4 px-8 py-3 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 text-white font-black text-lg shadow-xl flex items-center gap-2"
+            className="absolute bottom-3 sm:bottom-4 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 text-white font-black text-sm sm:text-lg shadow-xl flex items-center gap-2"
           >
-            <Target className="w-5 h-5" /> DISPARAR AGORA!
+            <Target className="w-4 h-4 sm:w-5 sm:h-5" /> DISPARAR AGORA!
           </button>
         </div>
       )}
 
       {/* Scores mini-board */}
-      <div className="grid grid-cols-4 gap-3 w-full max-w-md mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full max-w-md mb-6">
         {teams.map(t => (
           <div key={t.id} className="bg-slate-800 p-2 rounded-xl text-center border border-slate-700">
             <div className="text-xs text-slate-400 truncate">{t.name}</div>

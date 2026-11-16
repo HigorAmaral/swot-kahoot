@@ -579,7 +579,15 @@ export const IntroSetupView: React.FC<Props> = ({
           </form>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
+        <div
+          className={`grid gap-3.5 sm:gap-4 lg:gap-5 ${
+            teams.length <= 2
+              ? 'grid-cols-1 sm:grid-cols-2'
+              : teams.length === 3
+              ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
+              : 'grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4'
+          }`}
+        >
           {teams.map(team => {
             const isSelected = selectedTeamId === team.id;
             const isUserInTeam = team.participants.some(
@@ -590,7 +598,7 @@ export const IntroSetupView: React.FC<Props> = ({
               <div
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
-                className={`group relative overflow-hidden p-4 lg:p-5 rounded-3xl border-2 transition-all duration-200 cursor-pointer select-none flex flex-col justify-between h-full ${
+                className={`group relative min-w-0 overflow-hidden p-3.5 sm:p-4 lg:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-200 cursor-pointer select-none flex flex-col justify-between h-full ${
                   isSelected
                     ? `${team.borderClass} bg-gradient-to-b from-slate-900/95 to-[#0b101b] shadow-2xl lg:-translate-y-1`
                     : 'border-slate-800/90 bg-slate-900/75 hover:bg-slate-900/95 hover:border-slate-700 lg:hover:-translate-y-1'
@@ -599,9 +607,9 @@ export const IntroSetupView: React.FC<Props> = ({
                 {/* Top Colored Accent Strip */}
                 <div className={`absolute top-0 left-0 right-0 h-2 ${team.bgClass}`} />
 
-                <div className="pt-1.5">
+                <div className="pt-1.5 min-w-0">
                   {/* Team Header (no overlapping absolute badges) */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={`w-6 h-6 rounded-lg shrink-0 ${team.bgClass} text-white font-black text-xs flex items-center justify-center shadow-sm`}>
                         #{team.id}
@@ -658,7 +666,7 @@ export const IntroSetupView: React.FC<Props> = ({
                   />
 
                   {/* Participant Chips */}
-                  <div className="mt-3.5 min-h-[72px]">
+                  <div className="mt-3.5 min-h-[56px] sm:min-h-[72px]">
                     <div className="text-[11px] font-bold text-slate-400 mb-2 flex items-center justify-between">
                       <span>Integrantes</span>
                       {team.points > 0 && (
@@ -710,9 +718,9 @@ export const IntroSetupView: React.FC<Props> = ({
                         e.stopPropagation();
                         handleJoinTeam(team.id);
                       }}
-                      className="w-full py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition"
                     >
-                      Já está no {userCurrentTeam.name}
+                      <span className="truncate">Já está no {userCurrentTeam.name}</span>
                     </button>
                   ) : (
                     <button

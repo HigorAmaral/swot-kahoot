@@ -64,23 +64,12 @@ export const HostHeader: React.FC<Props> = ({
   return (
     <header className="w-full bg-[#090d16]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)] px-3 sm:px-6 lg:px-8 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 sm:py-3 sticky top-0 z-40 shrink-0">
       <div className="w-full max-w-[1680px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        {/* Logo / Title with Animated Mascot Face */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Logo / Title */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
           <MascotDetail variant="face" size="sm" className="shrink-0" />
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              <span className="font-black text-base sm:text-xl lg:text-2xl text-white tracking-tight truncate">
-                Arena<span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Quiz</span>
-              </span>
-              <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider text-emerald-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Arena Interativa
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 hidden sm:block font-medium">
-              Quiz Competitivo em Tempo Real • Equipes, Power-Ups & Premiação
-            </p>
-          </div>
+          <span className="font-black text-base sm:text-xl lg:text-2xl text-white tracking-tight whitespace-nowrap">
+            Arena<span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Quiz</span>
+          </span>
         </div>
 
         {/* Utility Actions */}
@@ -114,8 +103,8 @@ export const HostHeader: React.FC<Props> = ({
               title="Meus Kahoots salvos e enviar para outras pessoas"
             >
               <Share2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="hidden xl:inline">Meus Kahoots / Enviar</span>
-              <span className="xl:hidden">Meus Quizzes</span>
+              <span className="hidden 2xl:inline">Meus Kahoots / Enviar</span>
+              <span className="2xl:hidden">Meus Quizzes</span>
             </button>
 
             {/* Admin Dashboard Button */}
@@ -206,7 +195,7 @@ export const HostHeader: React.FC<Props> = ({
           <div className="flex items-center gap-1.5 md:pl-2 md:border-l md:border-slate-800">
             <button
               onClick={onOpenProfileModal}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-400 text-xs font-bold text-slate-200 transition active:scale-95 max-w-[110px] sm:max-w-[160px] md:max-w-none"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-400 text-xs font-bold text-slate-200 transition active:scale-95 max-w-[110px] sm:max-w-[140px] lg:max-w-[170px]"
               title="Clique para personalizar sua conta (nome, avatar, senha)"
             >
               <span className="text-base shrink-0">{currentUser.avatar}</span>

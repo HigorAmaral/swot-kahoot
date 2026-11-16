@@ -4,6 +4,12 @@ import { dbService } from '../services/db';
 import { sound } from '../utils/sound';
 import { ArenaMascot, MascotMood, MascotDetail } from './ArenaMascot';
 import {
+  validateLoginForm,
+  validateRegisterForm,
+  evaluatePasswordStrength,
+  normalizeUsername,
+} from '../utils/authValidation';
+import {
   LogIn,
   UserPlus,
   Lock,
@@ -41,9 +47,10 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
   const [username, setUsername] = useState(savedCreds?.username || '');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(savedCreds?.password || '');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberLogin, setRememberLogin] = useState<boolean>(savedCreds !== null || true);
+  const [rememberLogin, setRememberLogin] = useState<boolean>(true);
   const [avatar, setAvatar] = useState('🦊');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -184,16 +191,39 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (mode === 'login') {
+      const validationError = validateLoginForm(username, password);
+      if (validationError) {
+        sound.playWrong();
+        setError(validationError);
+        return;
+      }
+    } else {
+      const validationError = validateRegisterForm({
+        displayName,
+        email,
+        username,
+        password,
+        confirmPassword,
+      });
+      if (validationError) {
+        sound.playWrong();
+        setError(validationError);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (mode === 'login') {
-        const res = await dbService.loginUser(username, password);
+        const res = await dbService.loginUser(username.trim(), password);
         if (res.success && res.user) {
           sound.playCorrect();
           try {
             if (rememberLogin) {
-              localStorage.setItem('fabrica_saved_credentials', JSON.stringify({ username: username.trim(), password }));
+              localStorage.setItem('fabrica_saved_credentials', JSON.stringify({ username: res.user.username }));
             } else {
               localStorage.removeItem('fabrica_saved_credentials');
             }
@@ -201,15 +231,16 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
           onLoginSuccess(res.user, rememberLogin);
         } else {
           sound.playWrong();
-          setError(res.error || 'Usuário ou senha incorretos.');
+          setError(res.error || 'Usuário/e-mail ou senha incorretos.');
         }
       } else {
-        const res = await dbService.registerUser(username, displayName, password, avatar, email.trim() || undefined);
+        const cleanUsername = normalizeUsername(username);
+        const res = await dbService.registerUser(cleanUsername, displayName.trim(), password, avatar, email.trim().toLowerCase());
         if (res.success && res.user) {
           sound.playCorrect();
           try {
             if (rememberLogin) {
-              localStorage.setItem('fabrica_saved_credentials', JSON.stringify({ username: username.trim(), password }));
+              localStorage.setItem('fabrica_saved_credentials', JSON.stringify({ username: res.user.username }));
             } else {
               localStorage.removeItem('fabrica_saved_credentials');
             }
@@ -491,12 +522,13 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
 
                   <div>
                     <label className="block text-[11px] font-black uppercase text-slate-300 mb-1">
-                      Seu E-mail (opcional — para recuperar senha)
+                      Seu E-mail (obrigatório para recuperação de senha)
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
+                        required
                         value={email}
                         onFocus={() => setFocusedField('email')}
                         onBlur={() => setFocusedField(null)}
@@ -533,9 +565,16 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
               )}
 
               <div>
-                <label className="block text-[11px] font-black uppercase text-slate-300 mb-1">
-                  Usuário
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-black uppercase text-slate-300">
+                    {mode === 'login' ? 'Usuário ou E-mail' : 'Usuário (identificador)'}
+                  </label>
+                  {mode === 'register' && username.trim().length > 0 && (
+                    <span className="text-[10px] font-mono text-emerald-400">
+                      @{normalizeUsername(username)}
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -545,7 +584,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                     onFocus={() => setFocusedField('username')}
                     onBlur={() => setFocusedField(null)}
                     onChange={e => setUsername(e.target.value)}
-                    placeholder="Ex: higoramaral"
+                    placeholder={mode === 'login' ? 'Ex: higoramaral ou seu@email.com' : 'Ex: higoramaral'}
                     className="w-full bg-[#0b0f19] border-2 border-slate-700 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-sm font-bold text-white focus:outline-none transition"
                   />
                 </div>
@@ -560,6 +599,7 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    minLength={mode === 'register' ? 6 : 3}
                     value={password}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
@@ -576,6 +616,68 @@ export const LoginView: React.FC<Props> = ({ onLoginSuccess, pendingQuizCode }) 
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+
+                {mode === 'register' && (
+                  <div className="mt-2.5 space-y-2.5">
+                    {/* Password Strength Meter */}
+                    {password.length > 0 && (() => {
+                      const strength = evaluatePasswordStrength(password);
+                      const barColors = ['bg-rose-500', 'bg-amber-500', 'bg-cyan-400', 'bg-emerald-400'];
+                      return (
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] font-bold">
+                            <span className="text-slate-400">Força da senha:</span>
+                            <span className={
+                              strength.score <= 1 ? 'text-rose-400' : strength.score === 2 ? 'text-cyan-300' : 'text-emerald-400'
+                            }>
+                              {strength.label}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1 h-1.5">
+                            {[1, 2, 3].map(level => (
+                              <div
+                                key={level}
+                                className={`rounded-full transition-colors ${
+                                  strength.score >= level ? barColors[strength.score] : 'bg-slate-800'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase text-slate-300 mb-1">
+                        Confirmar Senha
+                      </label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={confirmPassword}
+                          onFocus={() => setFocusedField('password')}
+                          onBlur={() => setFocusedField(null)}
+                          onChange={e => setConfirmPassword(e.target.value)}
+                          placeholder="Repita sua senha"
+                          className={`w-full bg-[#0b0f19] border-2 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-sm font-bold text-white focus:outline-none transition ${
+                            confirmPassword.length > 0 && confirmPassword !== password
+                              ? 'border-rose-500'
+                              : 'border-slate-700 focus:border-amber-400'
+                          }`}
+                        />
+                      </div>
+                      {confirmPassword.length > 0 && confirmPassword !== password && (
+                        <p className="text-[11px] font-bold text-rose-400 mt-1">
+                          As senhas não coincidem.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                   <label className="inline-flex items-center gap-2 cursor-pointer text-[11px] font-bold text-slate-300 select-none">

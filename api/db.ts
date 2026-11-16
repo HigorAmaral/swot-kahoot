@@ -871,26 +871,65 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({ success: true, sessionId });
       }
 
-      // 9. Register User
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+
+function checkLoginRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = loginAttempts.get(key);
+  if (!entry || now > entry.resetAt) {
+    return true;
+  }
+  return entry.count < 5;
+}
+
+function recordFailedLogin(key: string): void {
+  const now = Date.now();
+  const entry = loginAttempts.get(key);
+  if (!entry || now > entry.resetAt) {
+    loginAttempts.set(key, { count: 1, resetAt: now + 5 * 60 * 1000 });
+  } else {
+    entry.count += 1;
+  }
+}
+
+function clearFailedLogin(key: string): void {
+  loginAttempts.delete(key);
+}
+
+// 9. Register User
       if (action === 'register_user') {
-        const username = String(body.username || '').trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+        const rawUsername = String(body.username || '').trim().replace(/^@+/, '').toLowerCase();
         const displayName = String(body.displayName || '').trim();
         const password = String(body.password || '');
         const avatar = String(body.avatar || '👨‍💻');
-        const email = body.email ? String(body.email).trim().toLowerCase() : null;
+        const email = body.email ? String(body.email).trim().toLowerCase() : '';
 
-        if (!username || username.length < 3 || !displayName || password.length < 3) {
-          return res.status(400).json({ error: 'Preencha usuário (mín. 3 letras), nome e senha (mín. 3 caracteres).' });
+        if (!/^[a-z0-9_.-]{3,24}$/.test(rawUsername)) {
+          return res.status(400).json({ error: 'Usuário deve ter 3 a 24 caracteres (apenas letras, números, ., - ou _).' });
+        }
+        if (displayName.length < 2) {
+          return res.status(400).json({ error: 'Informe seu nome ou apelido (mínimo 2 caracteres).' });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          return res.status(400).json({ error: 'Informe um e-mail válido para cadastro e recuperação de senha.' });
+        }
+        if (password.length < 6) {
+          return res.status(400).json({ error: 'A senha deve ter no mínimo 6 caracteres.' });
         }
 
-        const existing = await sql`SELECT id FROM fabrica_users WHERE username = ${username} LIMIT 1`;
-        if (existing.length > 0) {
+        const existingUser = await sql`SELECT id FROM fabrica_users WHERE LOWER(username) = ${rawUsername} LIMIT 1`;
+        if (existingUser.length > 0) {
           return res.status(409).json({ error: 'Este nome de usuário já está em uso. Escolha outro!' });
+        }
+
+        const existingEmail = await sql`SELECT id FROM fabrica_users WHERE LOWER(email) = ${email} LIMIT 1`;
+        if (existingEmail.length > 0) {
+          return res.status(409).json({ error: 'Este e-mail já está cadastrado. Faça login ou recupere sua senha.' });
         }
 
         const inserted = await sql`
           INSERT INTO fabrica_users (username, display_name, password_hash, avatar, email)
-          VALUES (${username}, ${displayName}, ${hashPassword(password)}, ${avatar}, ${email})
+          VALUES (${rawUsername}, ${displayName}, ${hashPassword(password)}, ${avatar}, ${email})
           RETURNING id, username, display_name, avatar, email
         `;
         const u = inserted[0];
@@ -902,29 +941,36 @@ export default async function handler(req: any, res: any) {
         });
       }
 
-      // 10. Login User
+      // 10. Login User (accepts username or email)
       if (action === 'login_user') {
-        const username = String(body.username || '').trim().toLowerCase();
+        const identifier = String(body.username || '').trim().replace(/^@+/, '').toLowerCase();
         const password = String(body.password || '');
 
-        if (!username || !password) {
-          return res.status(400).json({ error: 'Informe usuário e senha.' });
+        if (!identifier || !password) {
+          return res.status(400).json({ error: 'Informe usuário (ou e-mail) e senha.' });
+        }
+
+        if (!checkLoginRateLimit(identifier)) {
+          return res.status(429).json({ error: 'Muitas tentativas incorretas. Aguarde alguns minutos e tente novamente.' });
         }
 
         const rows = await sql`
           SELECT id, username, display_name, password_hash, avatar, email
           FROM fabrica_users
-          WHERE username = ${username}
+          WHERE LOWER(username) = ${identifier} OR LOWER(email) = ${identifier}
           LIMIT 1
         `;
         if (rows.length === 0) {
-          return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
+          recordFailedLogin(identifier);
+          return res.status(401).json({ error: 'Usuário/e-mail ou senha incorretos.' });
         }
         const u = rows[0];
         const check = verifyPassword(password, String(u.password_hash || ''));
         if (!check.valid) {
-          return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
+          recordFailedLogin(identifier);
+          return res.status(401).json({ error: 'Usuário/e-mail ou senha incorretos.' });
         }
+        clearFailedLogin(identifier);
         if (check.needsUpgrade) {
           await sql`
             UPDATE fabrica_users SET password_hash = ${hashPassword(password)} WHERE id = ${u.id}
